@@ -1,0 +1,151 @@
+% ChkTeX ignores
+%  - 11: You should use \ldots to achieve an ellipsis.
+% chktex-file 11
+
+% Documentclass for printing
+\documentclass[hidelinks, a4paper, 12pt, notitlepage, twoside, openright]{report}
+
+% Documentclass for screen
+%\documentclass[hidelinks, a4paper, 12pt, notitlepage]{report}
+
+% Packages
+\usepackage[english, ngerman]{babel}
+\usepackage{blindtext}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\usepackage{tikz-timing}
+\usepackage{todonotes}
+\usepackage[nopostdot,nonumberlist]{glossaries}
+\usepackage[binary-units]{siunitx}
+\usepackage{textcomp}
+\usepackage{enumitem}
+\usepackage[paper=a4paper,margin=1in]{geometry}
+\usepackage{pdflscape}
+\usepackage{fancyhdr}
+\usepackage[labelfont=bf]{caption}
+\usepackage{setspace}
+\usepackage{titlesec, blindtext, color}
+\usepackage{numname}
+\usepackage{refcount}
+\usepackage[bottom]{footmisc}
+\definecolor{gray75}{gray}{0.75}
+\newcommand{\hsp}{\hspace{20pt}}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{mathtools}
+\usepackage{commath}
+\usepackage{bm}
+\usepackage{nicefrac}
+\titleformat{\chapter}{\vspace{-20mm}\Huge\bfseries}{\thechapter\hsp\textcolor{gray75}{}\hsp}{0pt}{\Huge\bfseries}
+
+% hyperref wants to be imported as last package
+\PassOptionsToPackage{hyphens}{url}\usepackage[plainpages=false,pdfpagelabels=true, breaklinks]{hyperref}
+
+% cleveref wants to be imported even later
+\usepackage[noabbrev,capitalise]{cleveref}
+
+% General formatting
+\parskip1ex
+\parindent0pt
+\setcounter{topnumber}{1}
+\raggedbottom
+
+% Prüfunggssekretariat wants enlarged line spacing
+\linespread{1.25}
+
+% Less line spread for captions
+\captionsetup{font={stretch=1.1}}
+
+% Space between lines in a formula
+\addtolength{\jot}{10pt}
+
+% todonotes margin
+\setlength{\marginparwidth}{2cm}
+
+% TOC shall not include subsections
+\setcounter{tocdepth}{1}
+
+\newcommand{\appendixsection}[1]{
+	\stepcounter{section}
+	\section*{\Alph{chapter}.\arabic{section}\hspace{1em}{#1}}
+}
+
+% Bibliography
+\bibliographystyle{visions_agu}
+\setcitestyle{authoryear,round}
+
+% Figures
+\graphicspath{{../../fig/}}
+\newcommand{\pgfplot}[1]{\input{../../fig/#1.pgf}}
+\pgfplotsset{compat=1.11}
+\captionsetup[subfigure]{position=top, labelfont=bf, textfont=normalfont, singlelinecheck=off, justification=raggedright}
+
+
+\makeatletter
+\def\dontdofcolorbox{\renewcommand\fcolorbox[4][]{##4}}
+\makeatother
+
+\DeclareSIUnit{\billion}{\text{billion}}
+
+\makeglossaries
+
+\begin{document}
+	\include{acronyms}
+	
+	\selectlanguage{english}
+	
+	\pagestyle{empty}
+	\include{titlepage}
+	
+	% Settings for printing
+	\newgeometry{top=0.8in,bottom=0.9in,right=0.9in,left=1.30in}
+	
+	% Settings for screen
+	%    \newgeometry{top=0.8in,bottom=0.9in,right=0.95in,left=1.25in}
+	
+	% Roman pagenumbers for table of contents and abstract
+	\pagestyle{plain}
+	\pagenumbering{roman}
+	
+	%\input{abstract}
+	\cleardoublepage{}
+	
+	\tableofcontents{}
+	
+	
+	% Arabic page numbers for content
+	\pagenumbering{arabic}
+	
+	%\input{introduction}
+	\input{background}
+	%\input{hx}
+	%\input{dls3}
+	%\input{dls2}
+	%\input{ci}
+	%\input{discussion}
+	
+	% Roman page numbers for appendix
+	\pagebreak
+	\pagenumbering{roman}
+	
+	%\include{copublications}
+	
+	% References
+	\addcontentsline{toc}{chapter}{References}
+	\renewcommand{\bibname}{References}
+	\bibliography{bibliography,visions_bib}
+	
+	\printglossary[title=List of Acronyms]
+	
+	\listoffigures
+	\enlargethispage{\baselineskip}
+	
+	\listoftables
+	\include{appendix}
+	
+	\include{acknowledgments}
+	\include{declaration}
+	
+\end{document}

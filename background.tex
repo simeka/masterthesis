@@ -5,16 +5,32 @@ Starting my final year project at the Electronic Vision(s) group, I soon realize
 
 Describe: Soma, Axon, Synapse, Neuron, Membrane, ... but read the to be cited literature on it first so that not too much none sense comes up.
 
-Hodgkin Hoxley Model
+Hodgkin Huxley Model
 
 
 \subsection{Neuromorphic Hardware}
 Cuda/Coda
 
+The connecting architecure is called spiking neural network (SNN).
+
 
 \section{Deep Learning}
+% 
+The last decade was filled with inventions and technologies of machine learning nature. Among the many tools machine learning has provided to the scientific community, deep learning is one where many still struggle to grasp its mechanism and capabilities. However, it has become a useful and powerful tool to solve complex tasks. One approach is to understand such a task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going done on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it's called \textit{deep learning} . [Deeplearning Book, Intro]
 
-The last decade was filled with inventions and technologies of machine learning nature. Among the many tools machine learning has provided to the scientific community, deep learning is one where many still struggle to grasp its mechanism and capabilities. However, it has become a useful and powerful tool to solve complex tasks and furhtermore lead to spead up the progress in various fields of research - one in particular: artificial intelligence.
+Another important aspect is the representation of information. Given a picture of a cat, any computer will have a hard time to map the important information of the sensor data to the class \textit{cat}. A multiple layer network on the other side can extract parts of the picture in its deeper layers and eventually gather all necessary information to detect the cat. On neuromorphic hardware spikes transmit data from one neuron to another. There are a number of different ways to use spikes for information encoding. \textbf{Rate coding} for instance uses a high number of spikes to establish a certain firing rate of the neuron. The information is not encoded in a single spike or the time interval between two spikes but in a number of spikes within a certain period defining the \textit{rate}. \textbf{Temporal coding} on the other hand focuses on the interspike interval (ISI). This type of coding is more exposed to noise but for some applications it might be simply too slow to establish a certain fire rate first. The ISI on the other can be adapted quickly. When only a small set of all availble neurons is used to describe an input pattern, its called \textbf{sparse coding}.\\
+
+
+\subsection{Training Methods for SNNs}
+
+% make sure SNNs and ANNs is somewhere before explained 
+
+The different types of neural coding require each an adapted training method. Rate coding can be treated similar to ANNs and thus classical gradient descent via backpropagation or feedback alignment will work just fine. Temporal or sparse coding use single spikes to encode information. Their strong non-linearity can be treated with a surrogate model. SuperSpike is a surrogate gradient descent method for SNNs that has been imposed by Friedemann Zenke et al 2017 and tackles the non-linearity of spikes.
+
+\subsubsection{Gradient Descent}
+
+Most training approaches of neural networks involve optimizing a \textit{loss function} $
+
 
 ToDo: Literatur Book zu Deep Learning (siehe downloads UniRechner)
 

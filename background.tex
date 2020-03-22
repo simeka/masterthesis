@@ -18,21 +18,58 @@ The connecting architecure is called spiking neural network (SNN).
 % 
 The last decade was filled with inventions and technologies of machine learning nature. Among the many tools machine learning has provided to the scientific community, deep learning is one where many still struggle to grasp its mechanism and capabilities. However, it has become a useful and powerful tool to solve complex tasks. One approach is to understand such a task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going done on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it's called \textit{deep learning} . [Deeplearning Book, Intro]
 
-Another important aspect is the representation of information. Given a picture of a cat, any computer will have a hard time to map the important information of the sensor data to the class \textit{cat}. A multiple layer network on the other side can extract parts of the picture in its deeper layers and eventually gather all necessary information to detect the cat. On neuromorphic hardware spikes transmit data from one neuron to another. There are a number of different ways to use spikes for information encoding. \textbf{Rate coding} for instance uses a high number of spikes to establish a certain firing rate of the neuron. The information is not encoded in a single spike or the time interval between two spikes but in a number of spikes within a certain period defining the \textit{rate}. \textbf{Temporal coding} on the other hand focuses on the interspike interval (ISI). This type of coding is more exposed to noise but for some applications it might be simply too slow to establish a certain fire rate first. The ISI on the other can be adapted quickly. When only a small set of all availble neurons is used to describe an input pattern, its called \textbf{sparse coding}.\\
+Another important aspect is the representation of information. Given a picture of a cat, any computer will have a hard time to map the important information of the sensor data to the class \textit{cat}. A multiple layer network on the other side can extract parts of the picture in its deeper layers and eventually gather all necessary information to detect the cat. On neuromorphic hardware spikes transmit data from one neuron to another. There are a number of different ways to use spikes for information encoding. \textbf{Rate coding} for instance uses a high number of spikes to establish a certain firing rate of the neuron. The information is not encoded in a single spike or the time interval between two spikes but in a number of spikes within a certain period defining the \textit{rate}. \textbf{Temporal coding} on the other hand focuses on the interspike interval (ISI). This type of coding is more exposed to noise but for some applications it might be simply too slow to establish a certain fire rate first. The ISI on the other can be adapted quickly. When only a small set of all available neurons is used to describe an input pattern, its called \textbf{sparse coding}.\\
 
+The different types of neural coding require each an adapted training method. Rate coding can be treated similar to ANNs and thus classical gradient descent or feedback alignment will work just fine. Temporal or sparse coding use single spikes to encode information. Their strong non-linearity can be treated with a surrogate model. SuperSpike is a surrogate gradient descent method for SNNs that has been imposed by Friedemann Zenke et al 2017 and tackles the non-linearity of spikes.\\
 
 \subsection{Training Methods for SNNs}
 
 % make sure SNNs and ANNs is somewhere before explained 
+%maybe put this later (like experiment setup or so)
+The learning process of a neural network can be divided into a forward and backward pass: During the forward pass the output value of each node in the network is evaluated. The backward pass calculates in which direction the networks parameters are updated. In the following, a single hidden layer network with a sigmoidal shaped transfer function $\phi$ and a cross-entropy loss function is assumed. \\
 
-The different types of neural coding require each an adapted training method. Rate coding can be treated similar to ANNs and thus classical gradient descent via backpropagation or feedback alignment will work just fine. Temporal or sparse coding use single spikes to encode information. Their strong non-linearity can be treated with a surrogate model. SuperSpike is a surrogate gradient descent method for SNNs that has been imposed by Friedemann Zenke et al 2017 and tackles the non-linearity of spikes.
+\subsubsection{Forward Pass}
+The activation $\mathbf{a}$ of the hidden layer is given by the weighted input $\mathbf{x}$ plus a bias term $\mathbf{b}$. The output $\mathbf{y}$ is the result of the transfer function $\phi$:
+\begin{align}
+\mathbf{a} &= W^{\text{(h)}} \, \mathbf{x} + \mathbf{b} \\
+\mathbf{y} &= \phi(\mathbf{a})
+\end{align} 
+The same principle is applied to the output layer. The weight matrices $W^{\text{(h)}}$ and $ W^{\text{(o)}}$ have the appropriate shape to fit the number of input, hidden and output nodes. The bias term is a vital parameter which allows the network to shift the dynamic range of a single neuron.
 
-\subsubsection{Gradient Descent}
+\subsubsection{Gradient Descent (Backward Pass)}
 
-Most training approaches of neural networks involve optimizing a \textit{loss function} $
+Most training approaches for neural networks involve optimizing a loss function $\loss(\mathbf{x})$ by changing the networks parameters $\mathbf{x}$ in the right direction. This can be achieved by moving in the direction of the negative gradient of $\loss$. The new set of parameters is then given by [compare deep learning book ch 4]
+\begin{equation}
+\mathbf{x'} = \mathbf{x} - \eta \, \nabla\loss(\mathbf{x}).
+\end{equation}
+whereby $\eta$, the learning rate, defines how fast the update is applied.\\
+
+blabla blub hier comes the code:
+todo: fehler zuerst dann der rest. FA / Backprop
+\begin{align*}
+\text{output:} \quad \delta W =& - \eta \frac{\partial \mathcal{L}}{\partial W} 
+= - \eta \;
+\underbrace{\frac{\partial\mathcal{L}}{\partial \vec{y}} \;
+	\frac{\partial \vec{y}}{\partial \vec{a} }}_{=\vec{e}\; \text{(error)}} \;
+\frac{\partial \vec{a}}{\partial W}
+= - \eta \, (\vec{e} \cdot \vec{x}^T)\\
+\\ 
+\text{hidden:} \quad \delta W =& - \eta \;
+(W^T \cdot \vec{e}) \;
+\nabla \phi(\vec{a}) \;
+\vec{x}^T\\
+\text{feedback alignment:} \quad \delta W =& - \eta \;
+(B \cdot \vec{e}) \;
+\nabla \phi(\vec{a}) \;
+\vec{x}^T\;\\
+\text{with } B \text{ being random matrix}
+\end{align*}
+
+Feedback alignment 
 
 
-ToDo: Literatur Book zu Deep Learning (siehe downloads UniRechner)
 
-Überleitung zu rate coding vs sparse coding (maybe read again SuperSpike17/19 first))
-A spiking neural network (SNN) offers many advantages compared to a classical artifical neural network (ANN). On of the major differences is that sparse coding allows the user to compress a lot of information into a single spike. Also not spiking at a sppecifencodes information.  This efficient way of transporting information makes SNNs a contender for any energy sensitive form of computing. More importantly it also opens up the doors to understanding spike-based computing better and thus also the way the human brain works.
+%ToDo: Literatur Book zu Deep Learning (siehe downloads UniRechner)
+%
+%Überleitung zu rate coding vs sparse coding (maybe read again SuperSpike17/19 first))
+%A spiking neural network (SNN) offers many advantages compared to a classical artifical neural network (ANN). On of the major differences is that sparse coding allows the user to compress a lot of information into a single spike. Also not spiking at a sppecifencodes information.  This efficient way of transporting information makes SNNs a contender for any energy sensitive form of computing. More importantly it also opens up the doors to understanding spike-based computing better and thus also the way the human brain works.

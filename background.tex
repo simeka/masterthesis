@@ -20,25 +20,18 @@ V_{\text{m}}(t) &= V_{\text{reset}} \quad \forall t \in (t_{\text{fire}}, t_{\te
 \end{align}
 
 
- The Leaky Integrate-and-Fire (LIF) model makes use of the fact that the shape of an input spike stays approximately the same. It was first described by Lapicque in 1907 [REF missing]. The model describes no spatial structures of the neurons. A LIF neuron is thus a point-like integrator that neglects any non-linear dynamics coming from strategically positioned connections to sources of excitatory or inhibitory spikes. Moreover a LIF neuron doesn't keep any memory of previous spikes after firing, since the membrane will always be reset to $V_{\text{reset}}$. 
+The Leaky Integrate-and-Fire (LIF) model makes use of the fact that the shape of an input spike stays approximately the same. It was first described by Lapicque in 1907 [REF missing]. The model describes no spatial structures of the neurons. A LIF neuron is thus a point-like integrator that neglects any non-linear dynamics coming from strategically positioned connections to sources of excitatory or inhibitory spikes. Moreover a LIF neuron doesn't keep any memory of previous spikes after firing, since the membrane will always be reset to $V_{\text{reset}}$. These limitations make it impossible for the model to correctly describe neuronal behavior for repetitive firing. However, the main neuron dynamics are well described by the LIF neuron and it thus has been a popular choice for neuromorphic hardware [ref to BSS1?].\\
 
-\subsection{Adaptive-Exponential Neuron model}
-motivation
+The limitations of the LIF neuron led to a demand for a more sophisticated model, namely the Adaptive-Exponential Integrate-and-Fire short AdEx model. The two adaptations made are an additonal adaptive current the allows the membrane to remember its previous state after firing and an exponential voltage feedback. Depending on the sign of the adaptive current, the neuron will either be stunted to fire again after it has sent out its first spike or it is engaged to keep on firing. In the example given in figure [ref to figure] the former is the case. The exponential voltage feedback on the other hand, enables the neuron to generate a proper fire response.\\
 
-equations
+\subsection{Synapses}
+input
 
-explanations what each parts do + plot
+weights
 
-
-multicompartment neuron models? or leave them out
-
-
-Somewhere (or as own subchapter synpatic interactions\&plasticity)
+plasticity
 
 
-
-(paper of Brette and Gerstner 2005)
-Next: Hodgkin Huxley Model and LIF (later also AdEx)
 
 
 \subsection{Neuromorphic Hardware}
@@ -48,7 +41,8 @@ BSS-2 (HX)
 
 
 
-\section{Deep Learning}[deeplearning]
+\section{Deep Learning}
+\label{deeplearning}
 % 
 The last decade was filled with inventions and technologies of machine learning nature. Among the many tools machine learning has provided to the scientific community, deep learning is one where many still struggle to grasp its mechanism and capabilities. However, it has become a useful and powerful tool to solve complex tasks. One approach is to understand such a task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going done on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it's called \textit{deep learning} . [Deeplearning Book, Intro]
 

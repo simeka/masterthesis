@@ -83,7 +83,6 @@ The design of the HICANN-X chip can be divided into an analogue and digital core
 \caption{Overview of the architecture of the HICANN-X chip. Figure taken from (Schemmel,2017)}
 \end{figure}
 
-
 \subsubsection*{Analogue and Digital Core}
 The analogue core implements the neuron dynamics. On the DLSv2 a current based LIF neuron model with a total of 32 neurons is used (Aamir, Müller et al. 2016, ...). The dynamics of an \textit{in-silico} neuron have a temporal speed-up factor of 1000 compared to its \textit{in-vivo} counterpart. This acceleration is made possible by the supra-threshold dynamics of CMOS transistors. The biological time constants of neurons and synapses are usually in the order of 10 to 100 milliseconds. The HICANN-X contains 512 AdEx neurons. AdEx is short for a LIF model extension with an adaptive current and an exponential voltage feedback. The analog model parameters in both chips are tunable by setting bias currents over an 10 bit Digital to Analog Converter (DAC). (Hock et al., 2013) Each neuron can be controlled and adjusted individually. The 8bit spike counter of the DLSv2 (one per neuron) has been upgraded to a 10 bit counter in the HICANN-X. 
 
@@ -97,6 +96,18 @@ Apart from the spike counters, the digital neuron backend registers any spiking 
 The link between chip and external host is established through eight serial Low Voltage Differential Signaling (LVDS) links that are accessed by an FPGA. This interface handles all read/write instructions to any SRAM on chip and manages spike event data in both directions. The FPGA grants access for the PPU to greater memory storages than the one provided on-chip. Access to large training datasets is vital for most learning tasks.
 
 The communication for DLSv2 is slightly adapted. 
+
+\subsubsection*{Analogue and Digital Core}
+The analogue core implements the neuron dynamics. On the DLSv2 a current based LIF neuron model with a total of 32 neurons is used (Aamir, Müller et al. 2016, ...). The dynamics of an \textit{in-silico} neuron have a temporal speed-up factor of 1000 compared to its \textit{in-vivo} counterpart. This acceleration is made possible by the supra-threshold dynamics of CMOS transistors. The biological time constants of neurons and synapses are usually in the order of 10 to 100 milliseconds. The HICANN-X contains 512 AdEx neurons. AdEx is short for a LIF model extension with an adaptive current and an exponential voltage feedback. The analog model parameters in both chips are tunable by setting bias currents over an 10 bit Digital to Analog Converter (DAC). (Hock et al., 2013) Each neuron can be controlled and adjusted individually. The 8bit spike counter of the DLSv2 (one per neuron) has been upgraded to a 10 bit counter in the HICANN-X. 
+
+The synaptic input is mapped by an $512 \times 256$ synapse array. Each synapse has a 16 bit local Static Random Access Memory (SRAM) to store weight and information about the presynaptic connections. In addition, two correlation sensors per synapse (causal and anti-causal) record STDP traces and store them in dedicated capacitors. These analog observables can then be accessed by a Plasticity Processing Units (PPU) via an Analog to Digital Converter (ADC). The readout is performed per row and thus a total of 1024 channels (one channel per correlation sensor per synapse) is accessed by the \textit{Correlation} ADC (CADC). The CADC can also be used to access further observables such as the membrane potential. This feature has not been available on the earlier revision and opens up new possibilities for plasticity rules. A highly accelerated analog system requires a fast computation of any plasticity rule. To provide sufficient computational power, the chip is equipped with two asynchronous Single Instruction Multiple Data (SIMD) PPUs. The PPU has vectorial access to the synapse array as well as to the results of the CDAC.   
+
+As an additional debugging and observation tool, a fast ADC (MADC) can be accessed from the digital core to readout any available analog observables.
+
+Apart from the spike counters, the digital neuron backend registers any spiking event. Such an event may also come from one of the noise generators or PPUs as well as from an external source. Once a spike has been registered in the digital neuron backend, it is routed back into the synapse array accordingly. 
+
+\subsubsection{Communication}
+The communication between the chip and an external host is established through eight serial Low Voltage Differential Signaling (LVDS) links that are accessed by the FPGA. This interface handles all read/write instructions to any SRAM on chip and manages spike event data. The FPGA grants access for the PPU to greater memory storages than the one provided on-chip. Access to large training datasets is vital for most learning tasks.
 
 \section{Deep Learning}
 \label{deeplearning}

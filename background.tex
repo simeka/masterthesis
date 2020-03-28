@@ -5,6 +5,13 @@ Starting my final year project at the Electronic Vision(s) group, I soon realize
 
 It is estimated that the human brain contains around $10^11$ neurons. However, the cortex is not only made out of spiking neurons but also a high number of glia cells which provide energy and structural support to the neurons. The neuron itself can be divided into three different functional parts: dendrites, soma and axon (see figure -> ref to Figure). On a high level description the dendrites are responsible for managing all inputs from any neurons and transmit them further to the soma where the received information is processed. The output of the soma is then distributed via the axon to other neurons.  The input and output consists of short electrical pulses, spikes, which can either excite or inhibit the whole neuron membrane and thus lead to an in- or decrease of its electrical potential (\textit{membrane potential}). The link between two neurons is established by a synapse and usually a single neuron connects to around $10^4$ other ones. There is actually a small but physical gap between two connecting neurons called synapse cleft. When the \textit{presynaptic} neuron sends out a spike, a complex chain of reaction is triggered at the synaptic cleft, where various neurotransmitter will be released. Once a transmitter has connected with a corresponding receptor on the \textit{postsynaptic} side of the cleft, the receptor will activate ion channels which are responsible for raising or lowering the membrane potential of the postsynaptic neuron. By this the chemical reaction is converted back into an electrical signal.\\
 
+\begin{figure}
+	\includegraphics[width=\linewidth]{figures/neuron_model.png}
+	\label{biosynapse}
+	\caption{Schematics of a biological neuron: Dendrites, Membrane and Axon}
+\end{figure}
+
+
 In addition to the ion channels a neuron also contains ion pumps. These pumps restore the balance of the ion concentration in and outside of the membrane over time. The equilibrated state of the membrane potential is referred to as the \textit{resting potential}. Apart from an excited and a resting state, the neuron can also be \textit{refractory}. Once a spike has been fired, the neuron's membrane becomes hyperpolarized and the potential decrease even below the resting point. At the beginning of the refractory state it is impossible for the neuron to spike again. Due to the ongoing hyperpolarization also after this first period it remains hard but not impossible to send out a spike. The typical dynamics of the membrane are depicted in figure [ref to figure]. One should keep in mind that the shape of a spike doesn't carry any information.  The communication between neurons is rather encoded in the frequency and correct timing of exciting and inhibitory spikes. The various methods of spike coding are presented in section \ref{deeplearning}. 
 
 \subsection{Leaky Integrate-and-Fire Model}
@@ -33,6 +40,12 @@ V_{\text{m}}(t) &= V_{\text{reset}} \quad \forall t \in (t_{\text{fire}}, t_{\te
 
 The Leaky Integrate-and-Fire (LIF) model makes use of the fact that the shape of an input spike stays approximately the same. It was first described by Lapicque in 1907 [REF missing]. The model describes no spatial structures of the neurons. A LIF neuron is thus a point-like integrator that neglects any non-linear dynamics coming from strategically positioned connections to sources of excitatory or inhibitory spikes. Moreover a LIF neuron doesn't keep any memory of previous spikes after firing, since the membrane will always be reset to $V_{\text{reset}}$. These limitations make it impossible for the model to correctly describe neuronal behavior for repetitive firing. However, the main neuron dynamics are well described by the LIF neuron and it thus has been a popular choice for neuromorphic hardware [ref to BSS1?].\\
 
+\begin{figure}
+	\includegraphics[width=\linewidth]{figures/LIFvsAdEx.png}
+	\label{lifvsadex}
+	\caption{Difference of membrane dynamics between a LIF and AdEx neuron, given the same synpatic input. Figure taken from Stradmann, 2019}
+\end{figure}
+
 The limitations of the LIF neuron led to a demand for a more sophisticated model, namely the Adaptive-Exponential Integrate-and-Fire short AdEx model. The two adaptations made are an additional adaptive current the allows the membrane to remember its previous state after firing and an exponential voltage feedback. Depending on the sign of the adaptive current, the neuron will either be stunted to fire again after it has sent out its first spike or it is engaged to keep on firing. In the example given in figure [ref to figure] the former is the case. The exponential voltage feedback on the other hand, enables the neuron to generate a proper fire response.\\
 
 \subsection{Synaptic Plasticity (Learning)}
@@ -44,13 +57,44 @@ LTP (long term potentiation) , STDP (spike timing dependent plasticity) , LTD (l
 
 
 \subsection{Neuromorphic Hardware}
+Biological inspired computing is as popular as it has never been before. IBM started to work on \textit{TrueNorth} in 2008, Intel presented the \textit{Loihi} chip in 2018 and Google started selling the \textit{Coral} dev-board in 2019. Among these industry project, several academic projects have started as well. The EU's Human Brain Project (HBP) funds two serious contenders: \textit{SpiNNaker}, a digital based neuromorphic supercomputer and \textit{BrainScaleS} (BSS) a mixed-signal accelarated emulation for spiking neural networks. The later has its early beginnings back in the late 80s.
+
+The BSS2 system, the most recent version of the BrainScaleS platform, is based upon a physical implementation of neurons and synapses which is manufactured by the Taiwan Semiconductor Manufacturing Company (TSMC) using a $65 \si{nm}$ low-power and low-leakage CMOS technology. The BSS2 successor BSS1 used already a High Input Count Analog Neural Network (HICANN) chip. The new version of the chip contains 512 AdEx neuron circuits, 256 possible synpatic connections per neuron, two plasticity processing units and on chip routing. In accordance with the predecessor's name, it is called HICANN with Digital Learning System and Hagen eXtensions (HICANN-X). The new features have been implemented step by step on smaller prototype system. One of them is the HICANN-DLSv2. Instead of the AdEx neuron model only 32 LIF neurons are featured, but a 32x32 synpase array allows an all to all connectivity. Besides the Hagen eXtension, the main features of the BSS2 system have been implemented on the HICANN-DLSv2. In the following section the individual parts of the chip are discussed. The concept and functionality of each part stays the same throughout the different chip version of the BSS2 system.
+
+The experiments conducted within this thesis use either the HICANN-X or the DLSv2 chip.
+%in various \textit{application-specific integrated circuits} (ASICs).
+%refs: ibm http://www.research.ibm.com/articles/brain-chip.shtml
+% coral board:
+% Loihi:
+
+\begin{figure}
+	\includegraphics[width=\linewidth]{figures/HXcloseup.JPG}
+	\label{hxcloseup}
+	\caption{Close-up of the bonded analog core of the HICANN-X chip. Picture taken by Müller, 2020}
+\end{figure}
+
+\subsubsection{Architecture of BSS2}
+
+The design of the HICANN-X chip can be divided into an analogue and digital core (c.f. figure \ref{HXstructure}). The communication with an external host is streamed out to the controlling Field Programmable Gate Array (FPGA). The existing FPGA solution developed for BSS1 was simply transfered to BSS2.
+
+\begin{figure}
+\includegraphics{figures/HXstructure.png}
+\label{hxstructure}
+\caption{Overview of the architecture of the HICANN-X chip. Figure taken from (Schemmel,2017)}
+\end{figure}
 
 
+\subsubsection*{Analogue and Digital Core}
+The analogue core implements the neuron dynamics. On the DLSv2 a current based LIF neuron model with a total of 32 neurons is used (Aamir, Müller et al. 2016, ...). The dynamics of an \textit{in-silico} neuron have a temporal speed-up factor of 1000 compared to its \textit{in-vivo} counterpart. This acceleration is made possible by the supra-threshold dynamics of CMOS transistors. The biological time constants of neurons and synapses are usually in the order of 10 to 100 milliseconds. The HICANN-X contains 512 AdEx neurons. AdEx is short for a LIF model extension with an adaptive current and an exponential voltage feedback. The analog model parameters in both chips are tunable by setting bias currents over an 10 bit Digital to Analog Converter (DAC). (Hock et al., 2013) Each neuron can be controlled and adjusted individually. The 8bit spike counter of the DLSv2 (one per neuron) has been upgraded to a 10 bit counter in the HICANN-X. 
 
-prototype hardware for BSS-2 are DLSv2 and v3
-BSS-2 (HX)
+The synaptic input is mapped by an $512 \times 256$ synapse array. Each synapse has a 16 bit local Static Random Access Memory (SRAM) to store weight and information about the presynaptic connections. In addition, two correlation sensors per synapse (causal and anti-causal) record STDP traces and store them in dedicated capacitors. These analog observables can then be accessed by a Plasticity Processing Units (PPU) via an Analog to Digital Converter (ADC). The readout is performed per row and thus a total of 1024 channels (one channel per correlation sensor per synapse) is accessed by the \textit{Correlation} ADC (CADC). The CADC can also be used to access further observables such as the membrane potential. This feature has not been available on the earlier revision and opens up new possibilities for plasticity rules. A highly accelerated analog system requires a fast computation of any plasticity rule. To provide sufficient computational power, the chip is equipped with two asynchronous Single Instruction Multiple Data (SIMD) PPUs. The PPU has vectorial access to the synapse array as well as to the results of the CDAC.   
 
+As an additional debugging and observation tool, a fast ADC (MADC) can be accessed from the digital core to readout any available analog observables.
 
+Apart from the spike counters, the digital neuron backend registers any spiking event. Such an event may also come from one of the noise generators or PPUs as well as from an external source. Once a spike has been registered in the digital neuron backend, it is routed back into the synapse array accordingly. 
+
+\subsubsection{Communication}
+The communication between the chip and an external host is established through eight serial Low Voltage Differential Signaling (LVDS) links that are accessed by the FPGA. This interface handles all read/write instructions to any SRAM on chip and manages spike event data. The FPGA grants access for the PPU to greater memory storages than the one provided on-chip. Access to large training datasets is vital for most learning tasks.
 
 \section{Deep Learning}
 \label{deeplearning}

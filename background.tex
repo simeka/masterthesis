@@ -95,19 +95,7 @@ Apart from the spike counters, the digital neuron backend registers any spiking 
 \subsubsection{Communication}
 The link between chip and external host is established through eight serial Low Voltage Differential Signaling (LVDS) links that are accessed by an FPGA. This interface handles all read/write instructions to any SRAM on chip and manages spike event data in both directions. The FPGA grants access for the PPU to greater memory storages than the one provided on-chip. Access to large training datasets is vital for most learning tasks.
 
-The communication for DLSv2 is slightly adapted. 
-
-\subsubsection*{Analogue and Digital Core}
-The analogue core implements the neuron dynamics. On the DLSv2 a current based LIF neuron model with a total of 32 neurons is used (Aamir, Müller et al. 2016, ...). The dynamics of an \textit{in-silico} neuron have a temporal speed-up factor of 1000 compared to its \textit{in-vivo} counterpart. This acceleration is made possible by the supra-threshold dynamics of CMOS transistors. The biological time constants of neurons and synapses are usually in the order of 10 to 100 milliseconds. The HICANN-X contains 512 AdEx neurons. AdEx is short for a LIF model extension with an adaptive current and an exponential voltage feedback. The analog model parameters in both chips are tunable by setting bias currents over an 10 bit Digital to Analog Converter (DAC). (Hock et al., 2013) Each neuron can be controlled and adjusted individually. The 8bit spike counter of the DLSv2 (one per neuron) has been upgraded to a 10 bit counter in the HICANN-X. 
-
-The synaptic input is mapped by an $512 \times 256$ synapse array. Each synapse has a 16 bit local Static Random Access Memory (SRAM) to store weight and information about the presynaptic connections. In addition, two correlation sensors per synapse (causal and anti-causal) record STDP traces and store them in dedicated capacitors. These analog observables can then be accessed by a Plasticity Processing Units (PPU) via an Analog to Digital Converter (ADC). The readout is performed per row and thus a total of 1024 channels (one channel per correlation sensor per synapse) is accessed by the \textit{Correlation} ADC (CADC). The CADC can also be used to access further observables such as the membrane potential. This feature has not been available on the earlier revision and opens up new possibilities for plasticity rules. A highly accelerated analog system requires a fast computation of any plasticity rule. To provide sufficient computational power, the chip is equipped with two asynchronous Single Instruction Multiple Data (SIMD) PPUs. The PPU has vectorial access to the synapse array as well as to the results of the CDAC.   
-
-As an additional debugging and observation tool, a fast ADC (MADC) can be accessed from the digital core to readout any available analog observables.
-
-Apart from the spike counters, the digital neuron backend registers any spiking event. Such an event may also come from one of the noise generators or PPUs as well as from an external source. Once a spike has been registered in the digital neuron backend, it is routed back into the synapse array accordingly. 
-
-\subsubsection{Communication}
-The communication between the chip and an external host is established through eight serial Low Voltage Differential Signaling (LVDS) links that are accessed by the FPGA. This interface handles all read/write instructions to any SRAM on chip and manages spike event data. The FPGA grants access for the PPU to greater memory storages than the one provided on-chip. Access to large training datasets is vital for most learning tasks.
+%The communication for DLSv2 is slightly adapted. 
 
 \section{Deep Learning}
 \label{deeplearning}
@@ -124,63 +112,73 @@ The different types of neural coding require each an adapted training method. Ra
 \subsection{Training Methods for ANNs}
 \label{trainingANN}
 
-% make sure SNNs and ANNs is somewhere before explained 
-%maybe put this later (like experiment setup or so)
-The learning process of a neural network can be divided into a forward and backward pass: During the forward pass the output value of each node in the network is evaluated. The backward pass calculates in which direction the networks parameters need to be updated to minimize a given loss function $\mathcal{L}$. In the following, a single hidden layer network with a sigmoidal shaped transfer function $\phi$ and a cross-entropy loss function is assumed.\\
-
-ToDo: Describe why rate coding can use this approach
+The learning process of a neural network can be divided into a forward and backward pass. During the forward pass the output value of each node in the network is evaluated. The backward pass computes in which direction the networks parameters $\mathbf{\theta}$ need to be changed so that they minimize a given loss function $\mathcal{L}(\mathbf{\theta})$.
 
 \subsubsection{Forward Pass}
-The activation $\mathbf{a}$ of the hidden layer is given by the weighted input $\mathbf{x}$ plus a bias term $\mathbf{b}$. The output $\mathbf{y}$ is the result of the transfer function $\phi$:
+The activation $\mathbf{a}$ of a layer is given by the weighted input $\mathbf{x}$ with a weight matrix $W$ plus a bias term $\mathbf{b}$. The bias term is a vital parameter which allows the network to shift the dynamic range of a single neuron. 
 \begin{align}
-\mathbf{a} &= W^{\text{(h)}} \, \mathbf{x} + \mathbf{b} \\
-\mathbf{y} &= \phi(\mathbf{a})
-\end{align} 
-The same principle is applied to the output layer. The weight matrices $W^{\text{(h)}}$ and $ W^{\text{(o)}}$ have the appropriate shape to fit the number of input, hidden and output nodes. The bias term is a vital parameter which allows the network to shift the dynamic range of a single neuron.
+\mathbf{a} = W \, \mathbf{x} + \mathbf{b} \\
+\end{align}
+ 
+The output $\mathbf{y}$ of the layer is the result of the transfer function $\phi$ and which is chosen to be of sigmoidal shape. The exact shape of the transfer function is not of high importance, as long as at it is non-linear. In combination with a cross-entropy loss function the choice of a sigmoid becomes convenient when performing the backward pass.
+
+\begin{equation}
+\mathbf{y} = \phi(\mathbf{a}).
+\end{equation}
+
+The same principle is applied to all other layers in a forward direction, i.e. the result of the previous layer is the input for the current layer. The weight matrix $W^{\text{(l)}}$ connecting layer $l$ with the predecessor has the appropriate shape to fit the number of input nodes (i.e. the number of nodes in the previous layer) and the number of nodes in the current layer. In figure [ref to 1 layer structure].
 
 \subsubsection{Gradient Descent (Backward Pass)}
 
-Most training approaches for neural networks involve optimizing a loss function $\loss(\mathbf{x})$ by changing the networks parameters $\mathbf{x}$ in the correct direction. This can be achieved by moving in the along the negative gradient of the $\loss$. The new set of parameters $\mathbf{x'}$ is then given by [compare deep learning book ch 4]
+Most training approaches for neural networks involve optimizing a loss function $\loss(\mathbf{\theta})$ by changing the networks parameters $\mathbf{\theta}$ in the correct direction. This can be achieved by moving in the along the negative gradient of the $\loss$. The new set of parameters $\mathbf{\theta'}$ is then given by [compare deep learning book ch 4]
 \begin{equation}
-\mathbf{x'} = \mathbf{x} - \eta \, \nabla\loss(\mathbf{x}).
+\mathbf{\theta'} = \mathbf{\theta} - \eta \, \nabla\loss(\mathbf{\theta}).
 \end{equation}
-whereby $\eta$, the learning rate, defines how fast the update is applied.\\
+whereby $\eta$, the learning rate, defines how \textit{fast} an update is applied.\\
 
-As an example the update of the weight $\delta W$ is calculated. First it necessary to know what the loss function looks like. This is why the computation starts in the output layer. Since we have used a sigmoidal transfer function and imposed a cross-entropy loss the following relation holds for the error in the output layer:
-\begin{equation}
-\mathbf{e} = ... = \frac{\partial\mathcal{L}}{\partial \mathbf{y}} \;	\frac{\partial \mathbf{y}}{\partial \mathbf{a} }
-\end{equation}
-
-Now the weight update in the output layer is
-
+As an example the update of the weight matrices $\delta W_{\text{(o)}}$ is computed. First it necessary to know what the loss function looks like. This is why the computation starts from the end of the layer structure, the output layer. The derivative of the sigmoid yields $\frac{\partial \phi(\mathbf{a})}{\partial a} = \phi (1 - \phi)$ and the derivative of the imposed a cross-entropy loss is
 \begin{align}
-\delta W =& - \eta \frac{\partial \mathcal{L}}{\partial W} 
-= - \eta \;
-\underbrace{\frac{\partial\mathcal{L}}{\partial \mathbf{y}} \;
-	\frac{\partial \mathbf{y}}{\partial \mathbf{a} }}_{=\mathbf{e}\; \text{(error)}} \;
-\frac{\partial \mathbf{a}}{\partial W}
-= - \eta \, (\mathbf{e} \cdot \mathbf{x}^T)\\
+\frac{\partial\mathcal{L}}{\partial \mathbf{y}} = 
+- \frac{\hat{\mathbf{y}}}{\mathbf{y}} + 
+\frac{1 - \hat{\mathbf{y}}}{1 - \mathbf{y}}
 \end{align}
-
-where $\mathbf{y}$ and $\mathbf{a}$ denote the output respectivley the activation of the layer. The hidden layer computes similarly:
-
+and thus the error $\mathbf{e}$ can be rewritten in terms of the gradients
 \begin{equation}
-\delta W = - \eta \;
-(W^T \cdot \mathbf{e}) \;
-\nabla \phi(\mathbf{a}) \;
-\mathbf{x}^T\\
+\Rightarrow \quad \frac{\partial\mathcal{L}}{\partial \mathbf{a}} =
+\frac{\partial\mathcal{L}}{\partial \mathbf{y}} 
+\; \frac{\partial \mathbf{y}}{\partial \mathbf{a}} =
+\hat{\mathbf{y}} - \mathbf{y} = \mathbf{e}.
 \end{equation}
+Now the weight update $\delta W^{\text{(o)}}$ for the output layer yields 
+\begin{align}
+\delta W^{\text{(o)}} =& - \eta \frac{\partial \mathcal{L}}{\partial W} 
+= - \eta \;
+\frac{\partial\mathcal{L}}{\partial \mathbf{y}} \;
+\frac{\partial \mathbf{a}}{\partial W}
+= - \eta \, (\mathbf{e} \cdot \mathbf{x}^T),
+\end{align}
+with $\mathbf{x}$ being the input of the output layer, thus the output of the hidden layer.
 
-This procederes is often refered to as back propagation. Another method is to not use the transpose of the actual weight matrix but a randomized one 
+The result for the hidden layer computes similarly. Again we look at the gradient of the loss function and find
+\begin{align}
+\frac{\partial\mathcal{L}}{\partial \mathbf{a}} &= (W^{\text{(o)}T} \cdot \mathbf{e}) \;
+\frac{\partial \mathbf{y} }{\partial \mathbf{a}}\\
+\Rightarrow \quad \delta W^{\text{(h)}} &= - \eta \;
+(W^{\text{(o)}T} \cdot \mathbf{e}) \;
+\frac{\partial \mathbf{y} }{\partial \mathbf{a}} \;
+\mathbf{x}^T,
+\end{align}
+Where $W^{\text{(o)}T}$ denotes the transpose of the weights of the output layer, i.e. the weights connecting the output layer to the hidden layer in backward direction. The backward propagation of the error is name giving and thus it is often referred to as \textit{back propagation}. Despite the great performance for many deep learning tasks, the biological plausibility of propagating the error signal backward in time has been questioned ever since.
 
-Ref to lillicrap -> random weight matrix just exchange W with A. constraints on A (45° stuff and so on...one or two more sentences)
+In 2016 a simple but effective adjustment has been proposed by Lilicrap et al. named \textit{feedback alignment}: Instead of the transpose of the weight matrix a fixed randomized one is chosen. Apart from providing more biological plausibility it also reduces the computational costs of plasticity rule. Compared to the back propagation the updates only change in the hidden layer:
 
 \begin{equation}
-\text{feedback alignment:} \quad \delta W = - \eta \;
+\delta W^{\text{(h)}} = - \eta \;
 (B \cdot \mathbf{e}) \;
-\nabla \phi(\mathbf{a}) \;
-\mathbf{x}^T\;\\
+\frac{\partial \mathbf{y}}{\partial \mathbf{a}} \;
+\mathbf{x}^T,
 \end{equation}
+with B being a random matrix with corresponding dimension.
 
 \subsection{Novel Training Methods for SNNs}
 

@@ -56,46 +56,7 @@ hebbian what wires together fire s together
 LTP (long term potentiation) , STDP (spike timing dependent plasticity) , LTD (long term depression) -> and where are methods like superspike einzuordnen?
 
 
-\subsection{Neuromorphic Hardware}
-Biological inspired computing is as popular as it has never been before. IBM started to work on \textit{TrueNorth} in 2008, Intel presented the \textit{Loihi} chip in 2018 and Google started selling the \textit{Coral} dev-board in 2019. Among these industry project, several academic projects have started as well. The EU's Human Brain Project (HBP) funds two serious contenders: \textit{SpiNNaker}, a digital based neuromorphic supercomputer and \textit{BrainScaleS} (BSS) a mixed-signal accelarated emulation for spiking neural networks. The later has its early beginnings back in the late 80s.
 
-The BSS2 system, the most recent version of the BrainScaleS platform, is based upon a physical implementation of neurons and synapses which is manufactured by the Taiwan Semiconductor Manufacturing Company (TSMC) using a $65 \si{nm}$ low-power and low-leakage CMOS technology. The BSS2 successor BSS1 used already a High Input Count Analog Neural Network (HICANN) chip. The new version of the chip contains 512 AdEx neuron circuits, 256 possible synpatic connections per neuron, two plasticity processing units and on chip routing. In accordance with the predecessor's name, it is called HICANN with Digital Learning System and Hagen eXtensions (HICANN-X). The new features have been implemented step by step on smaller prototype system. One of them is the HICANN-DLSv2. Instead of the AdEx neuron model only 32 LIF neurons are featured, but a 32x32 synpase array allows an all to all connectivity. Besides the Hagen eXtension, the main features of the BSS2 system have been implemented on the HICANN-DLSv2. In the following section the individual parts of the chip are discussed. The concept and functionality of each part stays the same throughout the different chip version of the BSS2 system.
-
-The experiments conducted within this thesis use either the HICANN-X or the DLSv2 chip.
-%in various \textit{application-specific integrated circuits} (ASICs).
-%refs: ibm http://www.research.ibm.com/articles/brain-chip.shtml
-% coral board:
-% Loihi:
-
-\begin{figure}
-	\includegraphics[width=\linewidth]{figures/HXcloseup.JPG}
-	\label{hxcloseup}
-	\caption{Close-up of the bonded analog core of the HICANN-X chip. Picture taken by Müller, 2020}
-\end{figure}
-
-\subsubsection{Architecture of BSS2}
-
-The design of the HICANN-X chip can be divided into an analogue and digital core (c.f. figure \ref{HXstructure}). The communication with an external host is streamed out to the controlling Field Programmable Gate Array (FPGA). The existing FPGA solution developed for BSS1 was simply transfered to BSS2.
-
-\begin{figure}
-\includegraphics{figures/HXstructure.png}
-\label{hxstructure}
-\caption{Overview of the architecture of the HICANN-X chip. Figure taken from (Schemmel,2017)}
-\end{figure}
-
-\subsubsection*{Analogue and Digital Core}
-The analogue core implements the neuron dynamics. On the DLSv2 a current based LIF neuron model with a total of 32 neurons is used (Aamir, Müller et al. 2016, ...). The dynamics of an \textit{in-silico} neuron have a temporal speed-up factor of 1000 compared to its \textit{in-vivo} counterpart. This acceleration is made possible by the supra-threshold dynamics of CMOS transistors. The biological time constants of neurons and synapses are usually in the order of 10 to 100 milliseconds. The HICANN-X contains 512 AdEx neurons. AdEx is short for a LIF model extension with an adaptive current and an exponential voltage feedback. The analog model parameters in both chips are tunable by setting bias currents over an 10 bit Digital to Analog Converter (DAC). (Hock et al., 2013) Each neuron can be controlled and adjusted individually. The 8bit spike counter of the DLSv2 (one per neuron) has been upgraded to a 10 bit counter in the HICANN-X. 
-
-The synaptic input is mapped by an $512 \times 256$ synapse array. Each synapse has a 16 bit local Static Random Access Memory (SRAM) to store weight and information about the presynaptic connections. In addition, two correlation sensors per synapse (causal and anti-causal) record STDP traces and store them in dedicated capacitors. These analog observables can then be accessed by a Plasticity Processing Units (PPU) via an Analog to Digital Converter (ADC). The readout is performed per row and thus a total of 1024 channels (one channel per correlation sensor per synapse) is accessed by the \textit{Correlation} ADC (CADC). The CADC can also be used to access further observables such as the membrane potential. This feature has not been available on the earlier revision and opens up new possibilities for plasticity rules. A highly accelerated analog system requires a fast computation of any plasticity rule. To provide sufficient computational power, the chip is equipped with two asynchronous Single Instruction Multiple Data (SIMD) PPUs. The PPU has vectorial access to the synapse array as well as to the results of the CDAC.   
-
-As an additional debugging and observation tool, a fast ADC (MADC) can be accessed from the digital core to readout any available analog observables.
-
-Apart from the spike counters, the digital neuron backend registers any spiking event. Such an event may also come from one of the noise generators or PPUs as well as from an external source. Once a spike has been registered in the digital neuron backend, it is routed back into the synapse array accordingly. 
-
-\subsubsection{Communication}
-The link between chip and external host is established through eight serial Low Voltage Differential Signaling (LVDS) links that are accessed by an FPGA. This interface handles all read/write instructions to any SRAM on chip and manages spike event data in both directions. The FPGA grants access for the PPU to greater memory storages than the one provided on-chip. Access to large training datasets is vital for most learning tasks.
-
-%The communication for DLSv2 is slightly adapted. 
 
 \section{Deep Learning}
 \label{deeplearning}
@@ -136,13 +97,13 @@ Most training approaches for neural networks involve optimizing a loss function 
 \end{equation}
 whereby $\eta$, the learning rate, defines how \textit{fast} an update is applied.\\
 
-As an example the update of the weight matrices $\delta W_{\text{(o)}}$ is computed. First it necessary to know what the loss function looks like. This is why the computation starts from the end of the layer structure, the output layer. The derivative of the sigmoid yields $\frac{\partial \phi(\mathbf{a})}{\partial a} = \phi (1 - \phi)$ and the derivative of the imposed a cross-entropy loss is
+As an example the update of the weight matrices $\delta W_{\text{(o)}}$ is computed. Other parameter updates, such as the update of the bias are done in analogy to the weights. First it necessary to know what the loss function looks like. This is why the computation starts from the end of the layer structure, the output layer. The derivative of the sigmoid yields $\frac{\partial \mathbf{y}}{\partial \mathbf{a}} = \frac{\partial \phi(\mathbf{a})}{\partial \mathbf{a}} = \phi (1 - \phi)$ and the derivative of the imposed a cross-entropy loss is given by
 \begin{align}
 \frac{\partial\mathcal{L}}{\partial \mathbf{y}} = 
 - \frac{\hat{\mathbf{y}}}{\mathbf{y}} + 
 \frac{1 - \hat{\mathbf{y}}}{1 - \mathbf{y}}
 \end{align}
-and thus the error $\mathbf{e}$ can be rewritten in terms of the gradients
+with $\mathbf{y}$ the output and $\hat{\mathbf{y}}$ the target output. The error $\mathbf{e} = \hat{\mathbf{y}} - \mathbf{y}$ can then be rewritten in terms of the partial gradients
 \begin{equation}
 \Rightarrow \quad \frac{\partial\mathcal{L}}{\partial \mathbf{a}} =
 \frac{\partial\mathcal{L}}{\partial \mathbf{y}} 
@@ -161,14 +122,14 @@ with $\mathbf{x}$ being the input of the output layer, thus the output of the hi
 
 The result for the hidden layer computes similarly. Again we look at the gradient of the loss function and find
 \begin{align}
-\frac{\partial\mathcal{L}}{\partial \mathbf{a}} &= (W^{\text{(o)}T} \cdot \mathbf{e}) \;
+\frac{\partial\mathcal{L}}{\partial \mathbf{a}} &= \left(W^{\text{(o)}T} \cdot \mathbf{e}\right) \;
 \frac{\partial \mathbf{y} }{\partial \mathbf{a}}\\
 \Rightarrow \quad \delta W^{\text{(h)}} &= - \eta \;
-(W^{\text{(o)}T} \cdot \mathbf{e}) \;
+\left(W^{\text{(o)}T} \cdot \mathbf{e}\right) \;
 \frac{\partial \mathbf{y} }{\partial \mathbf{a}} \;
 \mathbf{x}^T,
 \end{align}
-Where $W^{\text{(o)}T}$ denotes the transpose of the weights of the output layer, i.e. the weights connecting the output layer to the hidden layer in backward direction. The backward propagation of the error is name giving and thus it is often referred to as \textit{back propagation}. Despite the great performance for many deep learning tasks, the biological plausibility of propagating the error signal backward in time has been questioned ever since.
+Where $W^{\text{(o)}T}$ denotes the transpose of the weights of the output layer, i.e. the weights connecting the output layer to the hidden layer in backward direction. The backward propagation of the error is name giving and thus it is often referred to as \textit{back propagation}. Despite the great performance for many deep learning tasks, the biological plausibility of propagating the error signal backward in time has been questioned ever since. 
 
 In 2016 a simple but effective adjustment has been proposed by Lilicrap et al. named \textit{feedback alignment}: Instead of the transpose of the weight matrix a fixed randomized one is chosen. Apart from providing more biological plausibility it also reduces the computational costs of plasticity rule. Compared to the back propagation the updates only change in the hidden layer:
 
@@ -178,37 +139,45 @@ In 2016 a simple but effective adjustment has been proposed by Lilicrap et al. n
 \frac{\partial \mathbf{y}}{\partial \mathbf{a}} \;
 \mathbf{x}^T,
 \end{equation}
-with B being a random matrix with corresponding dimension.
+with B being a random matrix with corresponding dimensions.
+
+\subsubsection{Gradient Descent for SNNs}
+
+Spikes can encode information in various ways. One of them is rate coding, where a certain fire rate is established and the rate itself contains the information. Other then for sparse or spike time dependent coding, the information of a single spike is not relevant. The transfer function of the neuron contains still an activation jump. At a certain input rate the neuron will suddenly start to fire. This can be smoothen out by setting the leak and threshold potential close to each other and by adding Poisson distributed noise spikes. In combination this will establish a certain equilibrium fire rate given there is no further input. Now, by applying inhibitory input the fire rate will go down. Excitatory input causes the opposite.
+
+The above described method turns a SNN almost into an ANN. However, The forward pass is still not performed perfectly by a powerful GPU but by a noisy and power-efficient analog core. Noise is essential for learning algorithms to perform and is often artificially injected for ANNs. This is not necessary for the BSS2 platform. In the experiment section, gradient descent with feedback alignment is conducted on the HICANN-DLSv2.
+
 
 \subsection{Novel Training Methods for SNNs}
 
+
 Until now, only few people have successfully trained SNNs with hidden units. The main issue arises from the non-differentiable dynamics of spikes. A promising approach was proposed by Friedemann Zenke in 2017 with SuperSpike. Similar to the training ANNs the learning process can be split up into forward and backward pass. 
 
-Forward pass is similar to ANNs training method.
+\subsubsection*{Forward Pass}
+The forward pass only changes slightly compared to ANNs. Instead of a continuous input and output one speaks of presynaptic spike train $S_j$ and a postsynaptic spike train $S_i$. Note that the choice of the index $j$ and $i$ indicate if, from the perspective of a neuron, the spike is of presynaptic or postsynaptic origin. The transfer function $\phi$ is replaced by the dynamics of the LIF neuron.
 
-Todo: "surrogate gradient" is not really introduced but just used -> fix this
+%Todo: "surrogate gradient" is not really introduced but just used -> fix this
+%Todo: spike train formalism (maybe in biological part with synapses, etc. ), presynaptic/postsynpatic 
+%Todo: axonal delay is not considered for the application of the hardware
+%Todo: auxilary function: threshold! -> f(x) = x/(1 + |x|) and f'(x) (1 + |x|)-2 => $\sigma'(U_i) = (1+|U_i - \vartheta|)^{-2}$
 
-Todo: spike train formalism (maybe in biological part with synapses, etc. ), presynaptic/postsynpatic 
-
-Todo: axonal delay is not considered for the application of the hardware
-
-Todo: auxilary function: threshold! -> f(x) = x/(1 + |x|) and f'(x) (1 + |x|)-2 => $\sigma'(U_i) = (1+|U_i - \vartheta|)^{-2}$
-
-Backward pass:
+\subsubsection*{Backward pass}
 
 As stated in section \ref{trainingANN}, training a neural network requires the optimization of a certain loss function $\mathcal{L(\mathbf{\theta)}}$ that depends on the network's parameters $\mathbf{\theta}$, i.e. the synpatic weights $w_{ij}$. In the SuperSpike formalism the von Rossum distance of a target spike train $\hat{S}_i$ and the output spike train $S_i$ is chosen (cf. van Rossum 2001, Gardner and Grüning, 2016),
 \begin{equation}
 \label{vonrossumdistance}
 \mathcal{L} = \frac{1}{2} \int^t_{-\infty}dt' \left[\left(\alpha \ast \hat{S}_i - \alpha \ast S_i \right)(t')\right]^2
 \end{equation}
-where $\alpha$ is a smooth double exponential convolution kernel. The computation of the gradient for \ref{vonrossumdistance} with respect to $\mathbf{\theta}$ contains among others the derivative of a spike train $\nicefrac{\partial{S_i}}{\partial{w_{ij}}}$ which is undefined for the time of spike. 
+where $\alpha$ is a smooth double exponential convolution kernel. The computation of the gradient for \ref{vonrossumdistance} with respect to $\mathbf{\theta}$ requires the derivative of a spike train $\nicefrac{\partial{S_i}}{\partial{w_{ij}}}$ which is undefined for the time of a spike. 
 
-SuperSpike circumvents this issue by rendering the spike train with a smooth auxiliary function $\sigma(V)$ of the membrane potential $V$ and thus the ill defined gradient of the spike train can be replaced with 
+SuperSpike circumvents this issue by rendering the spike train with a smooth auxiliary function $\sigma(V)$ of the membrane potential $V$ and thus the ill defined gradient of the spike train can be replaced by a surrogate derivative $\sigma'(V)$
 \begin{equation}
 \frac{\partial S_i}{\partial w_{ij}} \quad \rightarrow \quad \sigma'(V_i)\frac{\partial V_i}{\partial w_{ij}}.
 \end{equation}
 
-At a first glance, it appears that the problem has just been moved to computing the partial gradient of the membrane potential instead. When the potential $V_i$ is formulated as a spike response model for LIF neuron (Gerstner et al., 2014) it again depends on the output spike train $S_i$. However, under the assumption of a low output rate the gradient can be approximated by $\frac{\partial U_i}{\partial w_{ij}} \approx (\epsilon \ast S_j)$ with $\epsilon$ another double-exponential kernel corresponding to the shape of a spike. Plugging in the approximation and the formulation of the gradient as a surrogate gradient yiedls
+The choice of the auxiliary function $\sigma$ the therefore implied surrogate derivatives is to a certain degree free. SuperSpike suggest a deterministic approach with the negative side of a fast sigmoid $\sigma(V) = \frac{V - \vartheta}{1 + |V - \vartheta|}$. The surrogate partial derivative yields $\sigma'(V) = \left(1 + |V - \vartheta|\right)^{-2}$. Another common choices are pieces-wise linear or exponential approaches.
+
+At a first glance, it appears that the problem has just been moved to computing the partial gradient of the membrane potential instead. When the potential $V_i$ is formulated as a spike response model for LIF neuron (Gerstner et al., 2014) it again depends on the output spike train $S_i$. However, under the assumption of a low output rate the gradient can be approximated by $\frac{\partial U_i}{\partial w_{ij}} \approx (\epsilon \ast S_j)$ with $\epsilon$ another double-exponential kernel corresponding to the shape of a spike. Plugging in the approximation and the formulation of the gradient as a surrogate gradient yields
 
 \begin{equation}
 \frac{\partial w_{ij}}{\partial t} = \eta \int_{-\infty}^{t} dt
@@ -224,3 +193,45 @@ with $\eta$ the learning rate. The formulation for the hidden layer is similar w
 %
 %Überleitung zu rate coding vs sparse coding (maybe read again SuperSpike17/19 first))
 %A spiking neural network (SNN) offers many advantages compared to a classical artifical neural network (ANN). On of the major differences is that sparse coding allows the user to compress a lot of information into a single spike. Also not spiking at a sppecifencodes information.  This efficient way of transporting information makes SNNs a contender for any energy sensitive form of computing. More importantly it also opens up the doors to understanding spike-based computing better and thus also the way the human brain works.
+
+\subsection{Neuromorphic Hardware}
+
+Biological inspired computing is as popular as it has never been before. IBM started to work on \textit{TrueNorth} in 2008, Intel presented the \textit{Loihi} chip in 2018 and Google started selling the \textit{Coral} dev-board in 2019. Among these industry project, several academic projects have started as well. The EU's Human Brain Project (HBP) funds two serious contenders: \textit{SpiNNaker}, a digital based neuromorphic supercomputer and \textit{BrainScaleS} (BSS) a mixed-signal accelarated emulation for spiking neural networks. The later has its early beginnings back in the late 80s.
+
+The BSS2 system, the most recent version of the BrainScaleS platform, is based upon a physical implementation of neurons and synapses which is manufactured by the Taiwan Semiconductor Manufacturing Company (TSMC) using a $65 \si{nm}$ low-power and low-leakage CMOS technology. The BSS2 successor BSS1 used already a High Input Count Analog Neural Network (HICANN) chip. The new version of the chip contains 512 AdEx neuron circuits, 256 possible synpatic connections per neuron, two plasticity processing units and on chip routing. In accordance with the predecessor's name, it is called HICANN with Digital Learning System and Hagen eXtensions (HICANN-X). The new features have been implemented step by step on smaller prototype system. One of them is the HICANN-DLSv2. Instead of the AdEx neuron model only 32 LIF neurons are featured, but a 32x32 synpase array allows an all to all connectivity. Besides the Hagen eXtension, the main features of the BSS2 system have been implemented on the HICANN-DLSv2. In the following section the individual parts of the chip are discussed. The concept and functionality of each part stays the same throughout the different chip version of the BSS2 system.
+
+The experiments conducted within this thesis use either the HICANN-X or the DLSv2 chip.
+%in various \textit{application-specific integrated circuits} (ASICs).
+%refs: ibm http://www.research.ibm.com/articles/brain-chip.shtml
+% coral board:
+% Loihi:
+
+\begin{figure}
+	\includegraphics[width=\linewidth]{figures/HXcloseup.JPG}
+	\label{hxcloseup}
+	\caption{Close-up of the bonded analog core of the HICANN-X chip. Picture taken by Müller, 2020}
+\end{figure}
+
+\subsubsection{Architecture of BSS2}
+
+The design of the HICANN-X chip can be divided into an analogue and digital core (c.f. figure \ref{HXstructure}). The communication with an external host is streamed out to the controlling Field Programmable Gate Array (FPGA). The existing FPGA solution developed for BSS1 was simply transfered to BSS2.
+
+\begin{figure}
+	\includegraphics{figures/HXstructure.png}
+	\label{hxstructure}
+	\caption{Overview of the architecture of the HICANN-X chip. Figure taken from (Schemmel,2017)}
+\end{figure}
+
+\subsubsection*{Analogue and Digital Core}
+The analogue core implements the neuron dynamics. On the DLSv2 a current based LIF neuron model with a total of 32 neurons is used (Aamir, Müller et al. 2016, ...). The dynamics of an \textit{in-silico} neuron have a temporal speed-up factor of 1000 compared to its \textit{in-vivo} counterpart. This acceleration is made possible by the supra-threshold dynamics of CMOS transistors. The biological time constants of neurons and synapses are usually in the order of 10 to 100 milliseconds. The HICANN-X contains 512 AdEx neurons. AdEx is short for a LIF model extension with an adaptive current and an exponential voltage feedback. The analog model parameters in both chips are tunable by setting bias currents over an 10 bit Digital to Analog Converter (DAC). (Hock et al., 2013) Each neuron can be controlled and adjusted individually. The 8bit spike counter of the DLSv2 (one per neuron) has been upgraded to a 10 bit counter in the HICANN-X. 
+
+The synaptic input is mapped by an $512 \times 256$ synapse array. Each synapse has a 16 bit local Static Random Access Memory (SRAM) to store weight and information about the presynaptic connections. In addition, two correlation sensors per synapse (causal and anti-causal) record STDP traces and store them in dedicated capacitors. These analog observables can then be accessed by a Plasticity Processing Units (PPU) via an Analog to Digital Converter (ADC). The readout is performed per row and thus a total of 1024 channels (one channel per correlation sensor per synapse) is accessed by the \textit{Correlation} ADC (CADC). The CADC can also be used to access further observables such as the membrane potential. This feature has not been available on the earlier revision and opens up new possibilities for plasticity rules. A highly accelerated analog system requires a fast computation of any plasticity rule. To provide sufficient computational power, the chip is equipped with two asynchronous Single Instruction Multiple Data (SIMD) PPUs. The PPU has vectorial access to the synapse array as well as to the results of the CDAC.   
+
+As an additional debugging and observation tool, a fast ADC (MADC) can be accessed from the digital core to readout any available analog observables.
+
+Apart from the spike counters, the digital neuron backend registers any spiking event. Such an event may also come from one of the noise generators or PPUs as well as from an external source. Once a spike has been registered in the digital neuron backend, it is routed back into the synapse array accordingly. 
+
+\subsubsection{Communication}
+The link between chip and external host is established through eight serial Low Voltage Differential Signaling (LVDS) links that are accessed by an FPGA. This interface handles all read/write instructions to any SRAM on chip and manages spike event data in both directions. The FPGA grants access for the PPU to greater memory storages than the one provided on-chip. Access to large training datasets is vital for most learning tasks.
+
+%The communication for DLSv2 is slightly adapted. 

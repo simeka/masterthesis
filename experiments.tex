@@ -3,17 +3,13 @@ In 1969 Minsky and Papert have shown that a simplified version of a one-layer AN
 
 As all deep layer networks can solve such tasks, spiking neural networks can as well. This offers a wide range of possibilities for the experiment design with SNNs. Throughout this master project two distinguished task have been implemented on the neuromorphic platforms built by the Electronic Vision(s) group.\\
 
-In the introduction to deep learning (cf. \ref{deeplearning}) different ways of spike coding are presented. The first task, called \textit{circles}, uses a rate coding approach. An \textit{online} training method based on gradient descent with feedback alignment is implemented on the neuromorphic platform BSS-1 (DLSv2).\\
+%online vs on chip
 
-A second experiment is conducted on the first revision of the successor platform BSS-2 (HICANN-X). With additional built-in observation features, \textit{sparse coding} and a more complex online learning rule, SuperSpike, is chosen. A full online implementation of training method was not possible, despite the steady progress of the group's neuromorphic platform. The bottlenecks and potential future workarounds will be discussed at the end of the chapter.\\
+In the introduction to deep learning (cf. \ref{deeplearning}) different ways of spike coding are presented. The first task, called \textit{circles}, uses a rate coding approach. An \textit{on-chip} training method based on gradient descent with feedback alignment is implemented on the prototype chip HICANN-DLSv2 of the BSS2 platform. \textit{On-chip} stands for a standalone execution of the experiment on the chip using only the on-chip features to implement the plasticity rule (PPU, memory). For monitoring reasons certain observables are continuously read out via the FPGA interface. However, the training process is not relying on any external interaction.
 
+A second experiment is conducted on the first revision of the final chip HICANN-X. With additional built-in observation features (CADC), \textit{sparse coding} and a SNN specific online plasticity rule, SuperSpike, is chosen. A complete and high-performance online implementation is not yet possible, despite the steady progress of the group's neuromorphic platforms. The bottlenecks and potential future workarounds will be discussed at the end of the chapter.\\
 
-
-Describe high level modules of BSS1/BSS2 like Neurons, Synapses, CAPMEM, PPU, CADC, MADC, ...
-
-
-
-\include{circles}
+\input{circles}
 
 \newpage
 

@@ -1,13 +1,109 @@
-\section{Circles on BSS-1}
-intro
+\section{Circles on \gls{bss1}}
+As a first experiment a toy data set called circles has been chosen. The data set represents a non-linear exercise and thus requires at network structure with at least one hidden layer to be successfully solved. Circles will be implemented as an \textit{on-chip} experiment on the \gls{dls}, i.e. no external interaction is required for the task to perform. Solely for monitoring purposes of the learning process the limited on-chip memory will be read out frequently. (A single hidden layer network is trained using rate coding and feedback alignment.) maybe restructure the intro somehow...
 
-\subsection{Task}
+\subsection{Circles Task}
+A region bounded by two concentric circles with radius $r_{\text{inner}}$ and $r_{\text{outer}}$ is called annulus in mathematics. The circles describes in principle a set of points $p = p(x,y)$ which are in one of two disjunct annuli, each representing a class.
+\begin{align}
+\text{class}(p) =
+	\begin{cases}
+		0 ,&\quad \quad r_{\text{inner}}^2 < x^2 + y^2 < r_{\text{outer}}^2 \\
+		1 ,&\quad \quad R_{\text{inner}}^2 < x^2 + y^2 < R_{\text{outer}}^2
+	\end{cases}
+\end{align}
 
-\subsection{Implementation on BSS-1 Platform}
+\subsection{Rate Coding}
+The fire rate $r$ of a neuron is determined by the number of spikes within a certain period $T$ in the postsynaptic spike train. The spike generation is based on Poisson processes (missing ref here). One way to numerically generate such a Poisson spike train is to perform a Bernoulli process on a short time interval $\Delta t$ with probability $p = \nicefrac{r \cdot \Delta t}{T}$.
+
+With the constraints of the on-chip implementation, the range of the input is limited to a signed 8-bit integer ($x, y \in [-128,127]$). Both inputs are mapped to an independent Poisson spike train generators of certain rate, e.g. for $x$
+\begin{equation}\label{key}
+r_{\text{input, x}}(x) = R \cdot \frac{x + 128}{255},
+\end{equation}
+with $R$ the base rate which is in order of several $10^2 \, \si{kHz}$. 
+
+\subsection{Transferfunction}
+
+The sigmoidal transferfunction has already been motivated in \cref{trainingANN}. With a few adjustments it can be implemented for \glspl{snn}.
+
+In absence of any noise sources and a reachable threshold potential, a \gls{lif} neuron will respond immediatley with a high fire rate to an input spike train. To avoid the jump from zero to high, an inhibitory and excitatory noise source (Poisson spiketrains with a fixed rate) smoothen out the resting potential $V_leak$ (c.f. )
+
+
+\begin{figure}
+	\label{vleak_w_noise}
+	\begin{center}
+		\input{figures/v.pgf}
+	\end{center}
+	\caption{The learning performance of stochastic gradient descent on the circles task, i.e. batch size is equal to one, is monitored by two measures: the accuracy and the root mean square error (RMSE).}
+\end{figure}
+
+
+ the choice
+
+
+
+
+Spikes are randomly time in a spike train generation underlies a 
+
+
+
+
+%	for(uint32_t i=0; i<n_bins; ++i) {
+%xorshift32(&random_state);
+%
+%if(i%4 == 0) {
+%my_spike.row_mask = (1 << 4) | (1 << 5);
+%probability = input_a_probability;
+%my_spike.addr = 10;
+%} else if (i%4 == 1) {
+%// potential excitatory background spike
+%my_spike.row_mask = (1 << 0);
+%probability = exc_noise_probability;
+%my_spike.addr = 1 + random_state & 0b111; // 1,2,..,8
+%} else if (i%4 == 2) {
+%// potential inhibitory background spike
+%my_spike.row_mask = (1 << 1);
+%probability = inh_noise_probability;
+%my_spike.addr = 1 + random_state & 0b111; // 1,2,..,8
+%} else {
+%my_spike.row_mask = (1 << 6) | (1 << 7);
+%probability = input_b_probability;
+%my_spike.addr = 10;
+%}
+%
+%if(((random_state & 0xff00) >> 8) < probability) {
+%send_spike(&my_spike);
+%} else {
+
+
+The goal is to find a decision boundary that separates both annuli. 
+
+repeated coin flipping (possible with an unfair coin) poisson process is continuous time 
+
+\subsection{Implementation on \gls{dls}}
+
+
+
+
+
+
+With the on-chip implementation of the task and the plasticity rule come some constraints.
+
+
+
+In a slight adaption $r_{\text{inner}} = 0$ and $R_{\text{outer}}$ is replaced by the maximum range of $x$ and $y$ of e outer radius only the 2
+%
+
 forward pass
 
 backward pass
 
 \subsection{Results}
 
+
+\begin{figure}
+	\label{circles_acc}
+	\begin{center}
+		\input{figures/circles_learning_performance.pgf}
+	\end{center}
+	\caption{The learning performance of stochastic gradient descent on the circles task, i.e. batch size is equal to one, is monitored by two measures: the accuracy and the root mean square error (RMSE).}
+\end{figure}
 \subsection{Discussion}

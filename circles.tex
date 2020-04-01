@@ -18,7 +18,7 @@ With the constraints of the on-chip implementation, the range of the input is li
 \begin{equation}\label{key}
 r_{\text{input, x}}(x) = R \cdot \frac{x + 128}{255},
 \end{equation}
-with $R$ the base rate which is in order of several $10^2 \, \si{kHz}$. 
+with $R$ the base rate which is in order of several \SI{100}{\kilo \Hz}. 
 
 \subsection{Transferfunction}
 
@@ -30,7 +30,7 @@ In absence of any noise sources and a reachable threshold potential, a \gls{lif}
 \begin{figure}
 	\label{vleak_w_noise}
 	\begin{center}
-		\input{figures/v.pgf}
+		\input{figures/activation_function_vmem_distr_with_thres.pgf}
 	\end{center}
 	\caption{The learning performance of stochastic gradient descent on the circles task, i.e. batch size is equal to one, is monitored by two measures: the accuracy and the root mean square error (RMSE).}
 \end{figure}

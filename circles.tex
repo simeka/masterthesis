@@ -5,44 +5,66 @@ As a first experiment a toy data set called circles has been chosen. The data se
 A region bounded by two concentric circles with radius $r_{\text{inner}}$ and $r_{\text{outer}}$ is called annulus in mathematics. The circles describes in principle a set of points $p = p(x,y)$ which are in one of two disjunct annuli, each representing a class.
 \begin{align}
 \text{class}(p) =
-	\begin{cases}
-		0 ,&\quad \quad r_{\text{inner}}^2 < x^2 + y^2 < r_{\text{outer}}^2 \\
-		1 ,&\quad \quad R_{\text{inner}}^2 < x^2 + y^2 < R_{\text{outer}}^2
-	\end{cases}
+\begin{cases}
+0 ,&\quad \quad r_{\text{inner}}^2 < x^2 + y^2 < r_{\text{outer}}^2 \\
+1 ,&\quad \quad R_{\text{inner}}^2 < x^2 + y^2 < R_{\text{outer}}^2
+\end{cases}
 \end{align}
 
 \subsection{Rate Coding}
-The fire rate $r$ of a neuron is determined by the number of spikes within a certain period $T$ in the postsynaptic spike train. The spike generation is based on Poisson processes (missing ref here). One way to numerically generate such a Poisson spike train is to perform a Bernoulli process on a short time interval $\Delta t$ with probability $p = \nicefrac{r \cdot \Delta t}{T}$.
+The fire rate $\nu$ of a neuron is determined by the number of spikes within a certain period $T$ in the postsynaptic spike train. The spike generation is based on Poisson processes (missing ref here). One way to numerically generate such a Poisson spike train is to perform a Bernoulli process on a short time interval $\Delta t$ with probability $p = \nicefrac{r \cdot \Delta t}{T}$.
 
 With the constraints of the on-chip implementation, the range of the input is limited to a signed 8-bit integer ($x, y \in [-128,127]$). Both inputs are mapped to an independent Poisson spike train generators of certain rate, e.g. for $x$
 \begin{equation}\label{key}
-r_{\text{input, x}}(x) = R \cdot \frac{x + 128}{255},
+\nu_{\text{input, x}}(x) = R \cdot \frac{x + 128}{255},
 \end{equation}
 with $R$ the base rate which is in order of several \SI{100}{\kilo \Hz}. 
 
-\subsection{Transferfunction}
+\subsection{transfer function}
 
-The sigmoidal transferfunction has already been motivated in \cref{trainingANN}. With a few adjustments it can be implemented for \glspl{snn}.
+The sigmoidal transfer function \gls{transfer} has already been motivated in \cref{trainingANN}. With a few adjustments it can be implemented for rate coding approach of a \gls{snn}.
 
-In absence of any noise sources and a reachable threshold potential, a \gls{lif} neuron will respond immediatley with a high fire rate to an input spike train. To avoid the jump from zero to high, an inhibitory and excitatory noise source (Poisson spiketrains with a fixed rate) smoothen out the resting potential $V_leak$ (c.f. )
+The output of the neuron can be approximated by (c.f. \cite{brunel2000dynamics})
+\begin{equation}\label{fireratehigh}
+\frac{1}{\nu_\text{output}} \approx \gls{refrac} + \gls{tau_m} \frac{\gls{thres} - \gls{v_reset}}{\gls{isyn}}
+\end{equation}
 
+for high input rates. The transfer function saturates for high input currents and is only limited by the inverse of \gls{refrac}. The approximation holds only if the time constants \gls{tau_m} and \gls{tau_syn} are small enough, in particular if they are smaller than \gls{refrac}, which means that the membrane actually forgets its previous state after spiking. The limit $\gls{thres} - \gls{isyn} \gg \sigma$, i.e. for low rates, yields
+\begin{equation}\label{fireratelow}
+\nu_\text{output} \gls{tau_m} \approx \frac{(\gls{thres} - \gls{isyn})}{\sigma \sqrt{\pi}} \exp\left(-\frac{(\gls{thres} - \gls{isyn})^2}{\sigma^2}\right).
+\end{equation}
+
+The fluctuations $\sigma$ of a single excitatory input source are small, reflecting only the intrinsic noise of the hardware and thus it will increase the fire rate rapidly. A continuous inhibitory and excitatory noise source (i.e. Poisson spike trains with a fixed rate) increases $\sigma$ and thus flattens the slope of the \gls{transfer} for a low $\nu_\text{input}$. 
+
+At rest and without additional input apart from the noise, the threshold is set such that $\nu_\text{output} = \nicefrac{\nu_\text{max}}{2}$. Varying the strength of the synaptic input directly changes the shape of \gls{transfer} as well (c.f. \cref{transferfunction}).
+
+\begin{figure}
+	\label{transferfunction}
+	\begin{center}
+		\input{figures/single_calibrated_transfer_function_w_various_weights.pgf}
+	\end{center}
+	\caption{The shape of \gls{transfer} depends on the strength of the synpatic input: $\gls{isyn} \propto w \cdot \nu_\text{input}$. The external  with external noise sources has a standard deviation of about \SI{20}{\milli\V}. Without noise only spread would be a magnitude lower. The part of the distribution that exceeds the threshold potential would lead to a spike.}
+\end{figure}
+
+The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution centered around the resting potential (c.f. \cite{mihaiphd}). In a naive approach, the area of the distribution that exceeds a certain threshold correlates to number of spikes fired. Thereby the dynamics of the membrane, once are a spike is fired, are not considered. Even for very short time constants close to zero the exact behavior is more complicated than this strongly simplified picture. However, it still offers a correct intuition what the individual parameters of the Gaussian free membrane potential distribution imply for the transfer function: more noise leads to a wider distribution and thus a more gently incline of \gls{transfer}; inhibitory synaptic input moves the distribution to a lower mean value and v.v.; moving the threshold corresponds to an additional bias term.
 
 \begin{figure}
 	\label{vleak_w_noise}
 	\begin{center}
 		\input{figures/activation_function_vmem_distr_with_thres.pgf}
 	\end{center}
-	\caption{The learning performance of stochastic gradient descent on the circles task, i.e. batch size is equal to one, is monitored by two measures: the accuracy and the root mean square error (RMSE).}
+	\caption{The distribution of the membrane potential set to $V_{\text{leak}}$ with external noise sources has a standard deviation of about \SI{20}{\milli\V}. Without noise only spread would be a magnitude lower. The part of the distribution that exceeds the threshold potential would lead to a spike.}
 \end{figure}
 
+In \cite{petrovici2016stochastic} the bias term of a \gls{lif} neuron's activation is mapped to a shift of the resting potential. The analog core brings more and less favorable operating points. Therefore the resting potential is kept constant and the threshold shifted instead (c.f. \cref{transferfunction_with_bias}).
 
- the choice
-
-
-
-
-Spikes are randomly time in a spike train generation underlies a 
-
+\begin{figure}
+	\label{transferfunction_with_bias}
+	\begin{center}
+		\input{figures/activation_function_w_bias.pgf}
+	\end{center}
+	\caption{Shifting \gls{thres} by $\delta V$ is correlated to applying a bias: $b \propto \delta V$.}
+\end{figure}
 
 
 
@@ -74,30 +96,39 @@ Spikes are randomly time in a spike train generation underlies a
 %} else {
 
 
-The goal is to find a decision boundary that separates both annuli. 
+%The goal is to find a decision boundary that separates both annuli. 
 
-repeated coin flipping (possible with an unfair coin) poisson process is continuous time 
+%repeated coin flipping (possible with an unfair coin) poisson process is continuous time 
 
 \subsection{Implementation on \gls{dls}}
 
+arbitrary order:
 
+- Calibration of Vleak and Bias (in particular the transfer function -> plot exists)
 
+- Cite yannik for other calib?
 
+- On Chip implementation of plasiticty rule
 
+- On chip implementation of spike generator
 
-With the on-chip implementation of the task and the plasticity rule come some constraints.
+- Stochastic rounding of weights
 
+- Regularizer of weights
 
+- adaption of circles task 
 
-In a slight adaption $r_{\text{inner}} = 0$ and $R_{\text{outer}}$ is replaced by the maximum range of $x$ and $y$ of e outer radius only the 2
-%
+- init conditions of task
 
-forward pass
-
-backward pass
+%In a slight adaption $r_{\text{inner}} = 0$ and $R_{\text{outer}}$ is replaced by the maximum range of $x$ and $y$ of e outer radius only the 2
 
 \subsection{Results}
 
+- training process (in picutres?)
+
+- validation
+
+- result of training
 
 \begin{figure}
 	\label{circles_acc}
@@ -107,3 +138,11 @@ backward pass
 	\caption{The learning performance of stochastic gradient descent on the circles task, i.e. batch size is equal to one, is monitored by two measures: the accuracy and the root mean square error (RMSE).}
 \end{figure}
 \subsection{Discussion}
+
+- transfer function needs to be non-linear the exact shape and its dependencies on noise rate, time constants, .. is not so important if it is somehow shaped like a non linear activation function.
+
+- working point of membrane -> noise and spread as soon as the working point is left (see transfer function with bias plot) -> not so bad actually for training. the error is trained as well. 
+
+- init conditions of task are important. somehow neurons dont learn if the init condition is "bad". but what does that even  mean.. the init condition is bad. the behaviour: the neuron stays silent throughout the learning process. 
+
+- ausblick: notes from mfp talk maybe?

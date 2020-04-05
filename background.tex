@@ -27,12 +27,13 @@ The membrane's time constant $\tau_\text{m}$ is given by the ratio of the membra
 
 Depending on the synapses weight $w_j$ each spike train has either an inhibitory or excitatory effect of different strength on the membrane.  synaptic current evolve as follows
 \begin{equation}
+\label{synpatic_input}
 \gls{isyn}(t) = \sum_j w_j \epsilon \ast S_j(t), 
 \end{equation}
-where $\epsilon$ is either a single or double-exponential kernel. % or write it as theta (t - t_s) exp(...)
+where $\epsilon$ is either a single-exponential kernel describing the falling input currents with \gls{tau_syn} or a double-exponential kernel reflecting both rising ($\tau_\text{syn, rise}$) and falling ($\tau_\text{syn, fall}$) dynamics of the input. % or write it as theta (t - t_s) exp(...)
 A "fire" mechanism is triggered at time $t_{\text{fire}}$ once the membrane crosses a certain threshold potential $\mathcal{\vartheta}$. 
 \begin{align}
-\gls{v_mem}(t_{\text{fire}}) &\ge \vartheta \Leftrightarrow \text{Neuron fires at time } t_{\text{fire}} \\
+\gls{v_mem}(t_{\text{fire}}) &\ge \vartheta \Leftrightarrow \text{Neuron fires at time } t_{\text{fire}}
 \end{align}
 After releasing the response signal, the membrane is reset to \gls{v_reset} where it remains without any change for a refractory period of \gls{refrac}. 
 \begin{align}
@@ -78,14 +79,12 @@ The different types of neural coding require each an adapted training method. Ra
 The learning process of a neural network can be divided into a forward and backward pass. During the forward pass the output value of each node in the network is evaluated. The backward pass computes in which direction the networks parameters $\mathbf{\theta}$ need to be changed so that they minimize a given loss function $\mathcal{L}(\mathbf{\theta})$.
 
 \subsubsection{Forward Pass}
-The activation $\mathbf{a}$ of a layer is given by the weighted input $\mathbf{x}$ with a weight matrix $W$ plus a bias term $\mathbf{b}$. The bias term is a vital parameter which allows the network to shift the dynamic range of a single neuron. 
+The activation $\mathbf{a}$ of a layer is given by the weighted input $\mathbf{x}$ with a weight matrix $W$ plus a bias term $\mathbf{b}$ and random noise. The bias term is a vital parameter which allows the network to shift the dynamic range of a single neuron. In a noise-free world, ANNs are performing poorly and thus artificial random noise needs to be injected. 
 \begin{align}
 \label{activation}
-\mathbf{a} = W \, \mathbf{x} + \mathbf{b} \\
+\mathbf{a} = W \, \mathbf{x} + \mathbf{b} + \text{noise}
 \end{align}
-
 The output $\mathbf{y}$ of the layer is the result of the transfer function $\phi$ and which is chosen to be of sigmoidal shape. The exact shape of the transfer function is not of high importance, as long as at it is non-linear. In combination with a cross-entropy loss function the choice of a sigmoid becomes convenient when performing the backward pass.
-
 \begin{equation}
 \mathbf{y} = \phi(\mathbf{a}).
 \end{equation}

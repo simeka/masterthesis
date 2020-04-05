@@ -18,7 +18,7 @@
 \usepackage{pgfplots}
 \usepackage{tikz-timing}
 \usepackage{todonotes}
-\usepackage[nopostdot,nonumberlist]{glossaries}
+\usepackage[acronym, nonumberlist]{glossaries}
 \usepackage[binary-units]{siunitx}
 \usepackage{textcomp}
 \usepackage{enumitem}
@@ -86,6 +86,9 @@
 \pgfplotsset{compat=1.11}
 \captionsetup[subfigure]{position=top, labelfont=bf, textfont=normalfont, singlelinecheck=off, justification=raggedright}
 
+% glossary
+\makeglossaries
+\include{acronyms}
 
 \makeatletter
 \def\dontdofcolorbox{\renewcommand\fcolorbox[4][]{##4}}
@@ -93,9 +96,6 @@
 
 \DeclareSIUnit{\billion}{\text{billion}}
 
-\input{acronyms}
-
-\makeglossaries
 
 \begin{document}
 	
@@ -137,7 +137,8 @@
 	\renewcommand{\bibname}{References}
 	\bibliography{bibliography,vision}
 	
-	\printglossary[title=List of Acronyms]
+	\printglossary[type=\acronymtype, title=List of Acronyms]
+	\printglossary
 	
 	\listoffigures
 	\enlargethispage{\baselineskip}

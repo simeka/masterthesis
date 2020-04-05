@@ -48,15 +48,16 @@ With the 8-bit resolution of the spike counters the range of the input is determ
 \end{equation}
 
 
-Todo: somewhere put this $\gls{isyn} \propto w*\nu_{\text{input}}$, maybe just a short reference... \gls{isyn} is should have been explained already
 
 \subsection{Transfer Function}
 
 The sigmoidal transfer function \gls{transfer} has already been motivated in \cref{trainingANN}. With a few adjustments it can be implemented for a rate coding approach of \glspl{snn}.
 
+The stimulation of a neuron (\gls{isyn}) has been motivated in \cref{synpatic_input}. In terms of rates the synpatic currents scale linearly $\gls{isyn} \propto \nu$. In analogy to \cref{activation} the total current can be divided into input, bias and noise currents $\gls{isyn} = I_\text{in} + I_\text{bias} + I_\text{noise}$.
+
 The output of the neuron can be approximated by (c.f. \cite{brunel2000dynamics})
 \begin{equation}\label{fireratehigh}
-\frac{1}{\nu_\text{output}} \approx \gls{refrac} + \gls{tau_m} \frac{\gls{thres} - \gls{v_reset}}{\gls{isyn}}
+\frac{1}{\gls{transfer}(\nu_\text{input})} \propto \frac{1}{\nu_\text{output}} \approx \gls{refrac} + \gls{tau_m} \frac{\gls{thres} - \gls{v_reset}}{\gls{isyn}}
 \end{equation}
 
 for high input rates. The transfer function saturates for high input currents and is only limited by the inverse of \gls{refrac}. The approximation holds only if the time constants \gls{tau_m} and \gls{tau_syn} are small enough, in particular if they are smaller than \gls{refrac}, which means that the membrane actually forgets its previous state after spiking. The limit $\gls{thres} - \gls{isyn} \gg \sigma$, i.e. for low rates, yields
@@ -96,31 +97,38 @@ In \cite{petrovici2016stochastic} the bias term of a \gls{lif} neuron's activati
 	\caption{Shifting \gls{thres} by $\delta V$ is interchangeable with adding a bias term to the activation and thus $b \propto \delta V$.}
 \end{figure}
 
-\subsection{Calibration on \gls{dls}}
-In an uncalibrated state the transfer function (c.f. \cref{transferfunction_wout_calib}) is quite well spread per neuron with regards to the maximum rate (set by \gls{refrac}) and the center rate (set by \gls{v_leak}). Up to a certain degree the training process of \gls{snn} is self-correcting the misalignment. In a perfect world with no noise it is even essential for \glspl{ann} to inject artificial noise in order to perform and thus one could argue that the uncalibrated state is actually beneficial to the training. However, the dynamic range of the individual neurons is limited and needs to overlap (c.f. \cref{transferfunction_w_calib}}).
+The overall transfer function depends several parameters $\gls{transfer} = \gls{transfer}(\gls{nuin}, b, \gls{refrac}, f_{\gls{v_mem}})$ and $f_{\gls{v_mem}} = f_{\gls{v_mem}}(V; \gls{v_leak}, \nu_\text{noise})$. In \cref{calibration} the calibration of \gls{transfer} is introduced.
+
+\subsection{Calibration of \gls{transfer}}\label{calibration}
+In an uncalibrated state the transfer function (c.f. \cref{transferfunction_wout_calib}) is quite well spread per neuron with regards to the maximum rate (set by \gls{refrac}) and the center rate (set by \gls{v_leak}). Up to a certain degree the training process of \gls{snn} is self-correcting the misalignment. In a perfect world with no noise it is even essential for \glspl{ann} to inject artificial noise in order to perform and thus one could argue that the uncalibrated state is actually beneficial to the training. However, the dynamic range of the individual neurons is limited and needs to overlap (c.f. \cref{transferfunction_w_calib}).
 
 \begin{figure}
+	\captionsetup[subfigure]{justification=centering}
+	\centering
 	\begin{subfigure}[b]{0.47\textwidth}
-		\begin{center}
-			\input{figures/uncalibrated_activation_function.pgf}
-		\end{center}
-		%\caption{Picture 1}
+		\input{figures/uncalibrated_activation_function.pgf}
+			\caption{uncalibrated \gls{transfer}}
 		\label{transferfunction_wout_calib}
 	\end{subfigure}
 	%
 	\begin{subfigure}[b]{0.47\textwidth}		
-		\begin{center}
 			\input{figures/calibrated_activation_function.pgf}
-		\end{center}
-		%\caption{Picture 2}
+		\caption{calibrated \gls{transfer}}
 		\label{transferfunction_w_calib}
 	\end{subfigure}
 	\caption{\cref{transferfunction_wout_calib}: In the uncalibrated state the maximum (\gls{refrac}) and center rate (\gls{v_leak}) deviates due to analog imperfection of the hardware. \cref{transferfunction_w_calib}: The calibration aligns the dynamic range of individual neurons, which will helps the training}
 \end{figure}
 
-The analog neuron parameters are controlled by setting bias currents over a 10-bit \gls{dac}. The on-chip calibration uses a binary serach algorithm (\cite{binarysearchsource}). 
+The on-chip calibration uses a binary search algorithm (\cite{binarysearchsource}) to find suitable \gls{dac}-values for the analog neuron parameters of \gls{refrac} and \gls{v_leak}. In a binary search a target value is compared with the middle value of an sorted array. Depending on the outcome the lower or upper half is eliminated and the search comparison is repeated with the boundaries of the remaining half. After $\mathcal{O}(\log(n))$ repetitions the algorithm will find the target value in an array with $n$ entries. For the calibration to work, the sorted array is replaced by the 10-bit \gls{dac}-value and the measurement of \gls{transfer} is compared with a target rate.
 
-%	for(uint32_t i=0; i<n_bins; ++i) {
+Setting $\gls{nuin} = \nu_\text{max, hw}$, $b=0$, the resting potential to a working point of $\gls{v_leak} = \SI{300}{\milli \V}$ and disabling the noise $\nu_\text{noise} = 0$ yields a maximum $\gls{nuout} = \nicefrac{1}{\gls{refrac}}$. With the limitation of the spike counters and $T = \SI{2.3}{\milli \s} $ the target rate is $\gls{nuout}^* \approx \SI{111.3}{\kilo \Hz}$. To determine \gls{v_leak}, the input and bias is set to zero but the noise is enabled instead ($\nu_\text{noise} = \SI{70}{kHz}$). In this configuration \gls{transfer} will return the center rates which equals to half of the maximum frequency.
+\begin{align*}\label{calibration_config}
+\gls{refrac}&:\quad \gls{transfer}(\nu_\text{max, hw}, 0, \gls{refrac}, f_{\gls{v_mem}}) = \frac{1}{\gls{refrac}} \quad \text{ with } \nu_\text{noise} = 0\\
+\gls{v_leak}&:\quad \gls{transfer}(0, 0, \gls{refrac}, f_{\gls{v_mem}}) = \frac{1}{2\gls{refrac}} \quad \text{ with } \nu_\text{noise} \neq 0
+\end{align*}
+
+The calibration of \gls{refrac} and \gls{v_leak} is repeated several times to reduce the potential the influence of the other yet uncalibrated parameter. The calibration of \gls{thres} is done implicitly by calibrating \gls{v_leak} onto the center rate. In \cref{transferfunction_w_calib} the calibrated state is displayed. 
+%	for(uint32_t i=0; i<n_bins; ++i) 
 %xorshift32(&random_state);
 %
 %if(i%4 == 0) {

@@ -98,7 +98,7 @@ if __name__ == "__main__":
     plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
     plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
     plt.plot(input_rates, data[mmnt, w, :, 0:12])
-    save_plot(fig, "uncalibrated_activation_function", (3,3))
+    save_plot(fig, "uncalibrated_activation_function", (3,2))
 
     mmnt = 0
     w = 2 # corresponds to 30
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
     plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
     plt.plot(input_rates, data[mmnt, w, :, 0:12])
-    save_plot(fig, "calibrated_activation_function", (3,3))
+    save_plot(fig, "calibrated_activation_function", (3,2))
 
     ###################################################################################
     # activation function with bias

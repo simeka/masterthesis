@@ -66,61 +66,84 @@ for i, f in enumerate(files):
     data[i] = true_output_spike_rate(np.load(f)) / 1e3
 
 # input rates
+# update: 4.4.2020, there is missconception of the true input spike rate which is at max 568kHz equal to 1306 spikes per measurement duration
 input_weights = [5, 15, 30, 60]
-input_rates = true_input_spike_rate(np.linspace(-560, 560, 37)) * 1e3
+# input_rates = true_input_spike_rate(np.linspace(-560, 560, 37)) * 1e3
+input_rates = np.linspace(-560, 560, 37) # input rate in kHz
 
 
 if __name__ == "__main__":
 
-    # # single activation function with multiple weights
-    # mmnt = 0
-    # nrn = 9
-    # figure = plt.figure()
-    #
-    # plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
-    # plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
-    # for p in range(4):
-    #     plt.plot(input_rates, data[mmnt, p, :, nrn], label="input weight %s" % input_weights[p])
-    #     # plt.legend([Line2D([0],[0], marker='o', color="w", markerfacecolor="black")],
-    #     #           ["input weight = {}".format(input_weights[p])])
-    # plt.legend()
-    # save_plot(figure, "single_calibrated_transfer_function_w_various_weights", (5,3))
+    ###################################################################################
+    # single activation function with multiple weights
+    mmnt = 0
+    nrn = 9
+    figure = plt.figure()
+
+    plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
+    plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
+    for p in range(4):
+        plt.plot(input_rates, data[mmnt, p, :, nrn], label="input weight %s" % input_weights[p])
+        # plt.legend([Line2D([0],[0], marker='o', color="w", markerfacecolor="black")],
+        #           ["input weight = {}".format(input_weights[p])])
+    plt.legend()
+    save_plot(figure, "single_calibrated_transfer_function_w_various_weights", (5,3))
 
 
-    # # activation function with bias
-    # mmnts = ["output_spikes_1574183394.npy", "output_spikes_1574183702.npy",
-    #          "output_spikes_1574183860.npy"]
-    # data = np.zeros((3, 3, 37, 32))
-    #
-    # for i, f in enumerate(mmnts):
-    #     data[i] = true_output_spike_rate(np.load(f)) / 1e3
-    #
-    # # input rates
-    # thresholds = [(270, 300, 330), (250, 300, 350), (260, 300, 340)]
-    # thresholds = [(pseudo_adc_conversion_analog(thres[0]),
-    #                pseudo_adc_conversion_analog(thres[1]),
-    #                pseudo_adc_conversion_analog(thres[2]))
-    #               for thres in thresholds]
-    # input_rates = true_input_spike_rate(np.linspace(-560, 560, 37)) * 1e3
-    # workpoint = pseudo_adc_conversion_analog(300)
-    #
-    # mmnt = 0
-    # n_params = 0
-    # figure = plt.figure()
-    # plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
-    # plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
-    # #figure.gca().set_prop_cycle(color=colors)
-    # styles = ["--", "-", ":"]
-    #
-    # for i, thres in enumerate(thresholds[mmnt]):
-    #     plt.plot(input_rates, data[mmnt, i, :, 0:12], linestyle=styles[i])
-    #
-    # plt.legend([Line2D([0], [0], marker='', linestyle=style, color="black") for style in styles],
-    #            ["$b \propto  \delta V = \SI{%s}{\milli \V}$" % (np.round(workpoint - t, 1)) for t in thresholds[mmnt]],
-    #            loc="upper left")
-    #
-    # save_plot(figure, "activation_function_w_bias", size=(5,3))
+    ###################################################################################
+    # uncalibrated activation function (b=0, w=30)
+    mmnt = 2
+    w = 2 # corresponds to 30
+    fig = plt.figure()
+    plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
+    plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
+    plt.plot(input_rates, data[mmnt, w, :, 0:12])
+    save_plot(fig, "uncalibrated_activation_function", (3,3))
 
+    mmnt = 0
+    w = 2 # corresponds to 30
+    fig = plt.figure()
+    plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
+    plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
+    plt.plot(input_rates, data[mmnt, w, :, 0:12])
+    save_plot(fig, "calibrated_activation_function", (3,3))
+
+    ###################################################################################
+    # activation function with bias
+    mmnts = ["output_spikes_1574183394.npy", "output_spikes_1574183702.npy",
+             "output_spikes_1574183860.npy"]
+    data = np.zeros((3, 3, 37, 32))
+
+    for i, f in enumerate(mmnts):
+        data[i] = true_output_spike_rate(np.load(f)) / 1e3
+
+    # input rates
+    thresholds = [(270, 300, 330), (250, 300, 350), (260, 300, 340)]
+    thresholds = [(pseudo_adc_conversion_analog(thres[0]),
+                   pseudo_adc_conversion_analog(thres[1]),
+                   pseudo_adc_conversion_analog(thres[2]))
+                  for thres in thresholds]
+    input_rates = true_input_spike_rate(np.linspace(-560, 560, 37)) * 1e3
+    workpoint = pseudo_adc_conversion_analog(300)
+
+    mmnt = 0
+    n_params = 0
+    figure = plt.figure()
+    plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
+    plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
+    #figure.gca().set_prop_cycle(color=colors)
+    styles = ["--", "-", ":"]
+
+    for i, thres in enumerate(thresholds[mmnt]):
+        plt.plot(input_rates, data[mmnt, i, :, 0:12], linestyle=styles[i])
+
+    plt.legend([Line2D([0], [0], marker='', linestyle=style, color="black") for style in styles],
+               ["$b \propto  \delta V = \SI{%s}{\milli \V}$" % (np.round(workpoint - t, 1)) for t in thresholds[mmnt]],
+               loc="upper left")
+    save_plot(figure, "activation_function_w_bias", (5,3))
+
+
+    ###################################################################################
     # Gaussian Free Membrane Distribution
     mmnts = ["membrane_data_0.npy", "membrane_data_1.npy"]
     input_rates = [0, true_input_spike_rate(100)]
@@ -128,9 +151,6 @@ if __name__ == "__main__":
     full_data = np.zeros((2, 26137))
     for i in range(2):
         full_data[i] = np.load(mmnts[i])[:26137]
-
-
-
 
     def gaus(x, mue, sig):
         return np.exp(-(x - mue) ** 2 / (2 * sig ** 2)) / sig / np.sqrt(2 * np.pi)
@@ -161,5 +181,4 @@ if __name__ == "__main__":
 
         # ax.legend(["Gaussian Fit", "$V_{leak}$", "$V_{thres}$", "Histogram", "Spiking"], loc="upper left")
     ax.set_xlabel("$V_\mathrm{m} \; (\si{\milli \V})$")
-
     save_plot(fig, "activation_function_vmem_distr_with_thres", (5,3))

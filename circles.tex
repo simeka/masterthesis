@@ -9,6 +9,7 @@ As a first experiment a toy data set called circles has been chosen. The data se
 
 
 \subsection{Rate Coding with Poisson Spike Trains}
+\label{poissonspiketrains}
 
 In rate coding, information is encoded in the fire rate $\nu$ of a neuron, which is determined by the number of spikes $n_\text{spikes}$ sent within a period $T$. The distribution of the spikes in the postsynaptic spike train is based on Poisson processes (ref here). One way to numerically generate such a Poisson spike train representing a fire rate is to repeatedly perform a Bernoulli process on a short time interval $\Delta t$, i.e. an unfair coin flip with probability $p = \nicefrac{n_\text{spikes} \cdot \Delta t}{T}$.
 
@@ -24,7 +25,7 @@ return *seed;
 }
 \end{minted}
 
-In theory the maximum rate is given by $\nu_\text{max, th} = \nicefrac{1}{\gls{refrac}}$, i.e. when the coin's probability equals one. With respect to hardware limitations, for example the time required to generate an artificial spike with the \gls{ppu}, $\nu_\text{max, hw} = \nicefrac{1}{\SI{0.44}{\mu \s}} = \SI{2.27}{\mega \Hz}$.
+In theory the maximum rate is given by $\nu_\text{max, th} = \nicefrac{1}{\gls{refrac}}$, i.e. when the coin's probability equals one. With respect to hardware limitations, for example the time required to generate an artificial spike with the \gls{ppu}, the maximum frequency is limited to $\nu_\text{max, hw} = \nicefrac{1}{\SI{0.44}{\mu \s}} = \SI{2.27}{\mega \Hz}$.
 
 In the final experiment setup the Poisson spike generator will be divided into four independent channels, each producing at max a fourth of $\nu_\text{max, hw}$.
 
@@ -41,11 +42,20 @@ A region bounded by two concentric circles with radius $r_{\text{inner}}$ and $r
 \end{cases}
 \end{align}
 
-With the 8-bit resolution of the spike counters the range of the input is determind by a signed 8-bit integer ($x, y \in [-128,127]$). Both inputs are mapped to a separate channel of the Poisson spike train generator of rate $\nu_\text{max}$, e.g. for $x$
+With the 8-bit resolution of the spike counters the range of the input is determined by a signed 8-bit integer ($x, y \in [-128,127]$). Both inputs are mapped to a separate channel of the Poisson spike train generator of rate $\nu_\text{max}$, e.g. for $x$
 
 \begin{equation}\label{inputfrequency}
 \nu_{\text{input, x}}(x) = \nu_\text{max} \cdot \frac{x + 128}{255}.
 \end{equation}
+
+Both classes correspond to a certain target rate $\nu^*$ in the output unit. The error is defined by:
+\begin{equation}
+\label{circleserror}
+e_\text{out} = \gls{nuout} - \nu^*
+\end{equation}
+A reasonable choice for the target rates is crucial to the performance of the training. 
+
+In a slight simplification of the task $r_{\text{inner}}$ is set to zero and $R_{\text{outer}}$ is replaced by the limitations of the input. The remaining two boundaries are set to $r_{\text{outer}} = \sqrt{8000}$ and $R_{\text{inner}} = \sqrt{13000}$.
 
 
 
@@ -77,7 +87,7 @@ At rest and without additional input apart from the noise, the threshold is set 
 	\caption{The shape of \gls{transfer} depends on the strength of the synpatic input: $\gls{isyn} \propto w \cdot \nu_\text{input}$. The external  with external noise sources has a standard deviation of about \SI{20}{\milli\V}. Without noise only spread would be a magnitude lower. The part of the distribution that exceeds the threshold potential would lead to a spike.}
 \end{figure}
 
-The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution centered around the resting potential (c.f. \cite{mihaiphd}). In a naive approach, the area of the distribution that exceeds a certain threshold correlates to number of spikes fired. Thereby the dynamics of the membrane, once are a spike is fired, are not considered. Even for very short time constants close to zero the exact behavior is more complicated than this strongly simplified picture. However, it still offers a correct intuition what the individual parameters of the Gaussian free membrane potential distribution imply for the transfer function: more noise leads to a wider distribution and thus a more gently incline of \gls{transfer}; inhibitory synaptic input moves the distribution to a lower mean value and v.v.; moving the threshold corresponds to an additional bias term.
+The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution centered around the resting potential (c.f. \cite{petrovici12phdthesis}). In a naive approach, the area of the distribution that exceeds a certain threshold correlates to number of spikes fired. Thereby the dynamics of the membrane, once are a spike is fired, are not considered. Even for very short time constants close to zero the exact behavior is more complicated than this strongly simplified picture. However, it still offers a correct intuition what the individual parameters of the Gaussian free membrane potential distribution imply for the transfer function: more noise leads to a wider distribution and thus a more gently incline of \gls{transfer}; inhibitory synaptic input moves the distribution to a lower mean value and v.v.; moving the threshold corresponds to an additional bias term.
 
 \begin{figure}
 	\label{vleak_w_noise}
@@ -128,39 +138,29 @@ Setting $\gls{nuin} = \nu_\text{max, hw}$, $b=0$, the resting potential to a wor
 \end{align*}
 
 The calibration of \gls{refrac} and \gls{v_leak} is repeated several times to reduce the potential the influence of the other yet uncalibrated parameter. The calibration of \gls{thres} is done implicitly by calibrating \gls{v_leak} onto the center rate. In \cref{transferfunction_w_calib} the calibrated state is displayed. 
-%	for(uint32_t i=0; i<n_bins; ++i) 
-%xorshift32(&random_state);
-%
-%if(i%4 == 0) {
-%my_spike.row_mask = (1 << 4) | (1 << 5);
-%probability = input_a_probability;
-%my_spike.addr = 10;
-%} else if (i%4 == 1) {
-%// potential excitatory background spike
-%my_spike.row_mask = (1 << 0);
-%probability = exc_noise_probability;
-%my_spike.addr = 1 + random_state & 0b111; // 1,2,..,8
-%} else if (i%4 == 2) {
-%// potential inhibitory background spike
-%my_spike.row_mask = (1 << 1);
-%probability = inh_noise_probability;
-%my_spike.addr = 1 + random_state & 0b111; // 1,2,..,8
-%} else {
-%my_spike.row_mask = (1 << 6) | (1 << 7);
-%probability = input_b_probability;
-%my_spike.addr = 10;
-%}
-%
-%if(((random_state & 0xff00) >> 8) < probability) {
-%send_spike(&my_spike);
-%} else {
-
-
-%The goal is to find a decision boundary that separates both annuli. 
-
-%repeated coin flipping (possible with an unfair coin) poisson process is continuous time 
 
 \subsection{Implementation on \gls{dls}}
+
+The circles data set is solved by training a single hidden layer network with two inputs, eleven hidden units and one output with stochastic gradient descent and feedback alignment. The \gls{ppu} coordinates the experiment. After a proper initialization routine, the training loop is started: In a first step the input rates of a randomly drawn data point $p(x,y)$ are generated (c.f. \cref{poissonspiketrains}) and the forward pass is performed. The observables are then evaluated with the feedback alignment routine on the \gls{ppu} (backward pass) and the resulting in updates for weights and biases are applied, before the next iteration starts.
+
+Todo: explain stochastic gradient descent, iterations, batchsize, ... in deep learning.
+
+Todo: write a bit more to init routine (weight init, feedback matrix, .. etc.) 
+
+
+The forward pass is implemented using the neuromorphic architecture. The 32 \gls{lif}-neurons on the \gls{dls} are connected by a $32 \times 32$ synapse array where each column is connected to a neuron. A presynaptic spike train is injected row-wise. Then, the synapses compare a dedicated address label of the incoming spike with their own. Once they match, the spike is weighted with a 6-bit unsigned integer and forwarded to the connected neuron at the bottom as either inhibitory or excitatory synaptic input current. Recurrent connections are made available by the use of a spike router, which routes the postsynaptic spike trains generated by a neuron back into the synapse array.
+
+A single input row cannot provide alternating negative and positive inputs to the same neuron. Changing the synapses configuration simply costs too much time. To ensure a continuous evolution of the weight from negative to positive, two rows are used simultaneously for the same input - one in excitatory and one inhibitory mode. As the weight changes sign, the unused row is set silent.
+
+A total of six rows is used for the various inputs: two for the noise generation and four for the two-dimensional input (two per input). The recurrent connection of the hidden layer require another $22$ rows. In \cref{network_structure} the exact row assignment is sketched.
+
+Other than during the calibration process, where each neuron was calibrated individually, now the noise source needs to provide Poisson spike trains for all neurons in the hidden and output layer. As a compromise the source is divided further into eight channels. Four neurons will share the noise with other ones.
+
+
+For the backward pass the necessary observables need to be accessed by the PPU. Error is calculated accordingly (\cref{circleserror}) and for the hidden layer by multiplication with the random feedback matrix. weight updates and bias updates are calculcated accordingly (gradient is approximated with derivative of a sigmoid). With limited resolution of the observables and parameters and the 32bit architecture stochastic rounding is introduced (popular choice to set integer parameters with -> there is probably also some theoretical paper around, at least pehle was always talking about it). Now that dB and dW is known the update can be applied. Easy but slow for bias (dont care too much -> it s a cap mem value...dB = 1 causes quite a big change -> capmem change needs to settle but is continous since its an analog parameter, yay) however settings weights is not fun nor time efficient if done via general purpose part of ppu. do it with the vector unit instead. This requires coding in assembly. Silencing and activitating the individual weights is also done in assembly (pre work on capocaccia by billy and benjamin, is there something to cite or reference?).
+
+Optimization: (stochastic) Regularization-> also in assembly (not enough space to keep track of weights)
+
 
 
 arbitrary order:
@@ -181,7 +181,18 @@ arbitrary order:
 
 - init conditions of task
 
-%In a slight adaption $r_{\text{inner}} = 0$ and $R_{\text{outer}}$ is replaced by the maximum range of $x$ and $y$ of e outer radius only the 2
+
+\subsection{Training Process and Monitoring}
+table with parameters
+
+Validation:
+a randomly generated data set of ~100 data points. always the same -> evaluate for each point the rates at different learning steps => overall performance and not only from one single point (problem with stochastic gradient descent)
+
+
+%The goal is to find a decision boundary that separates both annuli. 
+
+%repeated coin flipping (possible with an unfair coin) poisson process is continuous time
+
 
 \subsection{Results}
 

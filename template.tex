@@ -82,9 +82,15 @@
 
 % Figures
 \graphicspath{{../../fig/}}
-\newcommand{\pgfplot}[1]{\input{../../fig/#1.pgf}}
+\newcommand{\pgfplot}[1]{\input{figures/#1.pgf}}
 \pgfplotsset{compat=1.11}
 \captionsetup[subfigure]{position=top, labelfont=bf, textfont=normalfont, singlelinecheck=off, justification=raggedright}
+
+\newcommand\inputpgf[2]{{
+		\let\pgfimageWithoutPath\pgfimage
+		\renewcommand{\pgfimage}[2][]{\pgfimageWithoutPath[##1]{#1/##2}}
+		\input{#1/#2}
+}}
 
 % glossary
 \makeglossaries

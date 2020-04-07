@@ -30,8 +30,6 @@
 \glossaryentry{\ensuremath {\vartheta }?\glossentry{thres}|setentrycounter[]{page}\glsnumberformat}{21}
 \glossaryentry{\ensuremath {V_\text {reset}}?\glossentry{v_reset}|setentrycounter[]{page}\glsnumberformat}{21}
 \glossaryentry{\ensuremath {I_\text {syn}}?\glossentry{isyn}|setentrycounter[]{page}\glsnumberformat}{21}
-\glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{22}
-\glossaryentry{\ensuremath {I_\text {syn}}?\glossentry{isyn}|setentrycounter[]{page}\glsnumberformat}{22}
 \glossaryentry{\ensuremath {\tau _\text {refrac}}?\glossentry{refrac}|setentrycounter[]{page}\glsnumberformat}{22}
 \glossaryentry{\ensuremath {\tau _\text {mem}}?\glossentry{tau_m}|setentrycounter[]{page}\glsnumberformat}{22}
 \glossaryentry{\ensuremath {\tau _\text {syn}}?\glossentry{tau_syn}|setentrycounter[]{page}\glsnumberformat}{22}
@@ -45,6 +43,8 @@
 \glossaryentry{\ensuremath {I_\text {syn}}?\glossentry{isyn}|setentrycounter[]{page}\glsnumberformat}{22}
 \glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{22}
 \glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{22}
+\glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{23}
+\glossaryentry{\ensuremath {I_\text {syn}}?\glossentry{isyn}|setentrycounter[]{page}\glsnumberformat}{23}
 \glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{23}
 \glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{23}
 \glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{23}
@@ -61,10 +61,8 @@
 \glossaryentry{\ensuremath {\tau _\text {refrac}}?\glossentry{refrac}|setentrycounter[]{page}\glsnumberformat}{23}
 \glossaryentry{\ensuremath {V_\text {leak}}?\glossentry{v_leak}|setentrycounter[]{page}\glsnumberformat}{23}
 \glossaryentry{\ensuremath {\vartheta }?\glossentry{thres}|setentrycounter[]{page}\glsnumberformat}{24}
-\glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{24}
-\glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{24}
-\glossaryentry{\ensuremath {\tau _\text {refrac}}?\glossentry{refrac}|setentrycounter[]{page}\glsnumberformat}{24}
-\glossaryentry{\ensuremath {V_\text {leak}}?\glossentry{v_leak}|setentrycounter[]{page}\glsnumberformat}{24}
+\glossaryentry{\ensuremath {\tau _\text {refrac}}?\glossentry{refrac}|setentrycounter[]{page}\glsnumberformat}{25}
+\glossaryentry{\ensuremath {V_\text {leak}}?\glossentry{v_leak}|setentrycounter[]{page}\glsnumberformat}{25}
 \glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{25}
 \glossaryentry{\ensuremath {\nu _\text {input}}?\glossentry{nuin}|setentrycounter[]{page}\glsnumberformat}{25}
 \glossaryentry{\ensuremath {V_\text {leak}}?\glossentry{v_leak}|setentrycounter[]{page}\glsnumberformat}{25}
@@ -87,6 +85,8 @@
 \glossaryentry{\ensuremath {V_\text {leak}}?\glossentry{v_leak}|setentrycounter[]{page}\glsnumberformat}{25}
 \glossaryentry{\ensuremath {\vartheta }?\glossentry{thres}|setentrycounter[]{page}\glsnumberformat}{25}
 \glossaryentry{\ensuremath {V_\text {leak}}?\glossentry{v_leak}|setentrycounter[]{page}\glsnumberformat}{25}
+\glossaryentry{\ensuremath {\nu _\text {input}}?\glossentry{nuin}|setentrycounter[]{page}\glsnumberformat}{26}
+\glossaryentry{\ensuremath {\nu _\text {output}}?\glossentry{nuout}|setentrycounter[]{page}\glsnumberformat}{26}
 \glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{v}
 \glossaryentry{\ensuremath {\Phi }?\glossentry{transfer}|setentrycounter[]{page}\glsnumberformat}{v}
 \glossaryentry{\ensuremath {\nu _\text {input}}?\glossentry{nuin}|setentrycounter[]{page}\glsnumberformat}{v}

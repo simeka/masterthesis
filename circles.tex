@@ -74,7 +74,7 @@ In a slight simplification of the task $r_{\text{inner}}$ is set to zero and $R_
 		\inputpgf{figures}{nu_y_input.pgf}	
 		\label{nuyinput}
 	\end{subfigure}
-	\caption{Each point $p(x,y)$ is mapped to a frequency in "x-direction" (\subref{nuxinput}) and "y-direction" (\subref{nuyinput}). The value of the frequency is color coded. As an example let's assume a point from the lower right corner is drawn e.g. $p(100,-100)$: a unit in the hidden layer receives two independent inputs. One with a high frequency $\nu_{\text{input, x}}(100) \approx \SI{450}{\kilo \Hz}$ and the other with a low frequency $\nu_{\text{input, y}}(-100) \approx \SI{450}{\kilo \Hz}$.}
+	\caption{Each point $p(x,y)$ is mapped to a frequency in "x-direction" (\subref{nuxinput}) and "y-direction" (\subref{nuyinput}). The value of the frequency is color coded. As an example let's assume a point from the lower right corner is drawn e.g. $p(100,-100)$: a unit in the hidden layer receives two independent inputs. One with a high frequency $\nu_{\text{input, x}}(100) \approx \SI{450}{\kilo \Hz}$ and the other with a low frequency $\nu_{\text{input, y}}(-100) \approx \SI{55}{\kilo \Hz}$.}
 
 \end{figure}
 
@@ -211,6 +211,20 @@ arbitrary order:
 
 %repeated coin flipping (possible with an unfair coin) poisson process is continuous time
 
+%&$w_\text{noise}$ 	& $\nu_\text{noise}$
+%
+%&$\pm 15$			& $~\SI{1.1}{\kilo \Hz}$
+%\nicefrac{\SI{8.75}{\kilo \Hz}}{8} \approx
+
+$\gls{v_leak} = \SI{300}{\milli \V}$
+\begin{table}\centering\ra{1.3}
+	\begin{tabular}{@{}rcllcllcll@{}}\toprule
+		&layer	 & & $w_{ij}^\text{init}$		& $b_i^\text{init}$ & $\nu_{\text{input}}$	& & $\eta_\text{w}$	& $\eta_\text{b}$\\ \midrule
+		&hidden  & & $\in[-25, 25]$	& $\gls{v_leak} +\frac{1}{2} \sum_j w_{ij}$ & $\SI{500}{\kilo \Hz}$	& & $165e4$			& $2.3e4$		\\
+		&output  & & $\in[-25, 25]$	& $\gls{v_leak} \SI{300}{\milli \V}$& $\SI{110.9}{\kilo\Hz}$& & $5.5e4$			& $0.23e4$		\\ \bottomrule
+\end{tabular}
+\caption{The different settings for the layers is listed in the table. The weights are initialized as a uniform distribution within the given boundaries. The bias set to \gls{v_leak} and in the hidden layer an additional factor $\frac{1}{2} \sum_j w_{ij}$ ensures that certain fire rate is established at the initial state. The input rates are per input. The total possible input for a hidden unit is thus $2 \times \nu_\text{input}$. The learning rates may appear unusually high but they incorporate the norming as well and are tuned in a way that both layers are active (see \cref{network_monitoring}).}
+\end{table}
 
 \subsection{Results}
 

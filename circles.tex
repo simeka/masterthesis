@@ -36,6 +36,7 @@ In the final experiment setup the Poisson spike generator will be divided into f
 However, another factor limits the rate as well - the 8-bit spike counters. With $T$ in the order of milliseconds and $\nu_\text{max} = \nicefrac{256}{T}$, a measurable rate is found around $\mathcal{O}(\SI{100}{\kilo \Hz})$.
 
 \subsection{Circles Task}
+\label{circlestask}
 A region bounded by two concentric circles with radius $r_{\text{inner}}$ and $r_{\text{outer}}$ is called annulus. The circles data set describes in principle a set of points $p = p(x,y)$ in a two-dimensional plane, which are in one of two disjunct annuli, each representing a class. The goal is to find a decision boundary that successfully separates the two classes.
 
 \begin{align}
@@ -51,13 +52,6 @@ With the 8-bit resolution of the spike counters the range of the input is determ
 \begin{equation}\label{inputfrequency}
 \nu_{\text{input, x}}(x) = \nu_\text{max} \cdot \frac{x + 128}{255}.
 \end{equation}
-
-Both classes correspond to a certain target rate $\nu^*$ in the output unit. The error is defined by:
-\begin{equation}
-\label{circleserror}
-e_\text{out} = \gls{nuout} - \nu^*
-\end{equation}
-A reasonable choice for the target rates is crucial to the performance of the training. 
 
 In a slight simplification of the task $r_{\text{inner}}$ is set to zero and $R_{\text{outer}}$ is replaced by the limitations of the input. The remaining two boundaries are set to $r_{\text{outer}} = \sqrt{8000}$ and $R_{\text{inner}} = \sqrt{13000}$.
 
@@ -78,6 +72,24 @@ In a slight simplification of the task $r_{\text{inner}}$ is set to zero and $R_
 	\label{circlesinputs}
 
 \end{figure}
+
+The classes correspond to a certain target rate $\nu^*$ in the output unit.
+
+\begin{align}
+\label{circlestarget}
+\nu^*(p) =
+\begin{cases}
+\SI{32.6}{\kilo \Hz} ,&\quad \quad \text{class}(p) = 0\\
+\SI{93.5}{\kilo \Hz} ,&\quad \quad \text{class}(p) = 1
+\end{cases}
+\end{align}
+A reasonable choice for the target rates is crucial for the training performance.
+
+The error is then defined by the mismatch between target and fire rate in the output layer
+\begin{equation}
+e_\text{out}(p) = \gls{nuout}(p) - \nu^*(p)
+\end{equation}
+and the decision boundary, separating both classes, is chosen to be the mean of the target rates $\nu_\text{DB} = \frac{\nu_0^* + \nu_1^*}{2} = \SI{63.05}{\kilo \Hz}$.
 
 \subsection{Transfer Function}
 
@@ -193,7 +205,7 @@ The backward pass processes the observables (\gls{nuin} and \gls{nuout}) obtaine
 
 The new bias is set by lowering or raising the \gls{dac}-value of the threshold. Compared to the speed of the accelerated neuromorphic core, the digital-to-analog conversion is slow. With the nature of its mechanism, the bias slowly and continuously evolves towards the new target value. As seen in \cref{transferfunction_with_bias} the impact of one \gls{dac} lsb (can i leave it like this or not?) corresponds to roughly a $\delta V$ of $\SI{1.75}{\milli \V}$ and thus the frequency changes by $\delta \nu \approx \SI{9.9}{\kilo \Hz}$. Instead of an instant and large bias update, a continuous and slow implementation can be beneficial.
 
-Settings weights by the general-purpose unit is time and computation intensive due to the lack of parallelization. The vector unit is a viable alternative. The \gls{simd} instructions allow parallel access to all weights and therefore it is not only used to apply the weight changes but also to efficiently silence or unmute the respective synapses of the weights' double-row implementation. The necessary \emph{Assembly} code-base for this approach has been written by Sebastian Billaudelle and Benjamin Cramer. As an extension a stochastic weight regularization has been added later on.
+Settings weights by the general-purpose unit is time and computation intensive due to the lack of parallelization. The vector unit is a viable alternative. The \gls{simd} instructions allow parallel access to all weights and therefore it is not only used to apply the weight changes but also to efficiently silence or unmute the respective synapses of the weights' double-row implementation. The necessary \emph{Assembly} code-base for this approach has been written by Sebastian Billaudelle and Benjamin Cramer. As an extension, a stochastic weight regularization has been added later on.
 
 The regularization of both, excitatory and inhibitory weights is given by
 \begin{align}
@@ -219,37 +231,24 @@ For a better illustration of the training process, a balanced data set of $200$ 
 	\caption{After 500 iterations some training success are noticeable: The hidden units six and seven show an interesting behavior. Despite of their relatively same shape only one unit keeps the shape (seven). The other one changes the input weights and the bias by quite a bit which could mean, that the randomly assigned weight of the feedback matrix is negative and thus results in an inverted feedback. However, the network still has plenty of other hidden units to choose from.}
 \end{figure}
 
-At 2500 itertations,see \cref{learning_process_s2500}, the network found a set of hidden units and a combination with which the target can be recreated in the output unit. The accuracy has almost reached $100 \%$.
+At 2500 iterations, see \cref{learning_process_s2500}, the network found a set of hidden units and a combination with which the target can be recreated in the output unit. The accuracy has almost reached $100 \%$.
 
 \begin{figure}
 	\label{learning_process_s2500}
 	\include{learning_process_s2500}
-	\caption{At 2500 iterations the accurcay of the networks is almost at $100 \%$. The network}
+	\caption{At 2500 iterations the accuracy of the networks is almost at $100 \%$. The network}
 \end{figure}
 
+The same data set that has been used to visualize the training process is now used to monitor the  performance of the training after each iteration by calculating the \gls{rmse} and the accuracy (see \cref{circles_acc}). The \gls{rmse} is given by
+\begin{equation}
+	\text{\gls{rmse}} = \sqrt{\frac{\sum_p e(p)^2}{n_\text{points}}}
+\end{equation}
 
-For monitoring purposes, every now and then the state of the network is read out. In \cref{network_monitoring} the two relevant network parameters (weights and biases) are tracked for the hidden and output layer.
+The accuracy is derived by comparing the number of correctly identified points $n_{true}$ to the total number of points in the set. Whether a point is correctly identified is determined by the decision boundary (see \cref{circlestask}).
 
-\begin{figure}
-	\centering
-	\label{network_monitoring}
-    \input{figures/network_evolution_circles.pgf}
-	\caption{The learning performance of stochastic gradient descent on the circles task, i.e. batch size is equal to one, is monitored by two measures: the accuracy and the root mean square error (RMSE).}
-\end{figure}
-
-
-
-Plot figure with weights that are moving around, plot also the biases
-
-The accuracy is tested with a randomly drawn test data set of equally distributed points (c.f. )
-Validation:
-a randomly generated data set of ~100 data points. always the same -> evaluate for each point the rates at different learning steps => overall performance and not only from one single point (problem with stochastic gradient descent)
-- validation
-
-- result of training
-
-
-
+\begin{equation}
+\text{Accuracy} = \frac{n_\text{true}}{n_\text{points}}
+\end{equation}
 
 \begin{figure}
 	\label{circles_acc}
@@ -258,7 +257,17 @@ a randomly generated data set of ~100 data points. always the same -> evaluate f
 	\end{center}
 	\caption{The learning performance of stochastic gradient descent on the circles task, i.e. batch size is equal to one, is monitored by two measures: the accuracy and the root mean square error (RMSE).}
 \end{figure}
+
+For further monitoring purposes, the evolution of the weights and biases are tracked for the hidden and output layer (see \cref{network_monitoring}).
+\begin{figure}
+	\centering
+	\label{network_monitoring}
+    \input{figures/network_evolution_circles.pgf}
+	\caption{Describe what happens in the picture...}
+\end{figure}
+
 \subsection{Discussion}
+MOVE TO VERY END
 
 - transfer function needs to be non-linear the exact shape and its dependencies on noise rate, time constants, .. is not so important if it is somehow shaped like a non linear activation function.
 

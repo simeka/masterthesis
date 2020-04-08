@@ -80,6 +80,9 @@
 % recurring commands
 \newcommand{\loss}{\mathcal{L}}
 
+% table stretch
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+
 % Figures
 \graphicspath{{../../fig/}}
 \newcommand{\pgfplot}[1]{\input{figures/#1.pgf}}
@@ -130,7 +133,7 @@
 	\pagenumbering{arabic}
 	
 	\input{introduction}
-	\input{background}
+	%\input{background}
 	\input{experiments}
 	\input{outlook}
 	% Roman page numbers for appendix

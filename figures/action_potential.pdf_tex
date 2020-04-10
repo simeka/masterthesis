@@ -1,0 +1,74 @@
+%% Creator: Inkscape inkscape 0.91, www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'action_potential.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{392.8bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.98778004)%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{action_potential.pdf}}%
+    \put(0.0407332,0.49287169){\rotatebox{90}{\makebox(0,0)[lb]{\smash{Voltage (mV)}}}}%
+    \put(0.40185396,0.45340749){\rotatebox{75.14}{\makebox(0,0)[lb]{\smash{Depolarization}}}}%
+    \put(0.56464233,0.65468605){\rotatebox{-82.35}{\makebox(0,0)[lb]{\smash{Repolarization}}}}%
+    \put(0.12199593,0.40472505){\makebox(0,0)[lb]{\smash{Threshold}}}%
+    \put(0.22694501,0.28158861){\makebox(0,0)[lb]{\smash{Stimulus}}}%
+    \put(0.52179229,0.87922607){\makebox(0,0)[b]{\smash{Actionpotential}}}%
+    \put(0.495723,0.41955193){\makebox(0,0)[b]{\smash{Failedinitiations}}}%
+    \put(0.71608963,0.25987781){\makebox(0,0)[b]{\smash{Refractoryperiod}}}%
+    \put(0.76537676,0.34215886){\makebox(0,0)[lb]{\smash{Resting state}}}%
+    \put(0.03645621,0.80061099){\makebox(0,0)[lb]{\smash{+40}}}%
+    \put(0.08370672,0.60061099){\makebox(0,0)[lb]{\smash{0}}}%
+    \put(0.0484725,0.3867617){\makebox(0,0)[lb]{\smash{-55}}}%
+    \put(0.04826884,0.31894095){\makebox(0,0)[lb]{\smash{-70}}}%
+    \put(0.19674134,0.07087574){\makebox(0,0)[lb]{\smash{0}}}%
+    \put(0.33828922,0.07087574){\makebox(0,0)[lb]{\smash{1}}}%
+    \put(0.47413443,0.07087574){\makebox(0,0)[lb]{\smash{2}}}%
+    \put(0.61690426,0.07087574){\makebox(0,0)[lb]{\smash{3}}}%
+    \put(0.76252545,0.07087574){\makebox(0,0)[lb]{\smash{4}}}%
+    \put(0.89816701,0.0712831){\makebox(0,0)[lb]{\smash{5}}}%
+    \put(0.47352342,0.02362527){\makebox(0,0)[lb]{\smash{Time (ms)}}}%
+  \end{picture}%
+\endgroup%

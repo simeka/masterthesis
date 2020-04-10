@@ -213,81 +213,126 @@ if __name__ == "__main__":
     ###################################################################################
     # Gaussian Free Membrane Distribution
 
-    alpha = 0.27
-    fs = 6
-    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(7, 4), sharex=True, sharey="col")
-    wh_legend_labels = ["$w_{%s%s}$" % (i, j) for i in range(2) for j in range(5)]
-    wo_legend_labels = ["$w_{%s%s}$" % (i, j) for i in range(5) for j in range(1)]
-    bh_legend_labels = ["$b_%s$" % i for i in range(5)]
-    bo_legend_labels = ["$b_%s$" % i for i in range(1)]
+    # alpha = 0.27
+    # fs = 6
+    # fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(7, 4), sharex=True, sharey="col")
+    # wh_legend_labels = ["$w_{%s%s}$" % (i, j) for i in range(2) for j in range(5)]
+    # wo_legend_labels = ["$w_{%s%s}$" % (i, j) for i in range(5) for j in range(1)]
+    # bh_legend_labels = ["$b_%s$" % i for i in range(5)]
+    # bo_legend_labels = ["$b_%s$" % i for i in range(1)]
+    #
+    # # hidden weights
+    # axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 0, :5])
+    # axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 1, :5], ls="--")
+    # axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 0, 5:], alpha=alpha)
+    # axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 1, 5:], ls="--", alpha=alpha)
+    #
+    # # hidden bias
+    # axes[0, 1].plot(real_epochs, bias_storage[:, :5])
+    # axes[0, 1].plot(real_epochs, bias_storage[:, 5:n_h_nrns], alpha=alpha)
+    #
+    # # output weights (with hidden in background)
+    # axes[1, 0].plot(real_epochs, weights_out_storage[:, :5])
+    # axes[1, 0].plot(real_epochs, weights_out_storage[:, 5:], alpha=alpha)
+    #
+    # # output bias with hidden in background
+    # axes[1, 1].plot(real_epochs, bias_storage[:, -1])
+    # #axes[1, 1].plot(real_epochs, bias_storage[:, :5], alpha=alpha)
+    # #axes[1, 1].plot(real_epochs, bias_storage[:, 5:n_h_nrns], alpha=alpha)
+    #
+    # # legends
+    # xlegend = 0.98
+    # axes[0, 1].legend(bh_legend_labels, fontsize=fs, loc=(xlegend, 0.6))
+    # axes[0, 0].legend(wh_legend_labels, fontsize=fs,
+    #                   loc=(xlegend, .2), )  # title="Unit", title_fontsize=6)
+    # axes[1, 1].legend(bo_legend_labels, fontsize=fs, loc=(xlegend, .9))
+    # axes[1, 0].legend(wo_legend_labels, fontsize=fs,
+    #                   loc=(xlegend, 0.6), )  # title="Unit", title_fontsize=6)
+    #
+    # # labels
+    # axes[0, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{h})} \quad (\si{\milli \V})$")
+    # axes[1, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{o})} \quad (\si{\milli \V})$")
+    # axes[0, 0].set_ylabel("$W^{(\mathrm{h})}$")
+    # axes[1, 0].set_ylabel("$W^{(\mathrm{o})}$")
+    # for i in range(2):
+    #     axes[1, i].set_xlabel("Iteration")
+    #
+    # plt.subplots_adjust(hspace=0.05
+    #                     , wspace=0.4)
+    #
+    # save_plot(fig, "network_evolution_circles", (7, 4))
+    #
+    # # circles plots
+    # def points_to_rates(points):
+    #     input_rate = 500
+    #     rates = input_rate * ((128 + points[:, :2]) / 255)
+    #     return rates
+    #
+    # l_step = 1
+    # rates = rates_storage[l_step]
+    # points = points_storage[l_step]
+    # input_rates = points_to_rates(points)
+    # VMIN_INPUT = np.amin(input_rates)
+    # VMAX_INPUT = np.amax(input_rates)
+    #
+    # # nu_x(x,y) = nu_x(x)
+    # fig = plt.figure(figsize=(3, 3))
+    # sc = plt.scatter(points[:, 0], points[:, 1], c=input_rates[:, 0], s=20,
+    #                  vmin=VMIN_INPUT, vmax=VMAX_INPUT)
+    # plt.xlabel("x")
+    # plt.ylabel("y")
+    # cbar = fig.colorbar(sc, fraction=0.046, pad=0.04, label="$\\nu_{\mathrm{input, x}} \quad (\si{\kilo \Hz})$")
+    # save_plot(fig, "nu_x_input", (2.5, 2.5))
+    #
+    # fig = plt.figure(figsize=(3, 3))
+    # sc = plt.scatter(points[:, 0], points[:, 1], c=input_rates[:, 1], s=20,
+    #                  vmin=VMIN_INPUT, vmax=VMAX_INPUT)
+    # plt.xlabel("x")
+    # plt.ylabel("y")
+    # cbar = fig.colorbar(sc, fraction=0.046, pad=0.04, label="$\\nu_{\mathrm{input, y}} \quad (\si{\kilo \Hz})$")
+    # save_plot(fig, "nu_y_input", (2.5, 2.5))
 
-    # hidden weights
-    axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 0, :5])
-    axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 1, :5], ls="--")
-    axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 0, 5:], alpha=alpha)
-    axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 1, 5:], ls="--", alpha=alpha)
+    #############################################################################
+    # Deep learning activation functions
+    relu = lambda x: np.maximum(0, x)
 
-    # hidden bias
-    axes[0, 1].plot(real_epochs, bias_storage[:, :5])
-    axes[0, 1].plot(real_epochs, bias_storage[:, 5:n_h_nrns], alpha=alpha)
 
-    # output weights (with hidden in background)
-    axes[1, 0].plot(real_epochs, weights_out_storage[:, :5])
-    axes[1, 0].plot(real_epochs, weights_out_storage[:, 5:], alpha=alpha)
+    def fsigmoid(x, a=2, b=0):
+        return 1.0 / (1.0 + np.exp(-a * (x - b)))
 
-    # output bias with hidden in background
-    axes[1, 1].plot(real_epochs, bias_storage[:, -1])
-    #axes[1, 1].plot(real_epochs, bias_storage[:, :5], alpha=alpha)
-    #axes[1, 1].plot(real_epochs, bias_storage[:, 5:n_h_nrns], alpha=alpha)
 
-    # legends
-    xlegend = 0.98
-    axes[0, 1].legend(bh_legend_labels, fontsize=fs, loc=(xlegend, 0.6))
-    axes[0, 0].legend(wh_legend_labels, fontsize=fs,
-                      loc=(xlegend, .2), )  # title="Unit", title_fontsize=6)
-    axes[1, 1].legend(bo_legend_labels, fontsize=fs, loc=(xlegend, .9))
-    axes[1, 0].legend(wo_legend_labels, fontsize=fs,
-                      loc=(xlegend, 0.6), )  # title="Unit", title_fontsize=6)
+    def dsig(x):
+        return fsigmoid(x) * (1 - fsigmoid(x))
 
-    # labels
-    axes[0, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{h})} \quad (\si{\milli \V})$")
-    axes[1, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{o})} \quad (\si{\milli \V})$")
-    axes[0, 0].set_ylabel("$W^{(\mathrm{h})}$")
-    axes[1, 0].set_ylabel("$W^{(\mathrm{o})}$")
-    for i in range(2):
-        axes[1, i].set_xlabel("Iteration")
 
-    plt.subplots_adjust(hspace=0.05
-                        , wspace=0.4)
+    def drelu(x):
+        return (1 * (x >= 0)).astype(int)
 
-    save_plot(fig, "network_evolution_circles", (7, 4))
 
-    # circles plots
-    def points_to_rates(points):
-        input_rate = 500
-        rates = input_rate * ((128 + points[:, :2]) / 255)
-        return rates
+    def dtanh(x):
+        return np.cosh(x) ** -2
 
-    l_step = 1
-    rates = rates_storage[l_step]
-    points = points_storage[l_step]
-    input_rates = points_to_rates(points)
-    VMIN_INPUT = np.amin(input_rates)
-    VMAX_INPUT = np.amax(input_rates)
 
-    # nu_x(x,y) = nu_x(x)
-    fig = plt.figure(figsize=(3, 3))
-    sc = plt.scatter(points[:, 0], points[:, 1], c=input_rates[:, 0], s=20,
-                     vmin=VMIN_INPUT, vmax=VMAX_INPUT)
+    # tanh from numpy
+
+    x = np.linspace(-3, 3, 200)
+    fig = plt.figure()
+    plt.plot(x, relu(x), label="ReLu, $\Phi(x) = \mathrm{max}(0,x)$")
+    plt.plot(x, fsigmoid(x), label="Sigmoid, $\Phi(x) = \\frac{1}{1 + e^{(-\\beta x)}}$")
+    plt.plot(x, np.tanh(x), label="Tanh, $\Phi(x) = \\frac{e^x - e^{-x}}{e^x + e^{-x}}$")
+    plt.ylim(-1, 2)
+    plt.legend()
     plt.xlabel("x")
-    plt.ylabel("y")
-    cbar = fig.colorbar(sc, fraction=0.046, pad=0.04, label="$\\nu_{\mathrm{input, x}} \quad (\si{\kilo \Hz})$")
-    save_plot(fig, "nu_x_input", (2.5, 2.5))
+    plt.ylabel("Transfer function $\Phi(x)$")
+    save_plot(fig, "deeplearning_activation_functions", (3, 2.7))
 
-    fig = plt.figure(figsize=(3, 3))
-    sc = plt.scatter(points[:, 0], points[:, 1], c=input_rates[:, 1], s=20,
-                     vmin=VMIN_INPUT, vmax=VMAX_INPUT)
+    x = np.linspace(-3, 3, 200)
+    fig = plt.figure()
+    plt.plot(x, drelu(x), label="dReLu, $\Phi'(x) = \Theta(x)$")
+    plt.plot(x, dsig(x), label="dSigmoid, $\Phi'(x) = \Phi (1-\Phi)$")
+    plt.plot(x, dtanh(x), label="dTanh, $\Phi'(x) = \\frac{1}{\cosh^2(x)}$")
+    plt.legend()
+    plt.ylim(0, 1.4)
     plt.xlabel("x")
-    plt.ylabel("y")
-    cbar = fig.colorbar(sc, fraction=0.046, pad=0.04, label="$\\nu_{\mathrm{input, y}} \quad (\si{\kilo \Hz})$")
-    save_plot(fig, "nu_y_input", (2.5, 2.5))
+    plt.ylabel("$\Phi'(x) = \\frac{d\Phi}{dx}$")
+    save_plot(fig, "deeplearning_activation_functions_derivative", (3, 2.7))

@@ -4,7 +4,25 @@ The second experiment in this thesis is done on the most recent tape-out of the 
 a bit more blabla about friedemanns superspike and the xor task from his paper 
  
 \subsection{Task}
-Xor task.
+To challenge the surrogate gradient approach from \cref{superspike} a constructed task that is equivalent to solving the XOR operator is taken from \cite{zenke2018superspike}.
+A total of 96 input units, each firing only once, is split into four collections of different size. As in the exclusive-or, the four input spike patterns are divided into two classes. Three of them the collection contain 20, 40 or 60 input units and each unit fires only once. the problem is constructed in a way that at least two collections always overlap.
+
+... therefore requires a hidden layer structure
+
+
+"
+The previous task was simple enough such that solving it did not require a hidden
+layer. We therefore investigated whether SuperSpike could also learn to solve tasks
+that cannot be solved by a network without hidden units. To that end, we constructed
+a spiking exclusive-or task in which four different spiking input patterns had to be
+separated into two classes. In this example we used 100 input units although the effective
+dimension of the problem was two by construction. Specifically, we picked three non-
+overlapping sets of input neurons with associated fixed random firing times in a 10ms
+window. One set was part of all patterns and served as a time reference. The other
+two sets were combined to yield the four input patterns of the problem. Moreover, we
+15added a second readout neuron each corresponding to one of the respective target classes
+(Fig. 4a).
+"
 
 
 \subsection{Implementation on BSS-2 Platform}

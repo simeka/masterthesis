@@ -4,7 +4,7 @@ From the biological view of the human brain to electronic circuit laws further t
 
 \section{The Biological Neuron}
 
-It is estimated that the human brain contains around $10^{11}$ neurons (\cite{numberofneurons}). Neurons come in different shapes, sizes and functions. However, as depicted in \cref{biossynapse} in most cases they can be divided into three separate functional parts: dendrites, soma and axon (c.f. \cite{gerstner2014dynamics}). The dendrites gather all inputs from various sources and forward them to the soma where the received information is processed. In particular, the soma integrates the input and once exceeding a threshold it will initiated a response, which is then relayed by the axon to other neurons. This response has the shape of a short chemical pulse (spike) or a cascade of such spikes (burst). Depending on the nature of neuron the response can either excite or inhibit the receiving neuron's membrane (soll hier eine citation zu dales law?) and thus lead to an in- or decrease of its membrane potential. A \emph{synapse} connects two neurons. Usually a neuron hast up to $10^4$ \emph{postsynaptic} partners. This terminology is derived from an actual physical gap at the synapse - the synaptic cleft. The \emph{presynaptic} neuron then releases various neurotransmitter to overcome the cleft and once a transmitter has docked to a corresponding receptor on the other side, the activation of ion channels convert the chemical transmission back into an electrical signal.\\
+It is estimated that the human brain contains around $10^{11}$ neurons (\cite{numberofneurons}). Neurons come in different shapes, sizes and functions. However, as depicted in \cref{biossynapse} in most cases they can be divided into three separate functional parts: dendrites, soma and axon (c.f. \cite{gerstner2014dynamics}). The dendrites gather all inputs from various sources and forward them to the soma where the received information is processed. In particular, the soma integrates the input and once exceeding a threshold it will initiated a response, which is then relayed by the axon to other neurons. This response has the shape of a short chemical pulse (spike) or a cascade of such spikes (burst). Depending on the nature of neuron the response can either excite or inhibit the receiving neuron's membrane (soll hier eine citation zu dales law?) and thus lead to an in- or decrease of its membrane potential. A \emph{synapse} connects two neurons. Usually a neuron hast up to $10^4$ \emph{postsynaptic} partners. The \emph{presynaptic} neuron then releases various neurotransmitter to overcome a small physical cleft (synaptic cleft) and once a transmitter has docked to a corresponding receptor on the other side, activated ion channels convert the chemical transmission back into an electrical signal.\\
 
 \begin{figure}
 	\begin{subfigure}{0.5\textwidth}
@@ -28,11 +28,11 @@ It is estimated that the human brain contains around $10^{11}$ neurons (\cite{nu
 
 The unbalanced ion concentration in and outside of the membrane is restored by ion pumps over time. The equilibrated state of the membrane potential is referred to as the \emph{resting potential}. Once a spike has been fired, the neuron's membrane becomes hyperpolarized and decrease even below the resting potential. At this point it is impossible for the neuron to spike again. The neuron is in a so called \emph{refractory state}. Due to the ongoing hyperpolarization it remains hard but not impossible to fire. The typical dynamics of a membrane potential are depicted in \cref{actionpotential}.
 
-
-
-
-
 A wide-spread assumption in field of neuroscience is that the exact shape of a spike doesn't carry any relevant information and therefore all spikes can be modeled by a stereotypical shape. The communication between neurons is then encoded in the frequency (\emph{rate coding}) or timing (\emph{time coding}) of exciting and inhibitory spikes. A more detailed description of neural coding schemes is presented in section \ref{deeplearning}. However, recent research (\cite{debanne2013mechanisms}) has suggested that the variate of the shape contains vital information.
+
+The brain's ability to continuously evolve allows it to learn and react as a response to stimulation or even damage. One way of learning and keeping memory is to change the synapse's efficacy over time. According to Hebb's theory ``neurons that fire together wire together" (\cite{hebb1949organization}). An experimental proof of a long lasting enhancement in the synapse's efficacy was found by \cite{bliss1973long} and is referred to as \gls{ltp} respectively \gls{ltd} for a negative change. With further research more detailed mechanisms responsible for synaptic plasticity have been found. On the level of individual spikes \gls{stpd} motivates the activity dependency of the Hebbian learning.
+
+Developing biologically inspired and plausible learning algorithms is a dedicated goal in the field of neuroscience. In the next section the underlying learning concepts of \emph{circles} and \emph{SuperSpike} are presented.
 
 \section{Deep Learning}
 \label{deeplearning}
@@ -43,13 +43,11 @@ A popular example of deep learning is a feedforward neural network or \gls{mlp}.
 %Given the task to identify a picture of cat, any computer will have a hard time to map the essential information of the camera's sensor data to the class \textit{cat}. An \gls{ann} solves the problem by learning how to describe the raw data in terms of simpler representations and essentially by combining these simpler representations into a meaningful solution in the last layer - the output layer. The first layer is called input layer and all other layers in between are named hidden layers, since they are usually not visible from the outside.\\
 
 
-\subsection{Training Methods for \glspl{ann}}
+\subsection{Gradient Descent for \glspl{ann}}
 \label{trainingANN}
-
 The learning process of a neural network can be divided into a \emph{forward} and \emph{backward} pass. 
 
-\subsubsection{Forward Pass}
-During the forward pass the output value of each node in the network is evaluated. The activation $\mathbf{a}$ of a layer $l$ is given by the product of the input $\mathbf{x}$ with a weight matrix $W^{(l)}$ plus a bias $\mathbf{b}$.
+During the \textbf{forward pass} the output value of each node in the network is evaluated. The activation $\mathbf{a}$ of a layer $l$ is given by the product of the input $\mathbf{x}$ with a weight matrix $W^{(l)}$ plus a bias $\mathbf{b}$.
 \begin{align}
 \label{activation}
 \mathbf{a} = W^{(l)} \, \mathbf{x} + \mathbf{b} \left(+ \text{noise}\right)
@@ -84,9 +82,8 @@ The choice of the transfer function is to a certain degree free. A \gls{relu}, a
 
 The same principle is applied to all other layers in a forward direction, i.e. the result of the previous layer is the input for the current layer. The weight matrix $W^{\text{(l)}}$ connecting layer $l$ with $l-1$ has the appropriate shape to fit the number of input nodes $n^{\text{(l-1)}}_\text{nodes}$ and the number of nodes in the current layer $n^{\text{(l)}}_\text{nodes}$. (maybe figure with a layer structure, like in mfp talk)
 
-\subsubsection{Backward Pass}
 \label{backwardpassANN}
-The backward pass computes how the networks parameters $\mathbf{\theta}$ need to be changed to obtain the best result. One approach, called \emph{gradient descent}, minimize a given loss function $\mathcal{L}(\mathbf{\theta})$ by moving along the negative gradient of the $\loss$ , c.f. \cite{Goodfellow-et-al-2016}. The new set of parameters $\mathbf{\theta'}$ is then given by
+The \textbf{backward pass} computes how the networks parameters $\mathbf{\theta}$ need to be changed to obtain the best result. One approach, called \emph{gradient descent}, minimize a given loss function $\mathcal{L}(\mathbf{\theta})$ by moving along the negative gradient of the $\loss$ , c.f. \cite{Goodfellow-et-al-2016}. The new set of parameters $\mathbf{\theta'}$ is then given by
 \begin{equation}
 \mathbf{\theta'} = \mathbf{\theta} - \eta \, \nabla\loss(\mathbf{\theta}).
 \end{equation}
@@ -144,8 +141,6 @@ Neuromorphic hardware uses spikes to transmit data from one neuron to another an
 
 Rate coding can be treated similar to glspl{ann} and thus classical training methods such as gradient descent will work just fine. 
 
-Todo: a bit more in this section!
-
 \textbf{Temporal coding} on the other hand focuses on the \gls{isi}. This type of coding is more exposed to noise but for some applications it might be simply too slow to establish a certain fire rate first. The \gls{isi} on the other can be adapted quickly. 
 
 However, for temporal or sparse coding the gradient descent approach doesn't work since the binary nature of spikes make the neurons output non-differentiable. Recent research has suggested workarounds for this problem, e.g. in \cite{zenke2018superspike} a surrogate gradient descent implementation for \glspl{snn} called \emph{SuperSpike} is presented.
@@ -166,19 +161,16 @@ The above described method turns a \gls{snn} almost into an \gls{ann}. However, 
 \subsection{Novel Training Methods for \glspl{snn}}
 
 
-Until now, only few people have successfully trained \glspl{snn} with hidden units. The main issue arises from the non-differentiable dynamics of spikes. A promising approach was proposed by \cite{zenke2018superspike} with SuperSpike. Similar to the training \glspl{ann} the learning process can be split up into forward and backward pass. 
+Until now, only few people have successfully trained \glspl{snn} with hidden units. The main issue arises from the non-differentiable dynamics of spikes. A promising approach was proposed by \cite{zenke2018superspike} with SuperSpike. Similar to the training of \glspl{ann} the learning process can be split up into a forward and backward pass. 
 
-\subsubsection*{Forward Pass}
-The forward pass only changes slightly compared to \glspl{ann}. Instead of a continuous input and output one speaks of presynaptic spike train $S_j$ and a postsynaptic spike train $S_i$. Note that the choice of the index $j$ and $i$ indicate if, from the perspective of a neuron, the spike is of presynaptic or postsynaptic origin. The transfer function $\phi$ is replaced by the dynamics of the \gls{lif} neuron.
+The \textbf{forward pass} only changes slightly compared to \glspl{ann}. Instead of a continuous input and output one speaks of presynaptic spike train $S_j$ and a postsynaptic spike train $S_i$. Note that the choice of the index $j$ and $i$ indicate if, from the perspective of a neuron, the spike is of presynaptic or postsynaptic origin. The transfer function $\phi$ is replaced by the dynamics of the \gls{lif} neuron.
 
 %Todo: "surrogate gradient" is not really introduced but just used -> fix this
 %Todo: spike train formalism (maybe in biological part with synapses, etc. ), presynaptic/postsynpatic 
 %Todo: axonal delay is not considered for the application of the hardware
 %Todo: auxilary function: threshold! -> f(x) = x/(1 + |x|) and f'(x) (1 + |x|)-2 => $\sigma'(U_i) = (1+|U_i - \vartheta|)^{-2}$
 
-\subsubsection*{Backward pass}
-
-As stated in section \ref{trainingANN}, training a neural network requires the optimization of a certain loss function $\mathcal{L(\mathbf{\theta)}}$ that depends on the network's parameters $\mathbf{\theta}$, i.e. the synpatic weights $w_{ij}$. In the SuperSpike formalism the von Rossum distance of a target spike train $\hat{S}_i$ and the output spike train $S_i$ is chosen (cf. van Rossum 2001, Gardner and Grüning, 2016),
+As stated in section \ref{trainingANN}, most training approaches involve the optimization of a certain loss function $\mathcal{L(\mathbf{\theta)}}$ that depends on the network's parameters $\mathbf{\theta}$. In the \textbf{backward pass} of the SuperSpike formalism the von Rossum distance (\cite{rossum01novel}) of a target spike train $\hat{S}_i$ and the output spike train $S_i$ is chosen, c.f. \cite{zenke2018superspike},
 \begin{equation}
 \label{vonrossumdistance}
 \mathcal{L} = \frac{1}{2} \int^t_{-\infty}dt' \left[\left(\alpha \ast \hat{S}_i - \alpha \ast S_i \right)(t')\right]^2
@@ -217,7 +209,7 @@ An early but successful description of the biological neuron dynamics was accomp
 
 The incoming spike trains $S_j(t)$ from various presynaptic partners $j$ can be seen as a series of spikes $s$ at times $t_j^{(s)}$
 \begin{equation}
-$S_j(t) = \sum_s \delta(t - t_j^{(s)})$,
+S_j(t) = \sum_s \delta(t - t_j^{(s)}),
 \end{equation}
 where $\delta$ denotes the $\delta$-function. Each input spike train adds a synaptic current to postsynaptic neuron that is proportional to weight of the synapse $w_j$. For simplicity, the sign of the current, representing an excitatory or inhibitory synapse, is encoded in the weight as well. Summing over all input sources yields the total synaptic input of a postsynpatic neuron
 \begin{equation}
@@ -244,8 +236,6 @@ A ``fire" mechanism is triggered at time $t_{\text{fire}}$ once the membrane cro
 
 In addition to the lack of any spatial representation in a \gls{lif} neuron, it doesn't keep any memory of any previous spikes after firing. Given that the time constant of the synaptic input is shorter than the one of the membrane potential, the membrane will forget all past events once it is set to \gls{v_reset}. These limitations make it impossible for the model to correctly describe neuronal behavior such as spike bursts. Despite the models simplicity, the main neuron dynamics are adequately described, and it thus has been a popular and portable choice for neuromorphic hardware implementations.
 
-
-
 The constraints of the \gls{lif} neuron led to a demand for a more detailed model, namely the \glsfirst{adex} model, which is an extension to the \gls{lif} providing an additional adaption state variable the allows the membrane to remember its previous state after firing and an exponential voltage feedback. Depending on the sign of the adaption, the neuron will either be inhibited to fire again after sending out its first spike response or it is engaged to keep on firing. In the example given in \cref{lifvsadex} the former is the case. The positive exponential voltage feedback on the other hand, enables the neuron to have a more complex behavior in the (\gls{v_mem}, w?) phase space.
 
 \begin{figure}
@@ -253,18 +243,6 @@ The constraints of the \gls{lif} neuron led to a demand for a more detailed mode
 	\label{lifvsadex}
 	\caption{Difference of membrane dynamics between a \gls{lif} and \gls{adex} neuron, given the same synpatic input. Figure taken from Stradmann, 2019}
 \end{figure}
-
-\section{Synaptic Plasticity (Learning)}
-
-Fragen: kapitel zu biological und deep learning einordnen? oder eigenes unterkapitel bestehen lassen?
-
-adapt weights and structure means learning
-
-hebbian what wires together fire s together
-
-LTP (long term potentiation) , STDP (spike timing dependent plasticity) , LTD (long term depression) -> and where are methods like superspike einzuordnen?
-
-
 
 \section{Neuromorphic Hardware}
 

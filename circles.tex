@@ -116,7 +116,7 @@ At rest and without additional input apart from the noise, the threshold is set 
 	\begin{center}
 		\input{figures/single_calibrated_transfer_function_w_various_weights.pgf}
 	\end{center}
-	\caption{The shape of \gls{transfer} depends on the strength of the synpatic input: $\gls{isyn} \propto w \cdot \nu_\text{input}$. The external  with external noise sources has a standard deviation of about \SI{20}{\milli\V}. Without noise only spread would be a magnitude lower. The part of the distribution that exceeds the threshold potential would lead to a spike.}
+	\caption{The shape of \gls{transfer} depends on the strength of the synaptic input: $\gls{isyn} \propto w \cdot \nu_\text{input}$. The external  with external noise sources has a standard deviation of about \SI{20}{\milli\V}. Without noise only spread would be a magnitude lower. The part of the distribution that exceeds the threshold potential would lead to a spike.}
 \end{figure}
 
 The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution centered around the resting potential (c.f. \cite{petrovici12phdthesis}). In a naive approach, the area of the distribution that exceeds a certain threshold correlates to number of spikes fired. Thereby the dynamics of the membrane, once are a spike is fired, are not considered. Even for very short time constants close to zero the exact behavior is more complicated than this strongly simplified picture. However, it still offers a correct intuition what the individual parameters of the Gaussian free membrane potential distribution imply for the transfer function: more noise leads to a wider distribution and thus a more gently incline of \gls{transfer}; inhibitory synaptic input moves the distribution to a lower mean value and v.v.; moving the threshold corresponds to an additional bias term.
@@ -152,7 +152,6 @@ In an uncalibrated state the transfer function (c.f. \cref{transferfunction_wout
 	\input{figures/uncalibrated_activation_function.pgf}
 	\label{transferfunction_wout_calib}
 	\end{subfigure}
-	%
 	\begin{subfigure}[b]{0.47\textwidth}		
 	\caption{}
 	\input{figures/calibrated_activation_function.pgf}

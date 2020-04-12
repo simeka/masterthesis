@@ -1,13 +1,48 @@
 \section{SuperSpike on BSS-2}
 
-The second experiment in this thesis is done on the most recent tape-out of the \gls{bss2} platform the \gls{hx}. 
-a bit more blabla about friedemanns superspike and the xor task from his paper 
- 
-\subsection{Task}
-To challenge the surrogate gradient approach from \cref{superspike} a constructed task that is equivalent to solving the XOR operator is taken from \cite{zenke2018superspike}.
-A total of 96 input units, each firing only once, is split into four collections of different size. As in the exclusive-or, the four input spike patterns are divided into two classes. Three of them the collection contain 20, 40 or 60 input units and each unit fires only once. the problem is constructed in a way that at least two collections always overlap.
+The second experiment in this thesis is done on the most recent tape-out of the \gls{bss2} platform the \gls{hx}. In contrast to the first experiment the neural coding is changed from rate based to temporal based. In particular, the access to the evolution of the membrane potential allows the implementation of the SuperSpike learning rule from \cref{superspike}, a unique approach to training \glspl{snn} on the basis of individual spikes. With the increased temporal resolution, the overall measurement period can be reduced to the length of several spike duration equivalents, making SuperSpike a candidate to process streaming spike data \emph{online}.
 
-... therefore requires a hidden layer structure
+To challenge the surrogate gradient approach a constructed task that is equivalent to solving the XOR operator is taken from its original publication by \cite{zenke2018superspike}.
+
+\subsection{Task}
+
+A total of 96 input units, each firing once at a fixed random spike time, is split into four overlapping collections of different size. As in the exclusive-or, the four different input patterns are assigned to two target classes which are represented as two distinct neurons in the output layer. Despite the multiple input sources, the task is by construction only two-dimensional. The first input spike train $S_1$ overlaps with all other patterns. The units involved in $S_1$ can therefore be interpreted as bias units, since they will fire regardless of the active pattern. In analogy to the xor operator yielding $1 \veebar 0 = 0 \veebar 1 = 1$ for a single active input, the second and third spike train don't overlap except for the bias units. The union of $S_2$ and $S_3$ yields the final pattern, equaling to two active inputs $1 \veebar 1 = 0$. With respect to the xor operator, $S_1$ and $S_4$ yield class $0$ whereas the remaining two are part of class $1$.
+
+\begin{figure}
+	\begin{subfigure}{0.5\textwidth}
+		\caption{}
+		\input{figures/superspiketasksector.pgf}
+		\label{superspiketaskpicturesector}
+	\end{subfigure}
+	\begin{subfigure}{0.5\textwidth}
+		\caption{}
+		\input{figures/superspiketask.pgf}
+		\label{superspiketaskpicture}
+	\end{subfigure}
+	\caption{(\subref{superspiketaskpicturesector}) A representative sector of the input data from the XOR-related task contains $2 + 4 + 4 + 6 = 16$ spikes from $2\times3$ different units and spike times. The first pattern ($S_1$) overlaps with all others and can be interpreted as a bias. The second and third pattern are disjoint apart from the  in the bias units and with the reference pattern, corresponding to $1 \veebar 0 = 0 \veebar 1 = 1$. The reference spike train is always on, equaling $1 \veebar 1 = 0$. (\subref{superspiketaskpicture}) The total number of input spikes is given by $20 \times (1+2+2+3) = 160$.
+	\label{superspiketaskoverview}}
+\end{figure} 
+
+\begin{itemize}
+	\item error
+	\item accuracy
+\end{itemize}
+
+\subsection{Experiment Implementation}
+The necessity of a hidden layer has already been motivated in \cref{deeplearning} for non-linear tasks such as circles or the exclusive-or. In the following a network with a single hidden layer containing 30 units, 96 input sources and two output neurons which serve as target classes is configured on the \gls{hx}. The first tape-out of the new chip revision came with some flaws, making on-chip computation unneccessarily hard. Therefore, only the forward pass is performed on-chip. The necessary computations to perform the backward pass is outsourced to the controlling host as well as the experiment control. However, a key element of the SuperSpike, reading out membrane potential, has already been implemented as an on-chip routine one of the \glspl{ppu}.
+
+%\subsubsection*{\gls{CADC} Readout}
+
+\begin{itemize}
+	\item This read-out is reused for an efficient calibration of ...
+	\item host computation with respect to existing superspike implementation (but in numpy not tensorflow)
+	\item c++ speed up using the haldls frame
+	\item blackbox?! ref to future paper
+	\item 
+	\item future plans for mnist (maybe erst in discussion erwähnen)
+	\item 
+\end{itemize}
+
 
 
 "

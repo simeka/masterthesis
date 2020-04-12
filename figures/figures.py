@@ -210,9 +210,9 @@ if __name__ == "__main__":
     # ax.set_xlabel("$V_\mathrm{m} \; (\si{\milli \V})$")
     # save_plot(fig, "activation_function_vmem_distr_with_thres", (5,3))
 
-    ###################################################################################
-    # Gaussian Free Membrane Distribution
-
+    # ##################################################################################
+    # # Gaussian Free Membrane Distribution
+    #
     # alpha = 0.27
     # fs = 6
     # fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(7, 4), sharex=True, sharey="col")
@@ -292,47 +292,99 @@ if __name__ == "__main__":
     # cbar = fig.colorbar(sc, fraction=0.046, pad=0.04, label="$\\nu_{\mathrm{input, y}} \quad (\si{\kilo \Hz})$")
     # save_plot(fig, "nu_y_input", (2.5, 2.5))
 
-    #############################################################################
+    # #############################################################################
     # Deep learning activation functions
-    relu = lambda x: np.maximum(0, x)
+    # relu = lambda x: np.maximum(0, x)
+    #
+    #
+    # def fsigmoid(x, a=2, b=0):
+    #     return 1.0 / (1.0 + np.exp(-a * (x - b)))
+    #
+    #
+    # def dsig(x):
+    #     return fsigmoid(x) * (1 - fsigmoid(x))
+    #
+    #
+    # def drelu(x):
+    #     return (1 * (x >= 0)).astype(int)
+    #
+    #
+    # def dtanh(x):
+    #     return np.cosh(x) ** -2
+    #
+    #
+    # # tanh from numpy
+    #
+    # x = np.linspace(-3, 3, 200)
+    # fig = plt.figure()
+    # plt.plot(x, relu(x), label="ReLu, $\Phi(x) = \mathrm{max}(0,x)$")
+    # plt.plot(x, fsigmoid(x), label="Sigmoid, $\Phi(x) = \\frac{1}{1 + e^{(-\\beta x)}}$")
+    # plt.plot(x, np.tanh(x), label="Tanh, $\Phi(x) = \\frac{e^x - e^{-x}}{e^x + e^{-x}}$")
+    # plt.ylim(-1, 2)
+    # plt.legend()
+    # plt.xlabel("x")
+    # plt.ylabel("Transfer function $\Phi(x)$")
+    # save_plot(fig, "deeplearning_activation_functions", (3, 2.7))
+    #
+    # x = np.linspace(-3, 3, 200)
+    # fig = plt.figure()
+    # plt.plot(x, drelu(x), label="dReLu, $\Phi'(x) = \Theta(x)$")
+    # plt.plot(x, dsig(x), label="dSigmoid, $\Phi'(x) = \Phi (1-\Phi)$")
+    # plt.plot(x, dtanh(x), label="dTanh, $\Phi'(x) = \\frac{1}{\cosh^2(x)}$")
+    # plt.legend()
+    # plt.ylim(0, 1.4)
+    # plt.xlabel("x")
+    # plt.ylabel("$\Phi'(x) = \\frac{d\Phi}{dx}$")
+    # save_plot(fig, "deeplearning_activation_functions_derivative", (3, 2.7))
 
+    ##############################################################################################
+    ######################## HX SUPER SPIKE FIGURE ###############################################
+    ##############################################################################################
 
-    def fsigmoid(x, a=2, b=0):
-        return 1.0 / (1.0 + np.exp(-a * (x - b)))
+    pop_xor = np.loadtxt("pop_xor.data")
+    pop_xor[:, 1] /= 50  # use times up to 200µs instead of 10ms
+    pop_xor[:, 0] -= 1  # start at zero until 95
+    pop_xor_spiketrains = {0: (pop_xor[:20], 0),
+                           1: (pop_xor[20:60], 1),
+                           2: (pop_xor[60:100], 1),
+                           3: (pop_xor[100:160], 0)}
 
+    colors = ["#555555", "#AF5A50", "#005B82", "#7D966E", "#D7AA50"]
+    target = [0, 1, 1, 0]
+    m = ["o", "o", "o", "o"]
+    s = [(r) ** 2 for r in np.arange(1, 9, 2.5)]
+    s = s[::-1]
+    lw = 1.4
+    fig = plt.figure(figsize=(3, 3))
+    for p, (spiketrain, c) in pop_xor_spiketrains.items():
+        if p != 3:
+            plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
+                        edgecolors=colors[p])
+        else:
+            plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=2, color=colors[p])
+    plt.legend(["$S_{%s}$" % (i) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 1))
+    # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
+    plt.ylim(60, 72)
+    plt.xlim(72, 120)
+    #plt.title('XOR Input  raster plot')
+    plt.xlabel('spike time $(\si{\micro \s})$')
+    plt.ylabel('input unit')
+    save_plot(fig, "superspiketasksector", (3, 3))
 
-    def dsig(x):
-        return fsigmoid(x) * (1 - fsigmoid(x))
-
-
-    def drelu(x):
-        return (1 * (x >= 0)).astype(int)
-
-
-    def dtanh(x):
-        return np.cosh(x) ** -2
-
-
-    # tanh from numpy
-
-    x = np.linspace(-3, 3, 200)
-    fig = plt.figure()
-    plt.plot(x, relu(x), label="ReLu, $\Phi(x) = \mathrm{max}(0,x)$")
-    plt.plot(x, fsigmoid(x), label="Sigmoid, $\Phi(x) = \\frac{1}{1 + e^{(-\\beta x)}}$")
-    plt.plot(x, np.tanh(x), label="Tanh, $\Phi(x) = \\frac{e^x - e^{-x}}{e^x + e^{-x}}$")
-    plt.ylim(-1, 2)
-    plt.legend()
-    plt.xlabel("x")
-    plt.ylabel("Transfer function $\Phi(x)$")
-    save_plot(fig, "deeplearning_activation_functions", (3, 2.7))
-
-    x = np.linspace(-3, 3, 200)
-    fig = plt.figure()
-    plt.plot(x, drelu(x), label="dReLu, $\Phi'(x) = \Theta(x)$")
-    plt.plot(x, dsig(x), label="dSigmoid, $\Phi'(x) = \Phi (1-\Phi)$")
-    plt.plot(x, dtanh(x), label="dTanh, $\Phi'(x) = \\frac{1}{\cosh^2(x)}$")
-    plt.legend()
-    plt.ylim(0, 1.4)
-    plt.xlabel("x")
-    plt.ylabel("$\Phi'(x) = \\frac{d\Phi}{dx}$")
-    save_plot(fig, "deeplearning_activation_functions_derivative", (3, 2.7))
+    s = [(r) ** 2 for r in np.arange(1, 5, 1)]
+    s = s[::-1]
+    lw = 0.8
+    fig = plt.figure(figsize=(3, 3))
+    for p, (spiketrain, c) in pop_xor_spiketrains.items():
+        if p != 3:
+            plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
+                        edgecolors=colors[p])
+        else:
+            plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, color=colors[p])
+    plt.legend(["$S_{%s}$" % (i) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 1))
+    # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
+    plt.xlim(0, 250)
+    #plt.title('XOR Input  raster plot')
+    plt.xlabel('spike time $(\si{\micro \s})$')
+    plt.ylabel('input unit')
+    save_plot(fig, "superspiketask", (3, 3))

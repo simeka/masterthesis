@@ -186,7 +186,8 @@ The choice of the auxiliary function $\sigma$ the therefore implied surrogate de
 At a first glance, it appears that the problem has just been moved to computing the partial gradient of the membrane potential instead. When the potential $V_i$ is formulated as a spike response model for \gls{lif} neuron (Gerstner et al., 2014) it again depends on the output spike train $S_i$. However, under the assumption of a low output rate the gradient can be approximated by $\frac{\partial U_i}{\partial w_{ij}} \approx (\epsilon \ast S_j)$ with $\epsilon$ another double-exponential kernel corresponding to the shape of a spike. Plugging in the approximation and the formulation of the gradient as a surrogate gradient yields
 
 \begin{equation}
-\frac{\partial w_{ij}}{\partial t} = \eta \int_{-\infty}^{t} dt
+\label{superspikeweightupdateeq}
+\frac{\partial w_{ij}}{\partial t} = \eta \int_{-\infty}^{t} dt'
 \underbrace{\left(\alpha \ast (\hat{S}_i - S_i)\right)}_{= e^{(o)}_k \; \text{(Error)}} 
 \; \alpha \ast 
 \Big(\underbrace{\sigma'(U_i)}_{\text{Pre}} 

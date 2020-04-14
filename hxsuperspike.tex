@@ -6,7 +6,7 @@ To challenge the surrogate gradient approach a constructed task that is equivale
 
 \subsection{Task}
 
-A total of 96 input units, each firing once at a fixed random spike time, is split into four overlapping collections of different size. As in the exclusive-or, the four different input patterns are assigned to two target classes which are represented as two distinct neurons in the output layer. Despite the multiple input sources, the task is by construction only two-dimensional. The first input spike train $S_1$ overlaps with all other patterns. The units involved in $S_1$ can therefore be interpreted as bias units, since they will fire regardless of the active pattern. In analogy to the xor operator yielding $1 \veebar 0 = 0 \veebar 1 = 1$ for a single active input, the second and third spike train don't overlap except for the bias units. The union of $S_2$ and $S_3$ yields the final pattern, equaling to two active inputs $1 \veebar 1 = 0$. With respect to the xor operator, $S_1$ and $S_4$ yield class $0$ whereas the remaining two are part of class $1$.
+A total of 96 input units, each firing once at a fixed random spike time, is split into four overlapping collections of different size. As in the exclusive-or, the four different input patterns are assigned to two target classes which are represented as two distinct neurons in the output layer. Despite the multiple input sources, the task is by construction only two-dimensional. The first input spike train $S_1$ overlaps with all other patterns. The units involved in $S_1$ can therefore be interpreted as bias units, since they will fire regardless of the active pattern. In analogy to the xor operator yielding $1 \veebar 0 = 0 \veebar 1 = 1$ for a single active input, the second and third spike train don't overlap except for the bias units. The union of $S_2$ and $S_3$ yields the final pattern, equaling to two active inputs $1 \veebar 1 = 0$. With respect to the xor operator, $S_1$ and $S_4$ yield class $0$ whereas the remaining two are part of class $1$. 
 
 \begin{figure}
 	\begin{subfigure}{0.5\textwidth}
@@ -19,45 +19,74 @@ A total of 96 input units, each firing once at a fixed random spike time, is spl
 		\input{figures/superspiketask.pgf}
 		\label{superspiketaskpicture}
 	\end{subfigure}
-	\caption{(\subref{superspiketaskpicturesector}) A representative sector of the input data from the XOR-related task contains $2 + 4 + 4 + 6 = 16$ spikes from $2\times3$ different units and spike times. The first pattern ($S_1$) overlaps with all others and can be interpreted as a bias. The second and third pattern are disjoint apart from the  in the bias units and with the reference pattern, corresponding to $1 \veebar 0 = 0 \veebar 1 = 1$. The reference spike train is always on, equaling $1 \veebar 1 = 0$. (\subref{superspiketaskpicture}) The total number of input spikes is given by $20 \times (1+2+2+3) = 160$.
+	\caption{(\subref{superspiketaskpicturesector}) A representative sector of the input data from the XOR-related task contains $2 + 4 + 4 + 6 = 16$ spikes from $2\times3$ different units and spike times. The first pattern ($S_1$) overlaps with all others and can be interpreted as a bias. The second and third pattern are disjoint apart from the  in the bias units and with the reference pattern, corresponding to $1 \veebar 0 = 0 \veebar 1 = 1$. The reference spike train is always on, equaling $1 \veebar 1 = 0$. (\subref{superspiketaskpicture}) The total number of input spikes per pattern is given by $20, 40, 40, 60$.
 	\label{superspiketaskoverview}}
 \end{figure} 
 
-\begin{itemize}
-	\item error
-	\item accuracy
-\end{itemize}
+The fixed set of random times is picked from a $\SI{40}{\micro \s}$ time window, while the duration of a single measurement period is set to around $\SI{250}{\micro \s}$. In a slight modification to the derivation of SuperSpike, the error metric is changed from a single target spike $\hat{S}_i$ to a target time window $[\hat{t}_0, \hat{t}_1]$. Depending on the input pattern $p_j$, the error of the output unit $i$ corresponding to the target class $i$ is given by
+\begin{equation}
+e_i = \begin{cases}
+\alpha \ast \left(e_\text{outside, i} + e_\text{inside, i}\right),& \quad \quad \text{if} \quad \text{class}(p_j) == i \\
+- \alpha \ast S_i,& \quad \quad \text{else} 
+\end{cases}
+\end{equation}
+In analogy to the von Rossum distance the error outside and inside the window can be written as 
+\begin{align}
+e_\text{outside}(t) &= - S_i(t) \cdot \left(H(\hat{t}_0 - t) + H(t - \hat{t}_1)\right) \\
+e_\text{inside}(t) &= 
+\begin{cases}
+0 ,&\quad \quad \text{if} \quad \exists \; t^{(s)}_i \in [\hat{t}_0, \hat{t}_1], \\
+\epsilon \ast \hat{t} ,& \quad \quad \text{else}.
+\end{cases}
+\end{align}
+Despite the technical notation, the error follows the same principles as the von Rossum distance: If the target neuron spikes within the designated time span, zero error is returned. In case there occurs no spike inside the window, a target spike at time $\hat{t}$ will be added to the error instead. Any spikes outside the window sum with a negative sign. The error for the other output neuron is simple. Since it should remain silent, the error correlates to the negative spiking activity.
+
+As in the previous experiment the accuracy is determined by the fraction of correctly identified inputs $n_\text{true}$ over the total number of inputs $n_\text{inputs}$
+\begin{equation}
+\text{Accuracy} = \frac{n_\text{true}}{n_\text{points}}.
+\end{equation}
+For debug reasons the accuracy was also monitored per pattern.
+
+For the training, input batches of size eight are randomly drawn from a uniform distribution, resulting in an overall balanced training data set, but unbalanced batches. The performance of a test data set is evaluated on the fly by measuring the accuracy of all patterns after each parameter update. Depending on the initial conditions and the error propagation method (backpropagation or feedback alignment) the task converged after 500 to 2000 iterations.
 
 \subsection{Experiment Implementation}
-The necessity of a hidden layer has already been motivated in \cref{deeplearning} for non-linear tasks such as circles or the exclusive-or. In the following a network with a single hidden layer containing 30 units, 96 input sources and two output neurons which serve as target classes is configured on the \gls{hx}. The first tape-out of the new chip revision came with some flaws, making on-chip computation unneccessarily hard. Therefore, only the forward pass is performed on-chip. The necessary computations to perform the backward pass is outsourced to the controlling host as well as the experiment control. However, a key element of the SuperSpike, reading out membrane potential, has already been implemented as an on-chip routine one of the \glspl{ppu}.
+The necessity of a hidden layer has already been motivated in \cref{deeplearning} for non-linear tasks such as circles or the exclusive-or. In the following a network with a single hidden layer containing 30 units, 96 input sources and two output neurons which serve as target classes is configured on the \gls{hx}. 
 
-%\subsubsection*{\gls{CADC} Readout}
+The first tape-out of the new chip revision came with some flaws requiring several software workarounds. To minimize the implementation effort only the forward pass is performed on-chip and restricted to the upper half of the chip, i.e. the first two quadrants as shown in REF TO HX design. The computation required by the backward pass as well as the experiment control is outsourced to the controlling host. However, a key element of SuperSpike, the access to the membrane potential, has been implemented as an on-chip readout routine.
+
+\subsubsection*{\gls{cadc} Readout}
+With a few \gls{ppu} instructions for the general purpose part and the vector unit, the readout of the \gls{cadc} is performed. For the purpose of the experiment, the recorded membrane traces are required to be sampled at high rate and to cover as much data as possible. The available space on the \gls{ppu} limits the readout to 100 samples of 128 different neurons with a temporal resolution of roughly \SI{2.5}{\micro \s}. Before the \gls{cadc} data can be used, the slope and offset of its characteristic are adjusted by setting the respective \gls{dac}-values per quadrant. In addition to the analog parameters, each channel has an individual offset parameter, that can be calibrated as well. The final state of the characteristic, shown per quadrant in \cref{cadccalibration}, will be implicitly used for most of the data shown throughout this chapter, as the measured membrane potential will be displayed in \si{\V} or \si{\milli \V} and not \gls{cadc} lsbs.
+\begin{figure}
+	\begin{subfigure}{0.5\textwidth}
+		\caption{}
+		\includegraphics[width=\textwidth]{figures/temporary/cadc_pre_calib_hx70.pdf}
+		\label{precadccalib}	
+\end{subfigure}
+	\begin{subfigure}{0.5\textwidth}
+		\caption{}
+		\includegraphics[width=\textwidth]{figures/temporary/cadc_post_calib_hx70.pdf}
+		\label{postcadccalib}
+	\end{subfigure}
+	\caption[Pre and post calibration state of the \gls{cadc}]{Pre and post calibration state of the \gls{cadc}. (\subref{precadccalib}) The raw cadc data of an controlled voltage ranging from 0 to \SI{1.2}{\V}. (\subref{postcadccalib}) the cadc parameters are manually adjusted, such that they cover a useful dynamic range. The offset per channel can then be easily computed and corrected. The manual method was preferred over an automated fit-routine, since the ramp and slope parameters showed a sensitive cross-dependency in certain areas.}
+	\label{cadccalibration}
+\end{figure}
+
+In the use-case of the \gls{cadc} readout during the experiment, it is vital that both the measured trace and the recorded spike times by the digital back end are synchronized. The result of the respective offset measurement yielded only an offset of $\delta t \approx \SI{2.2}{\milli \s}$.
+
+
+\subsubsection*{Calibration of \gls{lif} Neuron}
+
+The efficient parallelized readout of the \gls{cadc} is not only used for the plasticity update but offers a fast calibration for most of the relevant \gls{lif} model parameters. Similar to the previous experiment, the calibration routines are implemented using a binary search algorithm. 
 
 \begin{itemize}
-	\item This read-out is reused for an efficient calibration of ...
-	\item host computation with respect to existing superspike implementation (but in numpy not tensorflow)
-	\item c++ speed up using the haldls frame
-	\item blackbox?! ref to future paper
-	\item 
-	\item future plans for mnist (maybe erst in discussion erwähnen)
-	\item 
+	\item calibration of tausyn
+	\item vsyn
+	\item cadc
+	\item vleak
+	\item vreset
+	\item vthreshold
 \end{itemize}
 
-
-
-"
-The previous task was simple enough such that solving it did not require a hidden
-layer. We therefore investigated whether SuperSpike could also learn to solve tasks
-that cannot be solved by a network without hidden units. To that end, we constructed
-a spiking exclusive-or task in which four different spiking input patterns had to be
-separated into two classes. In this example we used 100 input units although the effective
-dimension of the problem was two by construction. Specifically, we picked three non-
-overlapping sets of input neurons with associated fixed random firing times in a 10ms
-window. One set was part of all patterns and served as a time reference. The other
-two sets were combined to yield the four input patterns of the problem. Moreover, we
-15added a second readout neuron each corresponding to one of the respective target classes
-(Fig. 4a).
-"
 
 
 \subsection{Implementation on BSS-2 Platform}
@@ -66,11 +95,13 @@ two sets were combined to yield the four input patterns of the problem. Moreover
 	\item BLACKBOX
 	\item HOST implementation of superspike (short)!
 	\item calibration of tausyn, vsyn, cadc, vleak, vreset, vthreshold
+	\item optimization: c++ speed up using the haldls frame
 	\item Backprop weights
 	\item FA weights
+	\item future plans for mnist (maybe erst in discussion erwähnen)
 \end{itemize}
 	
 \subsection{Results}
 \begin{itemize}
-	\item 
+	\item Backprop weights, FA, no hidden layer learning
 \end{itemize}

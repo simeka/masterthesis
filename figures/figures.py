@@ -342,7 +342,7 @@ if __name__ == "__main__":
     ##############################################################################################
 
     pop_xor = np.loadtxt("pop_xor.data")
-    pop_xor[:, 1] /= 50  # use times up to 200µs instead of 10ms
+    pop_xor[:, 1] /= 250  # use times up to 200µs instead of 10ms
     pop_xor[:, 0] -= 1  # start at zero until 95
     pop_xor_spiketrains = {0: (pop_xor[:20], 0),
                            1: (pop_xor[20:60], 1),
@@ -365,7 +365,7 @@ if __name__ == "__main__":
     plt.legend(["$S_{%s}$" % (i) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 1))
     # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
     plt.ylim(60, 72)
-    plt.xlim(72, 120)
+    plt.xlim(72/5, 120/5)
     #plt.title('XOR Input  raster plot')
     plt.xlabel('spike time $(\si{\micro \s})$')
     plt.ylabel('input unit')
@@ -378,13 +378,37 @@ if __name__ == "__main__":
     for p, (spiketrain, c) in pop_xor_spiketrains.items():
         if p != 3:
             plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
-                        edgecolors=colors[p])
+                        edgecolors=colors[p], label="$S_{%s}$" % (p+1))
         else:
-            plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, color=colors[p])
-    plt.legend(["$S_{%s}$" % (i) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 1))
+            plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, color=colors[p], label="$S_{%s}$" % (p+1))
+    legend_handles_labels = fig.gca().get_legend_handles_labels()
+    plt.legend(loc='upper right', bbox_to_anchor=(1, 1))
     # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
-    plt.xlim(0, 250)
+    plt.xlim(0, 250/5)
     #plt.title('XOR Input  raster plot')
     plt.xlabel('spike time $(\si{\micro \s})$')
     plt.ylabel('input unit')
     save_plot(fig, "superspiketask", (3, 3))
+
+    s = [(r) ** 2 for r in np.arange(1, 5, 1)]
+    s = s[::-1]
+    lw = 0.8
+    fig = plt.figure(figsize=(3, 3))
+
+    batchsize = 8
+    batch = np.random.randint(0, 4, size=batchsize)
+    for i, p in enumerate(batch):
+        (spiketrain, c) = pop_xor_spiketrains[p]
+        if p != 3:
+            plt.scatter(spiketrain[:, 1] * 1e6 + 250*i, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
+                        edgecolors=colors[p])
+        else:
+            plt.scatter(spiketrain[:, 1] * 1e6 + 250*i, spiketrain[:, 0], s=s[p], lw=lw, color=colors[p])
+
+    plt.legend(*legend_handles_labels, loc='upper right', bbox_to_anchor=(1, 1))
+    # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
+    plt.xlim(-30, 250*batchsize)
+    #plt.title('XOR Input  raster plot')
+    plt.xlabel('spike time $(\si{\micro \s})$')
+    plt.ylabel('input unit')
+    save_plot(fig, "superspiketaskconsecutive", (6, 3))

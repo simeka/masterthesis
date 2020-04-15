@@ -1,10 +1,123 @@
 \chapter{Background}
 %Starting my final year project at the Electronic Vision(s) group, I soon realized the diversity of their research. 
-From the biological view of the human brain to electronic circuit laws further to machine learning algorithms, the required knowledge to work in the field of neuromorphic computing is broad and manifold. In the next sections, I will introduce the most important concepts and physical backgrounds upon which the presented research in this works is based on. Starting with the biological background of neurons and an overview of deep learning with \glspl{ann}, the transition to \glspl{snn} and their coding schemes will be made.
+The required knowledge to work in the field of neuromorphic computing is broad and manifold, ranging from the biological view of the human brain to electronic circuit laws further to machine learning algorithms. In the next sections, I will introduce the most important concepts and physical backgrounds upon which the presented research in this thesis is based on. Starting with deep learning and an overview of the biological neuron, the transition to neuron models, neuronal coding schemes and their training approaches will be made, before introducing neuromorphic \gls{bss2} platform 
+\section{Deep Learning}
+\label{deeplearning}
+Deep learning is among the most useful and powerful tools machine learning has provided to the scientific community. Image or pattern recognition are in general hard to solve tasks for traditional computation concepts. Deep learning abstracts such task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going down on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it's called \emph{deep learning} (\cite{Goodfellow-et-al-2016}).
+
+A popular example for deep learning is the \gls{mlp}, a deep feedforward network. As the name suggests, the information is forwarded from one layer to another. At each layer the input $\mathbf{x}$ is mapped to an output $\mathbf{y} = \gls{transfer}(\mathbf{x, \theta})$ by the transfer function \gls{transfer} and a set of parameters $\mathbf{\theta}$. The layer structure of such a network is inspired by biological neural networks and therefore such networks are often referred to as \glsfirst{ann}.
+
+In machine learning, one discriminates between supervised, and unsupervised learning algorithms. Without a supervisor, an algorithm looks for structures and useful properties within the input data. Many machine learning algorithms are not supervised and try to observe the underlying probability distribution of the input data. In supervised learning, on the other side, each input vector $x$ is associated with a target vector $\hat{y}$. In this case, the algorithm is trained to predict a target for a given input.
+
+Q: Überleitungssatz hier zu Supervised Training?
+
+%Given the task to identify a picture of cat, any computer will have a hard time to map the essential information of the camera's sensor data to the class \textit{cat}. An \gls{ann} solves the problem by learning how to describe the raw data in terms of simpler representations and essentially by combining these simpler representations into a meaningful solution in the last layer - the output layer. The first layer is called input layer and all other layers in between are named hidden layers, since they are usually not visible from the outside.\\
+
+
+\subsection{Supervised Training}
+\label{supervisedtraining}
+The training process of an \gls{ann} can be divided into a \emph{forward pass} where the output of all nodes is evaluated and a \emph{backward pass} which is responsible for the learning.
+
+In the \textbf{forward pass}, the activation $\mathbf{a}^{(l)}$ of a layer $l$ yields
+\begin{align}
+\label{activation}
+\mathbf{a}^{(l)} = W^{(l)} \, \mathbf{x}^{(l)} + \mathbf{b}^{(l)},
+\end{align}
+with the weight matrix $W^{(l)}$, the input $\mathbf{x}^{(l)}$ and the bias $\mathbf{b}^{(l)}$. The output value $\mathbf{y}^{(l)}$ of the layer is then given by the transfer function $\phi$, e.g. a sigmoid
+\begin{equation}
+\label{transferANN}
+\mathbf{y}^{(l)} = \phi(\mathbf{a}^{(l)}) = \frac{1}{1 + e^{(-\beta x)}},
+\end{equation}
+with a slope parameter $\beta$. The choice of the transfer function is to a certain degree free. A \gls{relu}, a hyperbolic tangent ($\tanh$) or a sigmoid are among the most popular ones and are shown in \cref{deeplearning_activation_functions} for comparison.
+However, it is important that the chosen function has a non-linear nature. With a linear transfer function any hidden layer structure becomes redundant, as the layers can be simply merged into a single one.
+
+Depending on the task, the bias as well as an additional noise term can be vital: the individual biases for instance allows the network to adjust the dynamic range of each neuron and the injection of artificial noise can significantly increase the training performance. 
+
+The same principle is then applied to all other layers to complete the forward pass, i.e. the result of the previous layer is the input for the current layer. The weight matrix $W^{\text{(l)}}$ connecting layer $l$ with $l-1$ has the appropriate shape to fit the number of input nodes $n^{\text{(l-1)}}_\text{nodes}$ and output nodes $n^{\text{(l)}}_\text{nodes}$.
+
+\begin{figure}
+	\begin{subfigure}[c]{0.5\textwidth}
+		\centering
+		\caption{}
+		\inputpgf{figures}{deeplearning_activation_functions.pgf}
+		\label{dltransfer}
+	\end{subfigure}
+	\begin{subfigure}[c]{0.5\textwidth}
+		\centering
+		\caption{}
+		\inputpgf{figures}{deeplearning_activation_functions_derivative.pgf}	
+		\label{dltransfergradient}
+	\end{subfigure}
+	\caption[]{(\subref{dltransfer}): Some of the most popular shapes for the transfer function are a \gls{relu}, $\tanh$ or sigmoid. (\ref{dltransfergradient}): Training with a linear function would not work, because the gradient is a constant and doesn't discriminate between different inputs. A non-linear transfer function is thus vital to the training. The \gls{relu} is, despite appearing to be a linear function, non-linear}
+	\label{deeplearning_activation_functions}
+\end{figure}
+
+In deep learning the \textbf{backward pass} is almost always performed with \gls{sgd}, where a given loss function $\loss(\mathbf{\mathbf{x}, \hat{y}, \mathbf{\theta}})$ is minimized by moving along the negative gradient of the loss with respect to the network's parameters $\mathbf{\theta}$ (\cite{Goodfellow-et-al-2016}). The updated set  of parameters $\mathbf{\theta}'$ is then given by
+\begin{equation}
+\mathbf{\theta'} = \mathbf{\theta} - \eta \, \nabla\loss(\mathbf{\mathbf{x}, \hat{y}, \mathbf{\theta}}),
+\label{stochasticgradientdescent}
+\end{equation}
+with the learning rate $\eta$. 
+
+In combination with a cross-entropy loss function, the choice of the sigmoid transfer function becomes convenient when deriving the parameter changes. As an example the update of the weight matrices is computed in the next paragraphs.
+
+In a first step, the derivative of the loss function in the output layer $l\equiv o$ is computed
+\begin{equation}
+\frac{\partial\mathcal{L}}{\partial \mathbf{y}^{(o)}} = 
+- \frac{\hat{\mathbf{y}}}{\mathbf{y}^{(o)}} + 
+\frac{1 - \hat{\mathbf{y}}}{1 - \mathbf{y}^{(o)}},
+\end{equation}
+with the output $\mathbf{y}^{(o)}$ and the target output $\hat{\mathbf{y}}$. The gradient of the loss can then be rewritten in terms of the error $\mathbf{e}^{(o)} = \hat{\mathbf{y}} - \mathbf{y}^{(o)}$ by using the derivative of the transfer function
+\begin{align}
+\frac{\partial \mathbf{y}^{(o)}}{\partial \mathbf{a}^{(o)}} = \frac{\partial \gls{transfer}(\mathbf{a}^{(o)})}{\partial \mathbf{a}^{(o)}} = \gls{transfer} (1 - \gls{transfer}),\\
+\Rightarrow \quad \frac{\partial\mathcal{L}}{\partial \mathbf{a}^{(o)}} =
+\frac{\partial\mathcal{L}}{\partial \mathbf{y}^{(o)}} 
+\; \frac{\partial \mathbf{y}^{(o)}}{\partial \mathbf{a}^{(o)}} =
+\hat{\mathbf{y}} - \mathbf{y}^{(o)} = \mathbf{e}^{(o)}.
+\end{align}
+
+According to \cref{stochasticgradientdescent}, the final update of the weight matrix is given by
+\begin{equation}
+\delta W^{(o)} = - \eta \frac{\partial \mathcal{L}}{\partial W^{(o)}} 
+= - \eta \;
+\frac{\partial\mathcal{L}}{\partial \mathbf{y}^{(o)}} \;
+\frac{\partial \mathbf{a}^{(o)}}{\partial W^{(o)}}
+= - \eta \, \left(\mathbf{e}^{(o)} \mathbf{x}^{(o),T}\right),
+\label{backpropupdate}
+\end{equation}
+
+The computation for the hidden layer ($l\equiv h$) can be done in a similar fashion. Again, the gradient of the loss function is computed
+\begin{equation}
+\frac{\partial\mathcal{L}}{\partial \mathbf{a}^{(h)}} = \mathbf{e}^{(h)} \;
+\frac{\partial \mathbf{y}^{(h)} }{\partial \mathbf{a}^{(h)}},
+\end{equation}
+and the error of the hidden layer $\mathbf{e}^{(h)}$ is propagated backwards as $\mathbf{e}^{(h)}=W^{(o),T}\mathbf{e}^{(o)}$ yielding a total update of
+\begin{equation}
+\delta W^{\text{(h)}} = - \eta \;
+\left(W^{\text{(o)}T} \mathbf{e}^{(o)}\right) \;
+\frac{\partial \mathbf{y}^{(h)} }{\partial \mathbf{a}^{(h)}} \; \mathbf{x}^{(h), T}.
+\end{equation}
+
+The backward propagation of the error is name giving and thus it is often referred to as \textit{backpropagation}. Despite the great performance for many deep learning tasks, the biological plausibility of propagating the error signal backward has been questioned ever since.
+
+A simple but effective adjustment was suggested by \cite{lillicrap2016random} which is also known as \textit{feedback alignment}. Instead of the transpose of the feedforward weight matrix of the respective layer a fixed random matrix $B$ is chosen to propagate the error backward. Compared to the backpropagation variant from \cref{backpropupdate} the update in the hidden layer changes to
+\begin{equation}
+\delta W^{(h)} = - \eta \;
+(B \mathbf{e}^{(o)}) \;
+\frac{\partial \mathbf{y}^{(h)}}{\partial \mathbf{a}^{(h)}} \;
+\mathbf{x}^{(h),T}
+\end{equation}
+The only constraints to $B$ are that $\mathbf{e}^{(o)T} W^{(o)} B \mathbf{e}^{(o)} > 0$ has to be fulfilled on average, meaning that geometrically, the new feedback signal $B \mathbf{e}^{(o)}$ for the hidden layer lies within $90^{\circ}$ of the one used by backprogation, $W^{\text{(o)}T} \mathbf{e}^{(o)}$.
+
+Überleitung zu biologischem neuron hier?
 
 \section{The Biological Neuron}
 
-It is estimated that the human brain contains around $10^{11}$ neurons (\cite{numberofneurons}). Neurons come in different shapes, sizes and functions. However, as depicted in \cref{biossynapse} in most cases they can be divided into three separate functional parts: dendrites, soma and axon (c.f. \cite{gerstner2014dynamics}). The dendrites gather all inputs from various sources and forward them to the soma where the received information is processed. In particular, the soma integrates the input and once exceeding a threshold it will initiated a response, which is then relayed by the axon to other neurons. This response has the shape of a short chemical pulse (spike) or a cascade of such spikes (burst). Depending on the nature of neuron the response can either excite or inhibit the receiving neuron's membrane (soll hier eine citation zu dales law?) and thus lead to an in- or decrease of its membrane potential. A \emph{synapse} connects two neurons. Usually a neuron hast up to $10^4$ \emph{postsynaptic} partners. The \emph{presynaptic} neuron then releases various neurotransmitter to overcome a small physical cleft (synaptic cleft) and once a transmitter has docked to a corresponding receptor on the other side, activated ion channels convert the chemical transmission back into an electrical signal.\\
+Biological neural networks have been a great inspiration for deep learning algorithms and \glspl{ann}. It is estimated that the human brain contains around $10^{11}$ neurons of different shape, size and functions (\cite{numberofneurons}). By the use of \emph{synapses}, neurons create complex network structures throughout the brain. Usually a neuron has up to $10^4$ \emph{postsynaptic} partners. The connections vary from dense clusters with nearby neurons to linking distant brain regions with each other. 
+
+The intercommunication is established by the use of short electrical pulses (spikes) and neurotransmitters. At most synapses, a small physical gap separates the neurons from each other. An electrical pulse of the \emph{presynaptic} neuron releases various neurotransmitter to overcome this synaptic cleft and once a transmitter has docked to a corresponding receptor on the other side, activated ion channels convert the chemical transmission back into an electrical signal. Depending on the type of neurotransmitters the excitation  can be excitatory or inhibitory. According to Dale's principle a presynaptic neuron releases always the same type of neurotransmitter. To that end, a neuron's output is either inhibitory or excitatory but not both. The input, on the other side, is not restricted to a single type of excitation, as various presynaptic partners can be connected.
+
+On the postsynaptic side, the inputs of all presynaptic partners are then gathered by the \emph{dendrites} before they are forwarded to the \emph{soma} where the information is processed (c.f. \cref{biosynapse}). In particular, the soma integrates the currents induced by the input spikes, which can be tracked by measuring the course of the soma's membrane potential. The impact of each spike corresponds to a \gls{psp}. Once a certain threshold potential is reached, a mechanism gets triggered that initiates a fire response, the so-called action potential or spike. Once a spike has been fired, the neuron's membrane becomes hyperpolarized and decrease even below the resting potential as shown in \cref{actionpotential}. The neuron is in a so called \emph{refractory state} and due to the ongoing hyperpolarization it is hard but not impossible to fire. The action potentials are then relayed by the axon to its connected partners and the described course of communication starts over. 
 
 \begin{figure}
 	\begin{subfigure}{0.5\textwidth}
@@ -21,118 +134,72 @@ It is estimated that the human brain contains around $10^{11}$ neurons (\cite{nu
 		\vspace{1.5cm}	
 		\label{biosynapse}
 	\end{subfigure}
-	\caption{(\subref{actionpotential}): The response of neuron after exceeding the threshold is called action potential. After a phase of depolarization, the membrane repolarizes and enters the refractory state. (\subref{biosynapse}): Schematics of a biological neuron split into dendrites, soma and axon}
+	\caption[Schematics of an action potential and a biological neuron]{Schematics of a biological neuron and an action potential: \textbf{(\subref{actionpotential})} The response of neuron after exceeding the threshold is called action potential. After a phase of depolarization, the membrane repolarizes and enters the refractory state.\textbf{(\subref{biosynapse})} Schematics of a biological neuron can be split into three main functional parts: the dendrites which are responsible to collect all inputs, the soma integrates the evoked \glspl{psp} and eventually triggers a fire response and the axon relays the fire responses to other neurons.}
 	\label{biologicalneuron}
 
 \end{figure}
 
-The unbalanced ion concentration in and outside of the membrane is restored by ion pumps over time. The equilibrated state of the membrane potential is referred to as the \emph{resting potential}. Once a spike has been fired, the neuron's membrane becomes hyperpolarized and decrease even below the resting potential. At this point it is impossible for the neuron to spike again. The neuron is in a so called \emph{refractory state}. Due to the ongoing hyperpolarization it remains hard but not impossible to fire. The typical dynamics of a membrane potential are depicted in \cref{actionpotential}.
+Over time the unbalanced ion concentration in and outside the membrane is restored by the membranes permeability and additional ion pumps. In the equilibrated state, the membrane potential is then referred to as the \emph{resting potential}. The neurotransmitters are recycled as well. Otherwise, if their resources were depleted and heavily used synapses would be quickly silenced.
 
-A wide-spread assumption in field of neuroscience is that the exact shape of a spike doesn't carry any relevant information and therefore all spikes can be modeled by a stereotypical shape. The communication between neurons is then encoded in the frequency (\emph{rate coding}) or timing (\emph{time coding}) of exciting and inhibitory spikes. A more detailed description of neural coding schemes is presented in section \ref{deeplearning}. However, recent research (\cite{debanne2013mechanisms}) has suggested that the variate of the shape contains vital information.
+A wide-spread assumption in the field of neuroscience is that the exact shape of a spike doesn't carry any relevant information and therefore all spikes can be modeled by a stereotypical shape. The communication between neurons is then encoded in the frequency (\emph{rate coding}) or timing (\emph{time coding}) of exciting and inhibiting spikes. A more detailed description of neural coding schemes is presented in section \ref{neuralcoding}. However, recent research has already suggested that the variate of action potential contains vital information (\cite{debanne2013mechanisms}).
 
-The brain's ability to continuously evolve allows it to learn and react as a response to stimulation or even damage. One way of learning and keeping memory is to change the synaptic strength over time. According to Hebb's theory ``neurons that fire together wire together" (\cite{hebb1949organization}). An experimental proof of such activity-dependent plasticity was found by \cite{bliss1973long}, where they discovered that a short but intense stimulation lead to a long lasting change in the synapse's efficacy. This is also referred to as \gls{ltp}. Reducing the stimulus to a very low frequency resulted in the opposite effect, \gls{ltd}. In combination they can carve out certain region and relate them to a certain stimulus and thereby create memory. A better understanding of \gls{ltp} and \gls{ltd} was provided by the introduction of \gls{stdp}, where it is shown that presynaptic activity just before a postsynaptic response leads to an increase synpatic strength and if presynaptic activity occurs right after the postsynaptic one, it results in the inverse effect. It is worth mentioning that synaptic plasticity between two neurons can also be induced by activity of an independent pathway. Developing biologically inspired and plausible learning algorithms is a dedicated goal in the field of modern neuroscience. In the next section the underlying learning concepts of the experimental work in this thesis are presented.
+The brain's ability to continuously change the topology of its synaptic wiring, to create new synapses, to alter the chemical properties of the synaptic receptors or to simply strengthen and weaken the synaptic efficacy, allows it to learn and react as a response to stimulation and even brain damage.
 
-\section{Deep Learning}
-\label{deeplearning}
-Among the many tools machine learning has provided to the scientific community, deep learning is one of the most useful and powerful tool when it comes to solving complex tasks. One approach is to understand such a task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going done on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it's called \textit{deep learning} (\cite{Goodfellow-et-al-2016}).
+One way of learning and forming memory is known as synaptic plasticity where the synaptic strength is changed over time. According to Hebb's theory ``neurons that fire together wire together" (\cite{hebb1949organization}). An experimental proof of such activity-dependent plasticity was found by \cite{bliss1973long}, where they discovered that a short but high frequency stimulation lead to a long lasting change in the synapse's efficacy. This is also referred to as \gls{ltp}. Reducing the stimulus to a low frequency, on the other hand, resulted in the opposite effect: \gls{ltd}. In combination they can carve out certain region in the brain which is related  to a stimulus and thereby create memory. 
 
-A popular example of deep learning is a feedforward neural network or \gls{mlp}. In a feedforward network the information is passed from one layer to another. At each layer the input $\mathbf{x}$ is mapped to an output $\mathbf{y} = f(\mathbf{x, \theta})$ by a transferfunction $f$ and a set of parameters $\mathbf{\theta}$. The parameters are then trained in order to obtain the optimal result. The layer structure of such a network is inspired by biological neural networks which is why it is often referred to as \glsfirst{ann}.\\
+A better understanding of \gls{ltp} and \gls{ltd} was provided by the introduction of \gls{stdp}. \gls{stdp} shows in principle that a presynaptic activity just before a postsynaptic response leads to an increase synpatic strength and if presynaptic activity occurs right after the postsynaptic one, it results in the inverse effect (\cite{poo98stdp}). 
 
-%Given the task to identify a picture of cat, any computer will have a hard time to map the essential information of the camera's sensor data to the class \textit{cat}. An \gls{ann} solves the problem by learning how to describe the raw data in terms of simpler representations and essentially by combining these simpler representations into a meaningful solution in the last layer - the output layer. The first layer is called input layer and all other layers in between are named hidden layers, since they are usually not visible from the outside.\\
+It is worth mentioning that synaptic plasticity between two neurons can also be induced by activity of an independent pathway. 
 
+In the next section a popular and practicable neuron model is presented 
 
-\subsection{Gradient Descent for \glspl{ann}}
-\label{trainingANN}
-The learning process of a neural network can be divided into a \emph{forward} and \emph{backward} pass. 
+Developing biologically inspired and plausible learning algorithms is a dedicated goal in the field of modern neuroscience. In the next section a practicable neuron model is presented, which is the basis of the experimental part in this thesis.
 
-During the \textbf{forward pass} the output value of each node in the network is evaluated. The activation $\mathbf{a}$ of a layer $l$ is given by the product of the input $\mathbf{x}$ with a weight matrix $W^{(l)}$ plus a bias $\mathbf{b}$.
-\begin{align}
-\label{activation}
-\mathbf{a} = W^{(l)} \, \mathbf{x} + \mathbf{b} \left(+ \text{noise}\right)
-\end{align}
-Depending on the task to the bias and an additional noise term can be vital. The bias allows the network to shift the dynamic range of a single neuron and for certain tasks and network structure \glspl{ann} may perform poorly without the injection of artificial noise.
+\section{\gls{lif} Model}
 
-The output value $\mathbf{y}$ of the layer given by a transfer function $\phi$
+An early but successful description of the biological neuron dynamics was accomplished by the \gls{lif} neuron. It was first described by \cite{lapicque1907recherches}. One of the assumption the model is based upon is that the shape of an input spike stays approximately the same and thus every spike can be replaced by a stereotypical shape. Furthermore it describes no spatial structures of the neurons. Therefore a \gls{lif} neuron can be seen as a point-like integrator that neglects any non-linear dynamics coming from strategically positioned input sources of excitatory or inhibitory spikes. Despite its strong simplifications, it sufficiently describes the main dynamics of the membrane potential. 
+
+The incoming spike trains $S_j(t)$ from various presynaptic partners $j$ can be seen as a series of spikes $s$ at times $t_j^{(s)}$
 \begin{equation}
-\label{transferANN}
-\mathbf{y} = \phi(\mathbf{a}).
+S_j(t) = \sum_s \delta(t - t_j^{(s)}),
+\end{equation}
+where $\delta$ denotes the $\delta$-function. Each input spike train adds a synaptic current to postsynaptic neuron that is proportional to weight of the synapse $w_j$. For simplicity, the sign of the current, representing an excitatory or inhibitory synapse, is encoded in the weight as well. Summing over all input sources yields the total synaptic input of a postsynpatic neuron
+\begin{equation}
+\label{synpatic_input}
+\gls{isyn}(t) = \sum_j w_j \epsilon \ast S_j(t),
 \end{equation}
 
-The choice of the transfer function is to a certain degree free. A \gls{relu}, a hyperbolic tangent ($\tanh$) or a sigmoid are among the most popular ones (see \cref{deeplearning_activation_functions}. However, it is important that chosen function has a non-linear nature, as its gradient won't be able to separate magnitude or sign of the input otherwise. The dependency on the input of the gradient is a vital function for the learning process. 
+where $\epsilon$ is either a double or single-exponential kernel. The single-exponential reflects only the falling dynamics of the input current by $\tau_\text{syn, fall}$, whereas the double exponential models both rising and falling characteristics of a spike. Maybe a picture here of both kernels?
+
+In the \gls{lif} model, the membrane potential \gls{v_mem} is given by the integral over the synaptic input. Simultaneously the membrane slowly leaks towards a resting potential \gls{v_leak}, representing the biological ion pumps that are restoring a balanced ion concentration. The dynamics of potential are defined by a single differential equation:
+
+\begin{align}
+\label{lifeq}
+C_{\text{m}} \frac{d\gls{v_mem}}{dt} &= -g_{\text{leak}} (\gls{v_mem} - \gls{v_leak}) + \gls{isyn}.
+\end{align}
+%
+The membrane's time constant \gls{tau_m} is given by the ratio of the membrane capacitance and the leakage conductance $\gls{tau_m} = \frac{C_{\text{m}}}{g_{\text{leak}}}$.
+
+A ``fire" mechanism is triggered at time $t_{\text{fire}}$ once the membrane crosses a certain threshold potential \gls{thres}. Then the membrane is set to reset potential \gls{v_reset} where it remains unchanged for a refractory period of \gls{refrac}. 
+\begin{align}
+\gls{v_mem}(t_{\text{fire}}) &\ge \vartheta \Leftrightarrow \text{neuron fires at time } t_{\text{fire}}.\\
+\gls{v_mem}(t) &= \gls{v_reset} \quad \forall t \in (t_{\text{fire}}, t_{\text{fire}} + \gls{refrac}] 
+\end{align}
+
+In addition to the lack of any spatial representation in a \gls{lif} neuron, it doesn't keep any memory of any previous spikes after firing. Given that the time constant of the synaptic input is shorter than the one of the membrane potential, the membrane will forget all past events once it is set to \gls{v_reset}. These limitations make it impossible for the model to correctly describe neuronal behavior such as spike bursts. Despite the models simplicity, the main neuron dynamics are adequately described, and it thus has been a popular and portable choice for neuromorphic hardware implementations.
+
+The constraints of the \gls{lif} neuron led to a demand for a more detailed model, namely the \glsfirst{adex} model, which is an extension to the \gls{lif} providing an additional adaption state variable the allows the membrane to remember its previous state after firing and an exponential voltage feedback. Depending on the sign of the adaption, the neuron will either be inhibited to fire again after sending out its first spike response or it is engaged to keep on firing. In the example given in \cref{lifvsadex} the former is the case. The positive exponential voltage feedback on the other hand, enables the neuron to have a more complex behavior in the (\gls{v_mem}, w?) phase space.
 
 \begin{figure}
-	\begin{subfigure}[c]{0.5\textwidth}
-		\centering
-		\caption{}
-		\inputpgf{figures}{deeplearning_activation_functions.pgf}
-		\label{dltransfer}
-	\end{subfigure}
-	\begin{subfigure}[c]{0.5\textwidth}
-		\centering
-		\caption{}
-		\inputpgf{figures}{deeplearning_activation_functions_derivative.pgf}	
-		\label{dltransfergradient}
-	\end{subfigure}
-	\caption{(\subref{dltransfer}): Some of the most popular shapes for the transfer function are a \gls{relu}, $\tanh$ or sigmoid. (\ref{dltransfergradient}): Training with a linear function would not work, because the gradient is a constant and doesn't discriminate between different inputs. A non-linear transfer function is thus vital to the training. The \gls{relu} is, despite appearing to be a linear function, non-linear}
-	\label{deeplearning_activation_functions}
-	
+	\includegraphics[width=\linewidth]{figures/LIFvsAdEx.png}
+	\label{lifvsadex}
+	\caption{Difference of membrane dynamics between a \gls{lif} and \gls{adex} neuron, given the same synpatic input. Figure taken from Stradmann, 2019}
 \end{figure}
 
-The same principle is applied to all other layers in a forward direction, i.e. the result of the previous layer is the input for the current layer. The weight matrix $W^{\text{(l)}}$ connecting layer $l$ with $l-1$ has the appropriate shape to fit the number of input nodes $n^{\text{(l-1)}}_\text{nodes}$ and the number of nodes in the current layer $n^{\text{(l)}}_\text{nodes}$. (maybe figure with a layer structure, like in mfp talk)
-
-\label{backwardpassANN}
-The \textbf{backward pass} computes how the networks parameters $\mathbf{\theta}$ need to be changed to obtain the best result. One approach, called \emph{gradient descent}, minimize a given loss function $\mathcal{L}(\mathbf{\theta})$ by moving along the negative gradient of the $\loss$ , c.f. \cite{Goodfellow-et-al-2016}. The new set of parameters $\mathbf{\theta'}$ is then given by
-\begin{equation}
-\mathbf{\theta'} = \mathbf{\theta} - \eta \, \nabla\loss(\mathbf{\theta}).
-\end{equation}
-whereby $\eta$, the learning rate, defines how fast an update is applied. As an example the update of the weight matrices $\delta W^{(l)}$ is computed. The update of bias can be done in analogy to the weights. 
-
-In combination with a cross-entropy loss the choice of a sigmoid transfer function becomes convenient when deriving the parameter changes. First it necessary to know what the loss function looks like. This is why the computation starts from the end of the layer structure, the output layer. The derivative of the sigmoid yields $\frac{\partial \mathbf{y}}{\partial \mathbf{a}} = \frac{\partial \phi(\mathbf{a})}{\partial \mathbf{a}} = \phi (1 - \phi)$ and the derivative of the imposed a cross-entropy loss is given by
-\begin{align}
-\frac{\partial\mathcal{L}}{\partial \mathbf{y}} = 
-- \frac{\hat{\mathbf{y}}}{\mathbf{y}} + 
-\frac{1 - \hat{\mathbf{y}}}{1 - \mathbf{y}}
-\end{align}
-with $\mathbf{y}$ the output and $\hat{\mathbf{y}}$ the target output. The error $\mathbf{e} = \hat{\mathbf{y}} - \mathbf{y}$ can then be rewritten in terms of the partial gradients
-\begin{equation}
-\Rightarrow \quad \frac{\partial\mathcal{L}}{\partial \mathbf{a}} =
-\frac{\partial\mathcal{L}}{\partial \mathbf{y}} 
-\; \frac{\partial \mathbf{y}}{\partial \mathbf{a}} =
-\hat{\mathbf{y}} - \mathbf{y} = \mathbf{e}.
-\end{equation}
-Now the weight update $\delta W^{\text{(o)}}$ for the output layer yields 
-\begin{align}
-\delta W^{\text{(o)}} =& - \eta \frac{\partial \mathcal{L}}{\partial W} 
-= - \eta \;
-\frac{\partial\mathcal{L}}{\partial \mathbf{y}} \;
-\frac{\partial \mathbf{a}}{\partial W}
-= - \eta \, (\mathbf{e} \cdot \mathbf{x}^T),
-\end{align}
-with $\mathbf{x}$ being the input of the output layer, thus the output of the hidden layer.
-
-The result for the hidden layer computes similarly. Again we look at the gradient of the loss function and find
-\begin{align}
-\frac{\partial\mathcal{L}}{\partial \mathbf{a}} &= \left(W^{\text{(o)}T} \cdot \mathbf{e}\right) \;
-\frac{\partial \mathbf{y} }{\partial \mathbf{a}}\\
-\Rightarrow \quad \delta W^{\text{(h)}} &= - \eta \;
-\left(W^{\text{(o)}T} \cdot \mathbf{e}\right) \;
-\frac{\partial \mathbf{y} }{\partial \mathbf{a}} \;
-\mathbf{x}^T,
-\end{align}
-Where $W^{\text{(o)}T}$ denotes the transpose of the weights of the output layer, i.e. the weights connecting the output layer to the hidden layer in backward direction. The backward propagation of the error is name giving and thus it is often referred to as \textit{back propagation}. Despite the great performance for many deep learning tasks, the biological plausibility of propagating the error signal backward in time has been questioned ever since. 
-
-In 2016 a simple but effective adjustment has been proposed by Lilicrap et al. named \textit{feedback alignment}: Instead of the transpose of the weight matrix a fixed randomized one is chosen. Apart from providing more biological plausibility it also reduces the computational costs of plasticity rule. Compared to the back propagation the updates only change in the hidden layer:
-
-\begin{equation}
-\delta W^{\text{(h)}} = - \eta \;
-(B \cdot \mathbf{e}) \;
-\frac{\partial \mathbf{y}}{\partial \mathbf{a}} \;
-\mathbf{x}^T,
-\end{equation}
-with B being a random matrix with corresponding dimensions.
 
 
 \section{Neural Coding with \glspl{snn}}
+\label{neuralcoding}
 Neuromorphic hardware uses spikes to transmit data from one neuron to another and the mapping function is represented by the modeled neuron (e.g. the \gls{lif} neuron). In terms of deep learning, such networks are called \glspl{snn}. In the biological introduction (\cref{biologicalneuron}) two methods of neural coding have already been mentioned: \emph{temporal coding} and \emph{rate coding}. The different types of neural coding require each an adapted training method for \glspl{snn}.
 
 \textbf{Rate coding} for instance uses a high number of spikes to establish a certain firing rate of the neuron. The information is not encoded in a single spike or the time interval between two spikes but in a number of spikes within a certain period defining the \textit{rate}. 
@@ -203,46 +270,6 @@ with $\eta$ the learning rate. The formulation for the hidden layer is similar w
 
 
 
-\section{\gls{lif} Model}
-
-An early but successful description of the biological neuron dynamics was accomplished by the \gls{lif} neuron. It was first described by \cite{lapicque1907recherches}. One of the assumption the model is based upon is that the shape of an input spike stays approximately the same and thus every spike can be replaced by a stereotypical shape. Furthermore it describes no spatial structures of the neurons. Therefore a \gls{lif} neuron can be seen as a point-like integrator that neglects any non-linear dynamics coming from strategically positioned input sources of excitatory or inhibitory spikes. Despite its strong simplifications, it sufficiently describes the main dynamics of the membrane potential. 
-
-The incoming spike trains $S_j(t)$ from various presynaptic partners $j$ can be seen as a series of spikes $s$ at times $t_j^{(s)}$
-\begin{equation}
-S_j(t) = \sum_s \delta(t - t_j^{(s)}),
-\end{equation}
-where $\delta$ denotes the $\delta$-function. Each input spike train adds a synaptic current to postsynaptic neuron that is proportional to weight of the synapse $w_j$. For simplicity, the sign of the current, representing an excitatory or inhibitory synapse, is encoded in the weight as well. Summing over all input sources yields the total synaptic input of a postsynpatic neuron
-\begin{equation}
-\label{synpatic_input}
-\gls{isyn}(t) = \sum_j w_j \epsilon \ast S_j(t),
-\end{equation}
-
-where $\epsilon$ is either a double or single-exponential kernel. The single-exponential reflects only the falling dynamics of the input current by $\tau_\text{syn, fall}$, whereas the double exponential models both rising and falling characteristics of a spike. Maybe a picture here of both kernels?
-
-In the \gls{lif} model, the membrane potential \gls{v_mem} is given by the integral over the synaptic input. Simultaneously the membrane slowly leaks towards a resting potential \gls{v_leak}, representing the biological ion pumps that are restoring a balanced ion concentration. The dynamics of potential are defined by a single differential equation:
-
-\begin{align}
-\label{lifeq}
-C_{\text{m}} \frac{d\gls{v_mem}}{dt} &= -g_{\text{leak}} (\gls{v_mem} - \gls{v_leak}) + \gls{isyn}.
-\end{align}
-%
-The membrane's time constant \gls{tau_m} is given by the ratio of the membrane capacitance and the leakage conductance $\gls{tau_m} = \frac{C_{\text{m}}}{g_{\text{leak}}}$.
-
-A ``fire" mechanism is triggered at time $t_{\text{fire}}$ once the membrane crosses a certain threshold potential \gls{thres}. Then the membrane is set to reset potential \gls{v_reset} where it remains unchanged for a refractory period of \gls{refrac}. 
-\begin{align}
-\gls{v_mem}(t_{\text{fire}}) &\ge \vartheta \Leftrightarrow \text{neuron fires at time } t_{\text{fire}}.\\
-\gls{v_mem}(t) &= \gls{v_reset} \quad \forall t \in (t_{\text{fire}}, t_{\text{fire}} + \gls{refrac}] 
-\end{align}
-
-In addition to the lack of any spatial representation in a \gls{lif} neuron, it doesn't keep any memory of any previous spikes after firing. Given that the time constant of the synaptic input is shorter than the one of the membrane potential, the membrane will forget all past events once it is set to \gls{v_reset}. These limitations make it impossible for the model to correctly describe neuronal behavior such as spike bursts. Despite the models simplicity, the main neuron dynamics are adequately described, and it thus has been a popular and portable choice for neuromorphic hardware implementations.
-
-The constraints of the \gls{lif} neuron led to a demand for a more detailed model, namely the \glsfirst{adex} model, which is an extension to the \gls{lif} providing an additional adaption state variable the allows the membrane to remember its previous state after firing and an exponential voltage feedback. Depending on the sign of the adaption, the neuron will either be inhibited to fire again after sending out its first spike response or it is engaged to keep on firing. In the example given in \cref{lifvsadex} the former is the case. The positive exponential voltage feedback on the other hand, enables the neuron to have a more complex behavior in the (\gls{v_mem}, w?) phase space.
-
-\begin{figure}
-	\includegraphics[width=\linewidth]{figures/LIFvsAdEx.png}
-	\label{lifvsadex}
-	\caption{Difference of membrane dynamics between a \gls{lif} and \gls{adex} neuron, given the same synpatic input. Figure taken from Stradmann, 2019}
-\end{figure}
 
 \section{Neuromorphic Hardware}
 

@@ -41,6 +41,7 @@
 \usepackage[export]{adjustbox}
 \usepackage{wrapfig}
 \usepackage{minted}
+\usepackage{import}
 \titleformat{\chapter}{\vspace{-20mm}\Huge\bfseries}{\thechapter\hsp\textcolor{gray75}{}\hsp}{0pt}{\Huge\bfseries}
 
 % hyperref wants to be imported as last package
@@ -87,7 +88,7 @@
 \newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
 
 % Figures
-\graphicspath{{../../fig/}}
+%\graphicspath{{../../fig/}}
 \newcommand{\pgfplot}[1]{\input{figures/#1.pgf}}
 \pgfplotsset{compat=1.11}
 \captionsetup[subfigure]{position=top, labelfont=bf, textfont=normalfont, singlelinecheck=off, justification=raggedright}

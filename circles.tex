@@ -68,7 +68,7 @@ In a slight simplification of the task $r_{\text{inner}}$ is set to zero and $R_
 		\inputpgf{figures}{nu_y_input.pgf}	
 		\label{nuyinput}
 	\end{subfigure}
-	\caption{Each point $p(x,y)$ is mapped to a frequency in "x-direction" (\subref{nuxinput}) and "y-direction" (\subref{nuyinput}). The value of the frequency is color coded. As an example let's assume a point from the lower right corner is drawn e.g. $p(100,-100)$: a unit in the hidden layer receives two independent inputs. One with a high frequency $\nu_{\text{input, x}}(100) \approx \SI{450}{\kilo \Hz}$ and the other with a low frequency $\nu_{\text{input, y}}(-100) \approx \SI{55}{\kilo \Hz}$.}
+	\caption{Each point $p(x,y)$ is mapped to a frequency in "x-direction" (\subref{nuxinput}) and "y-direction" (\subref{nuyinput}). The value of the frequency is color coded. As an example let's assume a point from the lower right corner is drawn e.g. $p(100,-100)$: a unit in the hidden layer receives two independent inputs. One with a high frequency $\nu_{\text{in, x}}(100) \approx \SI{450}{\kilo \Hz}$ and the other with a low frequency $\nu_{\text{in, y}}(-100) \approx \SI{55}{\kilo \Hz}$.}
 	\label{circlesinputs}
 
 \end{figure}
@@ -91,33 +91,9 @@ e_\text{out}(p) = \gls{nuout}(p) - \nu^*(p)
 \end{equation}
 and the decision boundary, separating both classes, is chosen to be the mean of the target rates $\nu_\text{DB} = \frac{\nu_0^* + \nu_1^*}{2} = \SI{63.05}{\kilo \Hz}$.
 
-\subsection{Transfer Function}
+\subsection{Transfer Function on \gls{dls}}
 
-The sigmoidal transfer function \gls{transfer} has already been motivated in \cref{trainingANN}. With a few adjustments it can be implemented for a rate coding approach of \glspl{snn}.
 
-The stimulation of a neuron (\gls{isyn}) has been motivated in \cref{synpatic_input}. In terms of rates the synpatic currents scale linearly $\gls{isyn} \propto \nu$. In analogy to \cref{activation} the total current can be divided into input, bias and noise currents $\gls{isyn} = I_\text{in} + I_\text{bias} + I_\text{noise}$.
-
-The output of the neuron can be approximated by (c.f. \cite{brunel2000dynamics})
-\begin{equation}\label{fireratehigh}
-\frac{1}{\gls{transfer}(\nu_\text{input})} \propto \frac{1}{\nu_\text{output}} \approx \gls{refrac} + \gls{tau_m} \frac{\gls{thres} - \gls{v_reset}}{\gls{isyn}}
-\end{equation}
-
-for high input rates. The transfer function saturates for high input currents and is only limited by the inverse of \gls{refrac}. The approximation holds only if the time constants \gls{tau_m} and \gls{tau_syn} are small enough, in particular if they are smaller than \gls{refrac}, which means that the membrane actually forgets its previous state after spiking. The limit $\gls{thres} - \gls{isyn} \gg \sigma$, i.e. for low rates, yields
-\begin{equation}\label{fireratelow}
-\nu_\text{output} \gls{tau_m} \approx \frac{(\gls{thres} - \gls{isyn})}{\sigma \sqrt{\pi}} \exp\left(-\frac{(\gls{thres} - \gls{isyn})^2}{\sigma^2}\right).
-\end{equation}
-
-The fluctuations $\sigma$ of a single excitatory input source are small, reflecting only the intrinsic noise of the hardware and thus it will increase the fire rate rapidly. A continuous inhibitory and excitatory noise source (i.e. Poisson spike trains with a fixed rate) increases $\sigma$ and thus flattens the slope of the \gls{transfer} for a low $\nu_\text{input}$. 
-
-At rest and without additional input apart from the noise, the threshold is set such that $\nu_\text{output} = \nicefrac{\nu_\text{max}}{2}$. Varying the strength of the synaptic input directly changes the shape of \gls{transfer} as well (c.f. \cref{transferfunction}).
-
-\begin{figure}
-	\label{transferfunction}
-	\begin{center}
-		\input{figures/single_calibrated_transfer_function_w_various_weights.pgf}
-	\end{center}
-	\caption{The shape of \gls{transfer} depends on the strength of the synaptic input: $\gls{isyn} \propto w \cdot \nu_\text{input}$. The external  with external noise sources has a standard deviation of about \SI{20}{\milli\V}. Without noise only spread would be a magnitude lower. The part of the distribution that exceeds the threshold potential would lead to a spike.}
-\end{figure}
 
 The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution centered around the resting potential (c.f. \cite{petrovici12phdthesis}). In a naive approach, the area of the distribution that exceeds a certain threshold correlates to number of spikes fired. Thereby the dynamics of the membrane, once are a spike is fired, are not considered. Even for very short time constants close to zero the exact behavior is more complicated than this strongly simplified picture. However, it still offers a correct intuition what the individual parameters of the Gaussian free membrane potential distribution imply for the transfer function: more noise leads to a wider distribution and thus a more gently incline of \gls{transfer}; inhibitory synaptic input moves the distribution to a lower mean value and v.v.; moving the threshold corresponds to an additional bias term.
 
@@ -192,11 +168,11 @@ The initial conditions of the network have been proven to crucial for its learni
 $\gls{v_leak} = \SI{300}{\milli \V}$
 \begin{table}\centering\ra{1.3}
 	\begin{tabular}{@{}rcllcllcll@{}}\toprule
-		&layer	 & & $w_{ij}^\text{init}$		& $b_i^\text{init}$ & $\nu_{\text{input}}$	& & $\eta_\text{w}$	& $\eta_\text{b}$\\ \midrule
+		&layer	 & & $w_{ij}^\text{init}$		& $b_i^\text{init}$ & $\nu_{\text{in}}$	& & $\eta_\text{w}$	& $\eta_\text{b}$\\ \midrule
 		&hidden  & & $\in[-25, 25]$	& $\propto \frac{1}{2} \sum_j w_{ij}$ & $\SI{500}{\kilo \Hz}$	& & $165e4$			& $2.3e4$		\\
 		&output  & & $\in[-25, 25]$	& $0$ & $\SI{110.9}{\kilo\Hz}$& & $5.5e4$			& $0.23e4$		\\ \bottomrule
 	\end{tabular}
-	\caption{The different settings for the layers is listed in the table. The weights are initialized as a uniform distribution within the given boundaries. The bias set to zero, that means $\gls{thres} = \gls{v_leak}$ but for the hidden layer a weight dependent factor $\frac{1}{2} \sum_j w_{ij}$ ensures that a certain fire rate is established at the initial state. The input rates are given per input, such that the total possible input is multiplied by the number of input connections. The total possible input for a hidden unit is thus $2 \times \nu_\text{input}$. The learning rates may appear unusually high but they incorporate the norming as well and are tuned in a way that both layers are active (see \cref{network_monitoring}).}
+	\caption{The different settings for the layers is listed in the table. The weights are initialized as a uniform distribution within the given boundaries. The bias set to zero, that means $\gls{thres} = \gls{v_leak}$ but for the hidden layer a weight dependent factor $\frac{1}{2} \sum_j w_{ij}$ ensures that a certain fire rate is established at the initial state. The input rates are given per input, such that the total possible input is multiplied by the number of input connections. The total possible input for a hidden unit is thus $2 \times \nu_\text{in}$. The learning rates may appear unusually high but they incorporate the norming as well and are tuned in a way that both layers are active (see \cref{network_monitoring}).}
 \end{table}
 
 

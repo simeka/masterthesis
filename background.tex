@@ -48,7 +48,7 @@ The same principle is then applied to all other layers to complete the forward p
 		\inputpgf{figures}{deeplearning_activation_functions_derivative.pgf}	
 		\label{dltransfergradient}
 	\end{subfigure}
-	\caption[]{(\subref{dltransfer}): Some of the most popular shapes for the transfer function are a \gls{relu}, $\tanh$ or sigmoid. (\ref{dltransfergradient}): Training with a linear function would not work, because the gradient is a constant and doesn't discriminate between different inputs. A non-linear transfer function is thus vital to the training. The \gls{relu} is, despite appearing to be a linear function, non-linear}
+	\caption[Popular shapes for transfer functions in deep learning.]{Popular shapes for transfer functions in deep learning. \textbf{(\subref{dltransfer})}: Some of the most popular shapes for the transfer function are a \gls{relu}, $\tanh$ or sigmoid. \textbf{(\subref{dltransfergradient})}: Training with a linear function would not work, because the gradient is a constant and doesn't discriminate between different inputs. A non-linear transfer function is thus vital to the training. The \gls{relu} is, despite appearing to be a linear function, non-linear.}
 	\label{deeplearning_activation_functions}
 \end{figure}
 
@@ -109,7 +109,7 @@ A simple but effective adjustment was suggested by \citealp{lillicrap2016random}
 \end{equation}
 The only constraints to $B$ are that $\mathbf{e}^{(o)T} W^{(o)} B \mathbf{e}^{(o)} > 0$ has to be fulfilled on average, meaning that geometrically, the new feedback signal $B \mathbf{e}^{(o)}$ for the hidden layer lies within $90^{\circ}$ of the one used by backprogation, $W^{\text{(o)}T} \mathbf{e}^{(o)}$.
 
-Überleitung zu biologischem neuron hier?
+%Q:Überleitung zu biologischem neuron hier?
 
 \section{The Biological Neuron}
 
@@ -134,7 +134,7 @@ On the postsynaptic side, the inputs of all presynaptic partners are then gather
 		\vspace{1.5cm}	
 		\label{biosynapse}
 	\end{subfigure}
-	\caption[Schematics of an action potential and a biological neuron]{Schematics of a biological neuron and an action potential: \textbf{(\subref{actionpotential})} The response of neuron after exceeding the threshold is called action potential. After a phase of depolarization, the membrane repolarizes and enters the refractory state.\textbf{(\subref{biosynapse})} Schematics of a biological neuron can be split into three main functional parts: the dendrites which are responsible to collect all inputs, the soma integrates the evoked \glspl{psp} and eventually triggers a fire response and the axon relays the fire responses to other neurons.}
+	\caption[Schematics of an action potential and a biological neuron]{Schematics of a biological neuron and an action potential. \textbf{(\subref{actionpotential})} The response of neuron after exceeding the threshold is called action potential. After a phase of depolarization, the membrane repolarizes and enters the refractory state.\textbf{(\subref{biosynapse})} Schematics of a biological neuron can be split into three main functional parts: the dendrites which are responsible to collect all inputs, the soma integrates the evoked \glspl{psp} and eventually triggers a fire response and the axon relays the fire responses to other neurons.}
 	\label{biologicalneuron}
 	
 \end{figure}
@@ -149,9 +149,7 @@ One way of learning and forming memory is known as synaptic plasticity where the
 
 A better understanding of \gls{ltp} and \gls{ltd} was provided by the introduction of \gls{stdp}. \gls{stdp} shows in principle that a presynaptic activity just before a postsynaptic response leads to an increase synpatic strength and if presynaptic activity occurs right after the postsynaptic one, it results in the inverse effect (\citealp{poo98stdp}). 
 
-It is worth mentioning that synaptic plasticity between two neurons can also be induced by activity of an independent pathway. 
-
-In the next section a popular and practicable neuron model is presented 
+%It is worth mentioning that synaptic plasticity between two neurons can also be induced by activity of an independent pathway. 
 
 Developing biologically inspired and plausible learning algorithms is a dedicated goal in the field of modern neuroscience. In the next section a practicable neuron model is presented, which is the basis of the experimental part in this thesis.
 
@@ -199,28 +197,30 @@ V_{\text{m}, i}(t) = \gls{v_reset} \quad \forall t \in \left(t_i^{(s)}, t_i^{(s)
 \end{equation}
 Unlike for its biological counterpart, the modeled neuron cannot spike during the refractory period.
 
+\begin{figure}
+	\centering
+	\scalebox{0.93}{\input{figures/lif_adex_dynamics.pgf}}
+	\caption[Membrane dynamics of the \gls{lif} and \gls{adex} given a constant input.]{Membrane dynamics of the \gls{lif} and \gls{adex} given a constant input. \textbf{(a)} The membrane potential of the \gls{lif} model $V_\text{m}^\text{LIF}$ evolves in response to a small input current, which is not strong enough to trigger a spike. A more intense stimulation yields a repetitive and equidistant spiking pattern. \textbf{(b)} Given a small step current, the shape of the \gls{adex} neuron's potential $V_\text{m}^\text{AdEx}$ is similar to the \gls{lif} model. At higher inputs, a negative adaption inhibits a repetitive spiking pattern after the first spike. The peak resembles the positive exponential voltage feedback simulating an action potential. \textbf{(c)} The stimulation current used for both models to show the course of the membrane potential. Figure taken from \citealp{stradmann2019msc}}
+	\label{lifvsadex}
+\end{figure}
+
 A \gls{lif} neuron doesn't keep track of any previous spikes once a spike is released, given that the time constant of the synaptic input is shorter than the one of the membrane potential, in particular if $\tau_\text{m} > \tau_\text{fall}$. These limitations make it impossible for the model to correctly describe neuronal behavior such as spike bursts.
 
 The constraints of the \gls{lif} neuron led to a demand of a more detailed model, namely the \glsfirst{adex} model, which is an extension to the \gls{lif} model featuring an additional adaption state variable that provides post-spike memory to the membrane. Depending on the sign of the adaption, the in a neuron is either inhibited or engaged to fire again after having spiked at least once.
 
-However, for the scope of this thesis the more advanced model is not yet required. All experiments are done using the simpler \gls{lif} model. The \gls{adex} based implementation of similar experiments part of a future project (see \cref{futureprojects}).
- %(see \cref{lifvsadex}).
 
 %Apart from the additional state variable the \gls{adex} neuron features a positive exponential voltage feedback. on the other hand, enables the neuron to have a more complex behavior in the (\gls{v_mem}, w?) phase space.
-%\begin{figure}
-%	\includegraphics[width=\linewidth]{figures/LIFvsAdEx.png}
-%	\caption{Difference of membrane dynamics between a \gls{lif} and \gls{adex} neuron, given the same synpatic input. Figure taken from Stradmann, 2019}
-%	\label{lifvsadex}
-%\end{figure}
 
+For the scope of this thesis a more advanced model is not yet required. All experiments are done using the simpler \gls{lif} model. However, an \gls{adex} based implementation of similar experiments part of a future project (see \cref{futureprojects}).
+ %(see \cref{lifvsadex}).
 
 \section{Spiking Neural Networks}
 \label{neuralcoding}
 
 %A neuron's primary way to exchange information with another is to send and receive spikes.
-\gls{snn} take the biological inspiration for \glspl{ann} further by conveying and processing information using spikes and neuron models such as the \gls{lif} neuron. As mentioned before, spikes are assumed to have a stereotypical shape, leaving the temporal dimension to communicate. In the context of a large multilayer networks, the topology itself, i.e. the types of synapses, the synaptic strenght, the pre and postsynaptic partners, encodes information as well.
+\Glspl{snn} take the biological inspiration for \glspl{ann} further by conveying and processing information using spikes and neuron models such as the \gls{lif} neuron. As mentioned before, spikes are assumed to have a stereotypical shape, leaving the temporal dimension to communicate. In the context of a large multilayer networks, the topology itself, i.e. the types of synapses, the synaptic strenght, the pre and postsynaptic partners, encodes information as well.
 
-In the following, the different training approaches to rate and temporal coding for feed-forward multi-layer \glspl{snn} are presented.
+In the following, the different training approaches for rate and temporal coding with a feed-forward multi-layer \glspl{snn} using \gls{lif} neurons are presented.
 
 \subsection{Rate Coding}
 In an attempt to explain computational process of the brain, the activation of an artificial neuron has already been mapped onto the spike rate of a spiking neuron (\citealp{rieke1999spikes}). This is based on the assumption that spikes follow a Poisson process and therefore the fire rate of a neuron is well described by a Poisson distribution in most cases (\citealp{averbeck2009poisson}), which in turn legitimates the use of a mean fire rate and a certain accuracy.
@@ -250,9 +250,7 @@ In the terminology of the \gls{lif} model, a presynaptic spiketrain $S_j$ can be
 \end{figure}
 
 \subsection{Supervised Training with Rate Coding}
-The similarity to \glspl{ann} implies that typical training methods such as \gls{sgd} will work with rate-based \glspl{snn} too.
-
-In a spiking feed-forward network the output of a node is determined by the transfer function \gls{transfer}, which is given by the neuron model in place.
+The similarity to \glspl{ann} implies that typical training methods such as \gls{sgd} will work with rate-based \glspl{snn} too. In a spiking feed-forward network the output of a node is determined by the transfer function \gls{transfer}, which is given by the neuron model in place.
 % In case of the \gls{lif} neuron, the transfer function is similar to a \gls{relu}, with a significant difference, that the rate will no keep increasing but rather saturates quickly at a maximum frequency $\nu_\text{max}$ which is limited by the refractory period $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$.
 The benefits of a sigmoid transfer function have already been motivated in \cref{supervisedtraining}. With a few adjustments it can be implemented for the \gls{lif} model with rate-based coding.
 
@@ -317,7 +315,7 @@ At a first glance, it appears that the problem has just been shifted to computin
 \end{equation}
 with the learning rate $\eta$. 
 
-The formulation for the hidden layer is similar, except for how the error is calculated. Inspired from the popular backpropgation method the error signal of the $i \text{-th}$ hidden unit $e^{(h)}_i$ is propagated backwards as a weighted sum over the all output error signal $e^{(h)}_i = \sum_{k} w_{ik}^{(o)} e^{(o)}_k$ with the feed forward weights $w_{ik}^{(o)$ between the hidden and the output layer. A feedback alignment oriented approach with random weights is also possible. This formalism can be easily adapted for multiple hidden layers too.
+The formulation for the hidden layer is similar, except for how the error is calculated. Inspired from the popular backpropgation method the error signal of the $i \text{-th}$ hidden unit $e^{(h)}_i$ is propagated backwards as a weighted sum over the all output error signal $e^{(h)}_i = \sum_{k} w_{ik}^{(o)} e^{(o)}_k$ with the feed forward weights $w_{ik}^{(o)}$ between the hidden and the output layer. A feedback alignment oriented approach with random weights is also possible. This formalism can be easily adapted for multiple hidden layers too.
 
 %ToDo: Literatur Book zu Deep Learning (siehe downloads UniRechner)
 %
@@ -329,6 +327,13 @@ The formulation for the hidden layer is similar, except for how the error is cal
 
 
 \section{Neuromorphic Hardware}
+
+\begin{wrapfigure}{R}{0.45\textwidth}
+	\centering
+	\includegraphics[width=0.4\textwidth]{figures/HXcloseup.JPG}
+	\caption[Close-up of the newest \gls{bss2} single chip.]{Close-up of the newest \gls{bss2} single chip. The analog core of the neuromorphic chip is bonded before a protective cover is placed over it. Picture taken by M{\"u}ller, 2020.} 
+	\label{hxcloseup}
+\end{wrapfigure}
 
 Certain tasks, such as pattern recognition, are quite difficult to solve with traditional computing methods.  Biologically inspired computing has provided a range of efficient approaches to successfully tackle these problems. In the same way, biology has also been the key inspiration for a new \emph{neuromorphic} hardware design. As it's paradigm, neuromorphic hardware is designed to be robust to malfunctioning sectors, energy efficient and adaptive. 
 
@@ -346,24 +351,23 @@ The new features have been tested step by step on smaller prototype systems, e.g
 % Loihi:
 
 \subsection{Architecture of \gls{bss2}}
-
-The design of the \gls{hx} chip can be divided into an \emph{analogue} and \emph{digital} core (c.f. figure \ref{hxstructure}). The external communication is established by an \gls{fpga} accessing eight serial Low Voltage Differential Signaling (LVDS) link. The interface handles read/write instructions and manages spike event data in both directions.
-
 \begin{figure}
 	\begin{subfigure}[c]{0.5\textwidth}
 		\centering
 		\caption{}
-		\includegraphics[width=\textwidth]{figures/HXcloseup.JPG}
-		\label{hxcloseup}
+		\includegraphics[width=0.9\textwidth]{figures/bss2architecture_wtext.pdf}
+		\label{hxstructure}
 	\end{subfigure}	
 	\begin{subfigure}[c]{0.5\textwidth}
 		\centering
 		\caption{}
-		\includegraphics[width=\textwidth]{figures/g3418.png}
-		\label{hxstructure}
+		\includegraphics[width=0.9\textwidth]{figures/ppu_overview.pdf}
+		\label{hxppu}
 	\end{subfigure}
-	\caption{The \gls{bss2} platform uses a mixed-signal neuromorphic chip. (\subref{hxcloseup}): Close-up of the bonded \gls{hx} chip, picture taken by Müller, 2020. (\subref{hxstructure}): Overview of the digital and analog core of the \gls{bss2}.   . Figure taken from \citealp{schemmel2017nmda}}
+	\caption[Overview of the architecture on \gls{bss2}]{Overview of the architecture on \gls{bss2}. (\subref{hxstructure}): The neurmorphic platform is divided into a digital and analog core which is connected to an external host via an FPGA. Two plasticity processing units provide computational power for on-chip training.  Figure taken from \citealp{schemmel2017internal} (\subref{hxppu}): The plasticity processing units are divided into a general purpose part based which is based on a 32-bit architecture and a vector unit, that enables efficient parallel data processing of analog parameters and observables. Figure taken from \citealp{friedmann2016hybridlearning}}
 \end{figure}
+
+The design of the \gls{hx} chip can be divided into an \emph{analogue} and \emph{digital} core (c.f. figure \ref{hxstructure}). The external communication is established by an \gls{fpga} accessing eight serial Low Voltage Differential Signaling (LVDS) link. The interface handles read/write instructions and manages spike event data in both directions.
 
 The analogue core contains the physical implementation of the \gls{lif} and the \gls{adex} neuron model respectively (c.f. \citealp{aamir2018dls2neuron} and \citealp{aamir2018mixed}). The biological time constants of neurons and synapses are usually in the order of 1 to 100 milliseconds. The \textit{in-silico} implementation of the neuron models create a temporal speed-up compared to their \textit{in-vivo} counterpart, leading to chip time constants of a few microseconds. This acceleration is possible due to the supra-threshold dynamics of CMOS transistors. 
 
@@ -377,8 +381,8 @@ The analog neuron model parameters in both chips are tunable by setting bias cur
 	\caption[Synapse circuit overview on \gls{dls}]{Synapse circuit overview on \gls{dls}. Row-wise synapse drivers inject presynaptic activity as either inhibitory or excitatory spikes. The 6-bit addresses of the input spikes is compared at column with a local 6-bit address and if they match, the spike is relayed to the corresponding neuron at the bottom of the synapse grid. The synaptic strength can be configured by a 6-bit weight. The two correlation sensors (causal and anti-causal) record \gls{stdp} traces. Figure from \citealp{friedmann2016hybridlearning}.}
 	\label{synapseschematics}
 \end{figure}
+The wiring of the neurons is achieve by a grid of $512 \times 256$ synapses ($32 \times 32$ on the prototypes). The activity of presynaptic neurons is injected row-wise by dedicated synapse drivers as either excitatory or inhibitory spikes. Each synapse has access to a 6-bit decoder address and compares it to a 6-bit label of the incoming spikes (see \cref{synapseschematics}). If they match, the spike is relayed to the corresponding neuron at the bottom of the synapse grid. The efficacy is thereby configured by a 6-bit weight.
 
-The wiring of the neurons is achieve by a grid of $512 \times 256$ synapses ($32 \times 32$ on the prototypes). The activity of presynaptic neurons is injected row-wise by dedicated synapse drivers as either excitatory or inhibitory spikes. Each synapse has access to a 6-bit decoder address and compares it to a 6-bit label of the incoming spikes. If they match, the spike is relayed to the corresponding neuron at the bottom of the synapse grid. The efficacy is thereby configured by a 6-bit weight.
 
 In addition, two correlation sensors per synapse (causal and anti-causal) record \gls{stdp} traces and store them in dedicated capacitors. These analog observables can then row-wise readout by the \gls{ppu} using a \gls{cadc} with a total of 1024 \gls{cadc} channels (one channel per correlation sensor per synapse). Unlike for previous prototypes, the \gls{hx} has access to further observables such as the membrane potential and opens up new possibilities for implementation of plasticity rules. 
 

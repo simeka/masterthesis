@@ -1,6 +1,6 @@
 \chapter{Background}
 %Starting my final year project at the Electronic Vision(s) group, I soon realized the diversity of their research. 
-The required knowledge to work in the field of neuromorphic computing is broad and manifold, ranging from the biological view of the human brain to electronic circuit laws further to machine learning algorithms. In the next sections, I will introduce the most important concepts and physical backgrounds upon which the presented research in this thesis is based on. Starting with deep learning and an overview of the biological neuron, the transition to neuron models, neuronal coding schemes and their training approaches will be made, before introducing neuromorphic \gls{bss2} platform 
+The required knowledge to work in the field of neuromorphic computing is broad and manifold, ranging from the biological view of the human brain to electronic circuit laws further to machine learning algorithms. In the next sections, I will introduce the most important concepts and physical backgrounds upon which the presented research in this thesis is based on. Starting with deep learning and an overview of the biological neuron, the transition to neuron models, neuronal coding schemes and their training approaches will be made, before introducing the neuromorphic \gls{bss2} platform 
 \section{Deep Learning}
 \label{deeplearning}
 Deep learning is among the most useful and powerful tools machine learning has provided to the scientific community. Image or pattern recognition are in general hard to solve tasks for traditional computation concepts. Deep learning abstracts such task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going down on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it's called \emph{deep learning} (\citealp{Goodfellow-et-al-2016}).
@@ -130,11 +130,11 @@ On the postsynaptic side, the inputs of all presynaptic partners are then gather
 		\centering
 		\caption{}
 		\vspace{0.5cm}
-		\includegraphics[width=\linewidth, valign=t]{figures/neuron_model.png}
+		\includegraphics[width=\linewidth, valign=t]{figures/Neuron.pdf}
 		\vspace{1.5cm}	
 		\label{biosynapse}
 	\end{subfigure}
-	\caption[Schematics of an action potential and a biological neuron]{Schematics of a biological neuron and an action potential. \textbf{(\subref{actionpotential})} The response of neuron after exceeding the threshold is called action potential. After a phase of depolarization, the membrane repolarizes and enters the refractory state.\textbf{(\subref{biosynapse})} Schematics of a biological neuron can be split into three main functional parts: the dendrites which are responsible to collect all inputs, the soma integrates the evoked \glspl{psp} and eventually triggers a fire response and the axon relays the fire responses to other neurons.}
+	\caption[Schematics of an action potential and a biological neuron]{Schematics of a biological neuron and an action potential. \textbf{(\subref{actionpotential})} The response of neuron after exceeding the threshold is called action potential. After a phase of depolarization, the membrane repolarizes and enters the refractory state. Figure taken from \citealp{picture_actionpotential}. \textbf{(\subref{biosynapse})} Schematics of a biological neuron can be split into three main functional parts: the dendrites which are responsible to collect all inputs, the soma integrates the evoked \glspl{psp} and eventually triggers a fire response and the axon relays the fire responses to other neurons. Figure adapted from \citealp{picture_neuron}.}
 	\label{biologicalneuron}
 	
 \end{figure}
@@ -223,6 +223,7 @@ For the scope of this thesis a more advanced model is not yet required. All expe
 In the following, the different training approaches for rate and temporal coding with a feed-forward multi-layer \glspl{snn} using \gls{lif} neurons are presented.
 
 \subsection{Rate Coding}
+\label{ratecoding}
 In an attempt to explain computational process of the brain, the activation of an artificial neuron has already been mapped onto the spike rate of a spiking neuron (\citealp{rieke1999spikes}). This is based on the assumption that spikes follow a Poisson process and therefore the fire rate of a neuron is well described by a Poisson distribution in most cases (\citealp{averbeck2009poisson}), which in turn legitimates the use of a mean fire rate and a certain accuracy.
 
 The exact definition and interpretation of the spike rate can vary. The most apparent approach to define a neuron's spike rate $\nu$ is to count the number of spikes $n_\text{spikes}$ fired within a period $T$.
@@ -241,6 +242,51 @@ In the terminology of the \gls{lif} model, a presynaptic spiketrain $S_j$ can be
 	\left\langle \gls{isyn} \right\rangle = \sum_j w_j \nu_{\text{in}, j}.
 \end{equation}
 
+
+
+\subsection{Supervised Training with Rate Coding}
+\label{ratebasedtraining}
+The similarity to \glspl{ann} implies that typical training methods such as \gls{sgd} will work with rate-based \glspl{snn} too. In a spiking feed-forward network the output of a node is determined by the transfer function \gls{transfer}, which is given by the neuron model in place.
+% In case of the \gls{lif} neuron, the transfer function is similar to a \gls{relu}, with a significant difference, that the rate will no keep increasing but rather saturates quickly at a maximum frequency $\nu_\text{max}$ which is limited by the refractory period $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$.
+The benefits of a sigmoid transfer function have already been motivated in \cref{supervisedtraining}. With a few adjustments it can be implemented for the \gls{lif} model with rate-based coding.
+
+
+The stimulation of a \gls{lif} neuron can be expressed by the synaptic input currents \gls{isyn} or the corresponding input fire rate $\nu_\text{in}$. In analogy to the activation of an \gls{ann} the synaptic current can be split up into an input and bias term $\gls{isyn} = I_\text{in} + I_\text{bias}$. The input spike rate $\nu_\text{in}$ of the neuron scales linear with the synaptic current and therefore $\nu_\text{in} \propto I_\text{in}$. The transfer function of the \gls{lif} neuron is then approximated by 
+\begin{equation}
+\frac{1}{\gls{transfer}(\nu_\text{in})} = \frac{1}{\nu_\text{out}} \approx \gls{refrac} + \gls{tau_m} \frac{\gls{thres} - \gls{v_reset}}{\gls{isyn}},
+\label{fireratehigh}
+\end{equation}
+given that the input rate is high and the time constants \gls{tau_m} and \gls{tau_syn} are smaller than \gls{refrac} (c.f. \citealp{brunel2000dynamics}).
+The output rate saturates at a maximum rate $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$ if the input rate is high enough.
+
+In the limit $\gls{thres} - \gls{isyn} \gg \sigma$, i.e. for low input rates, the transfer function yields
+\begin{equation}
+\nu_\text{out} \approx \frac{(\gls{thres} - \gls{isyn})}{\gls{tau_m}\sigma \sqrt{\pi}} \exp\left(-\frac{(\gls{thres} - \gls{isyn})^2}{\sigma^2}\right),
+\label{fireratelow}
+\end{equation}
+with the fluctuations of a single excitatory input source $\sigma$. 
+Without external noise, the fluctuations are small, reflecting only the intrinsic noise of the hardware and thus the transfer function shows a sudden increase, similar to a \gls{relu} transfer function. One way to smoothen the course of the transfer function is to increasing $\sigma$ by injecting a continuous stream of inhibitory and excitatory Poisson spikes.
+
+\begin{figure}
+	\begin{center}
+		\input{figures/activation_function_vmem_distr_with_thres.pgf}
+	\end{center}
+	\caption[Gaussian free membrane potential distribution on \gls{dls}.]{Gaussian free membrane potential distribution on \gls{dls}. The distribution of the membrane potential $f_{\gls{v_mem}}$ centers around \gls{v_leak}. The width of the distribution correlates to amount of injected noise spikes. Without additional noise, the induced spread from the intrinsic hardware noise is a magnitude lower. The part of the distribution that exceeds the threshold potential leads to spikes. The post fire dynamics of spiking activity changes the shape of the distribution, as the membrane is set to a reset potential before it leaks back to the resting potential (c.f. \citealp{petrovici12phdthesis}). Short time constants for the synaptic input and the membrane as well as sufficiently high input rates, reduce this effect.}
+	\label{vleak_w_noise}
+\end{figure}
+
+The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ centered around the resting potential \gls{v_leak} as depicted in \cref{vleak_w_noise}. In a naive approach, the part of the distribution that exceeds a certain threshold potential correlates to the number of fired spikes. This neglects non vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \citealp{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of very short time constants for the synaptic input \gls{tau_syn} and the membrane \gls{tau_m}.
+
+However, despite the strongly simplified picture, this view still offers a correct intuition how the threshold and leak potential as well as the strength of the noise effect the free membrane potential and in turn change the shape of the transfer function: more noise leads to a broader distribution and thus a more gently incline of the output rate; synaptic input moves the distribution to either to a lower or higher mean value; moving the threshold corresponds to an additional bias term.
+
+The latter has been motivated by \citealp{petrovici2016stochastic}. The bias term in the neuron's activation can be adequately replaced by adapting the relative distance $\delta V$ between the resting potential and the threshold (\citealp{petrovici2016stochastic})
+\begin{equation}
+b \propto \delta V = \gls{v_leak} - \gls{thres}.
+\end{equation}
+
+With the approximations from above (\cref{fireratehigh} and \cref{fireratelow}) and a suitable choice of the neuron model parameters to create a well shaped distribution of the membrane (\cref{vleak_w_noise}), the transfer function yields an approximatively sigmoid shape (\cref{transferfunction}). The slope of the sigmoid can be easily adapted by changing the synaptic strength of the input spike trains. The synaptic weights of the noise inhibitory and excitatory noise inputs are left unchanged.
+
+
 \begin{figure}
 	\begin{center}
 		\input{figures/single_calibrated_transfer_function_w_various_weights.pgf}
@@ -249,30 +295,7 @@ In the terminology of the \gls{lif} model, a presynaptic spiketrain $S_j$ can be
 	\label{transferfunction}
 \end{figure}
 
-\subsection{Supervised Training with Rate Coding}
-The similarity to \glspl{ann} implies that typical training methods such as \gls{sgd} will work with rate-based \glspl{snn} too. In a spiking feed-forward network the output of a node is determined by the transfer function \gls{transfer}, which is given by the neuron model in place.
-% In case of the \gls{lif} neuron, the transfer function is similar to a \gls{relu}, with a significant difference, that the rate will no keep increasing but rather saturates quickly at a maximum frequency $\nu_\text{max}$ which is limited by the refractory period $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$.
-The benefits of a sigmoid transfer function have already been motivated in \cref{supervisedtraining}. With a few adjustments it can be implemented for the \gls{lif} model with rate-based coding.
-
-The stimulation of a \gls{lif} neuron can be expressed by the synaptic input currents \gls{isyn} or the corresponding input fire rate $\nu_\text{in}$. In analogy to the activation of an \gls{ann} the synaptic current can be split up into an input and bias term $\gls{isyn} = I_\text{in} + I_\text{bias}$. The input spike rate $\nu_\text{in}$ of the neuron scales linear with the synaptic current and therefore $\nu_\text{in} \propto I_\text{in}$. The transfer function of the \gls{lif} neuron is then approximated by 
-\begin{equation}\label{fireratehigh}
-\frac{1}{\gls{transfer}(\nu_\text{in})} = \frac{1}{\nu_\text{out}} \approx \gls{refrac} + \gls{tau_m} \frac{\gls{thres} - \gls{v_reset}}{\gls{isyn}},
-\end{equation}
-given that the input rate is high and the time constants \gls{tau_m} and \gls{tau_syn} are smaller than \gls{refrac} (c.f. \citealp{brunel2000dynamics}).
-The output rate saturates at a maximum rate $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$ if the input rate is high enough.
-
-In the limit $\gls{thres} - \gls{isyn} \gg \sigma$, i.e. for low input rates, the transfer function yields
-\begin{equation}\label{fireratelow}
-\nu_\text{out} \approx \frac{(\gls{thres} - \gls{isyn})}{\gls{tau_m}\sigma \sqrt{\pi}} \exp\left(-\frac{(\gls{thres} - \gls{isyn})^2}{\sigma^2}\right),
-\end{equation}
-with the fluctuations of a single excitatory input source $\sigma$. 
-Without external noise, the fluctuations are small, reflecting only the intrinsic noise of the hardware and thus the transfer function shows a sudden increase, similar to a \gls{relu} transfer function. One way to smoothen the course of the transfer function is to increasing $\sigma$ by injecting a continuous stream of inhibitory and excitatory noise spikes.
-
-Using both approximations and a suitable choice of the neuron model parameters, the transfer function yields a sigmoid shape. In \cref{transferfunction} the influence of the synaptic strength can be seen in the changing slope of transfer function. 
-
 %For zero input, i.e. $\nu_{\text{in}} = 0$ and the , apart from the injected noise, the threshold is set such that $\nu_\text{out} = \nicefrac{\nu_\text{max}}{2}$. Varying the strength of the synaptic input directly changes the shape of \gls{transfer} as well (c.f. \cref{transferfunction}).
-
-
 
 \subsection{Temporal Coding}
 \glspl{snn} can also model more complex processes which depend on the \gls{isi} or the time relative to a reference spike. In comparison to rate coding, using the exact spike time to encode information is more exposed to noise. In turn, the response time is highly increased for temporal coding, since there is no need to establish a certain fire rate first. The use of such coding has been observed in biology multiple times and has been proven to of high importance (\citealp{gerstner1996neuronal} and \citealp{rieke1999spikes}). Another important advantage over rate coding is the efficiency that comes with using only few spikes. As every spike costs energy, sparse temporal coding condenses the required computational power to solve a task to a minimum. 

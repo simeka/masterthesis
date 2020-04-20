@@ -412,3 +412,48 @@ if __name__ == "__main__":
     plt.xlabel('spike time $(\si{\micro \s})$')
     plt.ylabel('input unit')
     save_plot(fig, "superspiketaskconsecutive", (6, 3))
+
+    ###################################################################################
+    # pre post calibration
+    vleak_pre_post = np.load("vleak_pre_post_500.npz")
+    # vreset_pre_post_150 = np.load("vreset_pre_post_150.npz")
+    # vreset_pre_post_200 = np.load("vreset_pre_post_200.npz")
+    # vreset_pre_post_300 = np.load("vreset_pre_post_300.npz")
+    vreset_pre_post_400 = np.load("vreset_pre_post_400.npz")
+    vthreshold_pre_post_750 = np.load("vthreshold_pre_post_750.npz")
+    vthreshold_pre_post_800 = np.load("vthreshold_pre_post_800.npz")
+    # vthreshold_pre_post_900 = np.load("vthreshold_pre_post_900.npz")
+
+    # vleak
+    fig = plt.figure(figsize=(3, 3))
+    sns.distplot(np.median(vleak_pre_post["pre_cadc_data_V"], axis=0), label="pre $\SI{0.5}{\V}$")
+    sns.distplot(np.median(vleak_pre_post["post_cadc_data_V"], axis=0), label="post $\SI{0.5}{\V}$")
+    plt.legend()
+    plt.xlim(0.35, 0.7)
+    plt.xlabel('$V_\mathrm{leak} \quad (\si{\V})$')
+    plt.ylabel('density')
+    save_plot(fig, "vleak_pre_post_calibration", (2, 2))
+
+    # vreset
+    fig = plt.figure(figsize=(3, 3))
+    # sns.distplot(vreset_pre_post_300["pre_cadc_data_V"], label="pre 0.3 V")
+    sns.distplot(vreset_pre_post_400["pre_cadc_data_V"], label="pre $\SI{0.4}{\V}$")
+    # sns.distplot(vreset_pre_post_300["post_cadc_data_V"], bins=5, label="post 0.3 V")
+    sns.distplot(vreset_pre_post_400["post_cadc_data_V"], bins=5, label="post $\SI{0.4}{\V}$")
+    plt.legend()
+    plt.xlim(0.32, 0.5)
+    plt.xlabel('$V_\mathrm{reset} \quad (\si{\V})$')
+    plt.ylabel('density')
+    save_plot(fig, "vreset_pre_post_calibration", (2, 2))
+
+    # vthreshold
+    fig = plt.figure(figsize=(3, 3))
+    sns.distplot(vthreshold_pre_post_750["pre_cadc_max_V"], label="pre $\SI{0.75}{\V}$")
+    sns.distplot(vthreshold_pre_post_750["post_cadc_max_V"], bins=4, label="post $\SI{0.75}{\V}$")
+    sns.distplot(vthreshold_pre_post_800["pre_cadc_max_V"], label="pre $\SI{0.8}{\V}$")
+    sns.distplot(vthreshold_pre_post_800["post_cadc_max_V"], bins=4, label="post $\SI{0.8}{\V}$")
+    plt.legend()
+    plt.xlim(0.65,1)
+    plt.xlabel('$\\vartheta \quad (\si{\V})$')
+    plt.ylabel('density')
+    save_plot(fig, "vthreshold_pre_post_calibration", (2, 2))

@@ -1,4 +1,4 @@
-\chapter{SuperSpike on \acrshort{bss2}}
+\chapter{Surrograte Gradient Descent (SuperSpike) on \acrshort{bss2}}
 
 The second experiment in this thesis is done on the most recent tape-out of the \gls{bss2} platform the \gls{hx}. In contrast to the first experiment the neural coding is changed from rate based to temporal based. In particular, the access to the evolution of the membrane potential allows the implementation of the SuperSpike learning rule from \cref{superspike}, a unique approach to training \glspl{snn} on the basis of individual spikes. With the increased temporal resolution, the overall measurement period can be reduced to the length of several spike duration equivalents, making SuperSpike a candidate to process streaming spike data \emph{online}.
 
@@ -55,13 +55,17 @@ The necessity of a hidden layer has already been motivated in \cref{deeplearning
 The first tape-out of the new chip revision came with some flaws requiring several software workarounds. To minimize the implementation effort only the forward pass is performed on-chip and restricted to the upper half of the chip, i.e. the first two quadrants as shown in REF TO HX design. The computation required by the backward pass as well as the experiment control is outsourced to the controlling host. However, a key element of SuperSpike, the access to the membrane potential, has been implemented as an on-chip readout routine.
 
 \subsubsection*{\gls{cadc} Readout}
-With a few \gls{ppu} instructions for the general purpose part and the vector unit, the readout of the \gls{cadc} is performed. For the purpose of the experiment, the recorded membrane traces are required to be sampled at high rate and to cover as much data as possible. The available space on the \gls{ppu} limits the readout to 100 samples of 128 different neurons with a temporal resolution of roughly \SI{2.5}{\micro \s}. Before the \gls{cadc} data can be used, the slope and offset of its characteristic are adjusted by setting the respective \gls{dac}-values per quadrant. In addition to the analog parameters, each channel has an individual offset parameter, that can be calibrated as well. The final state of the characteristic, shown per quadrant in \cref{cadccalibration}, will be implicitly used for most of the data shown throughout this chapter, as the measured membrane potential will be displayed in \si{\V} or \si{\milli \V} and not \gls{cadc} lsbs.
+With a few \gls{ppu} instructions for the general purpose part and the vector unit, the readout of the \gls{cadc} is performed. For the purpose of the experiment, the membrane traces are required to be sampled at high rate and to cover as much data as possible. The available memory on the \gls{ppu} limits the readout to 100 samples of 128 different neurons with a temporal resolution of roughly \SI{2.5}{\micro \s}. 
+
+Before usable traces can be recorded with the \gls{cadc}, its characteristic needs to be calibrated. The \gls{cadc} has tunable an analog slope and offset parameter per quadrant. In addition to the per-quadrant settings, each channel has an individual offset parameter, that can be adjusted as well.
+
+In the \cref{cadccalibration} the final state of the characteristics is plotted two quadrants from the chip half in use. The thereby implicated conversion from \gls{dac} lsb to \si{\V} will be used for most of the data shown throughout this chapter.
 \begin{figure}
 	\begin{subfigure}{0.5\textwidth}
 		\caption{}
 		\includegraphics[width=\textwidth]{figures/temporary/cadc_pre_calib_hx70.pdf}
-		\label{precadccalib}	
-\end{subfigure}
+		\label{precadccalib}
+	\end{subfigure}
 	\begin{subfigure}{0.5\textwidth}
 		\caption{}
 		\includegraphics[width=\textwidth]{figures/temporary/cadc_post_calib_hx70.pdf}
@@ -71,15 +75,43 @@ With a few \gls{ppu} instructions for the general purpose part and the vector un
 	\label{cadccalibration}
 \end{figure}
 
-In the use-case of the \gls{cadc} readout during the experiment, it is vital that both the measured trace and the recorded spike times by the digital back end are synchronized. The result of the respective offset measurement yielded only an offset of $\delta t \approx \SI{2.2}{\milli \s}$.
-
+For the use-case of the \gls{cadc} readout during the experiment, it is vital that both the measured trace and the recorded spike times by the digital back end are synchronized. The result of a respective offset measurement yields an offset of $\delta t \approx \SI{2.2}{\milli \s}$.
 
 \subsubsection*{Calibration of \gls{lif} Neuron}
+The new chip revision did not yet get rid of the imperfection the come with analog neuromorphic hardware. Despite the self-correcting behavior of learning algorithms, the chip requires at least some calibrating before the experiment can be executed.
 
-The efficient parallelized readout of the \gls{cadc} is not only used for the plasticity update but offers a fast calibration for most of the relevant \gls{lif} model parameters. Similar to the previous experiment, the calibration routines are implemented using a binary search algorithm. 
+At the time of the experiment, the development of chip-specific software for the new prototype was in an early stage. Among others, there was a lack of a calibration database and more generally, a lack of available calibrated hardware resources. This was largely due to an at that time slow and static calibration routine, that required the allocation of human and hardware resources for several hours to tune a setup.
+
+The efficient parallelized readout of the \gls{cadc} presented itself to be a viable basis to put a quick alternative calibration routine into action. The main objective of the new routine is to provide a fast calibration that requires little interaction to bring a setup into a usable state with respect to the specific experiment requirements. 
+
+Similar to the circles task, the binary search algorithm is chosen to find the proper \gls{dac} values of the analog parameters. Moreover, only a subset of the available parameters is tuned, namely the potentials of the \gls{lif} model \gls{v_leak}, \gls{v_reset} and \gls{thres}. By design, the potentials of the synaptic input $V_\text{syn, inh}$ and $V_\text{syn, exc}$ have a cross-dependency to the resting potential and thus need to be considered as well. The temporal constants \gls{tau_m} and \gls{tau_syn} are certainly important parameters in the \gls{lif} model, but the induced error by their misalignment is, at least for the trained task, not heavily hampering the performance.
+
+
+\begin{figure}
+	\begin{subfigure}{0.32\textwidth}
+		\caption{}
+		\centering
+		\input{figures/vleak_pre_post_calibration.pgf}
+		\label{hxprepostvleak}
+	\end{subfigure}
+	\begin{subfigure}{0.32\textwidth}
+		\caption{}
+		\centering
+		\input{figures/vreset_pre_post_calibration.pgf}
+		\label{hxprepostvreset}
+	\end{subfigure}
+	\begin{subfigure}{0.32\textwidth}
+	\caption{}
+	\centering
+	\input{figures/vthreshold_pre_post_calibration.pgf}
+	\label{hxprepostvthreshold}
+\end{subfigure}
+	\caption[Pre and post calibration state of the analog \gls{lif} parameters.]{Pre and post calibration state of the analog \gls{lif} parameters. (\subref{precadccalib}) The raw cadc data of an controlled voltage ranging from 0 to \SI{1.2}{\V}. (\subref{postcadccalib}) the cadc parameters are manually adjusted, such that they cover a useful dynamic range. The offset per channel can then be easily computed and corrected. The manual method was preferred over an automated fit-routine, since the ramp and slope parameters showed a sensitive cross-dependency in certain areas.}
+	\label{cadccalibration2}
+\end{figure}
+
 
 \begin{itemize}
-	\item calibration of tausyn
 	\item vsyn
 	\item cadc
 	\item vleak
@@ -90,6 +122,9 @@ The efficient parallelized readout of the \gls{cadc} is not only used for the pl
 
 
 \subsection{Implementation on BSS-2 Platform}
+
+
+
 \begin{itemize}
 	\item CADC readout of membrane potential
 	\item BLACKBOX
@@ -100,6 +135,30 @@ The efficient parallelized readout of the \gls{cadc} is not only used for the pl
 	\item FA weights
 	\item future plans for mnist (maybe erst in discussion erwähnen)
 \end{itemize}
+
+\begin{figure}
+	\centering
+	\input{figures/superspiketaskconsecutive.pgf}
+	\caption[Example of a training batch.]{Example of a training batch. After The chosen batch-size for the XOR-related task is eight. The network evaluates}
+	\label{inputofabatch}
+\end{figure}
+
+
+\begin{figure}
+	\centering
+	\input{figures/debug_plot_100.pgf}
+	\caption[Monitoring of the analog traces measured on the \gls{hx}.]{Monitoring of the analog traces measured on the \gls{hx}. Each column represents an important observable for the backward pass. The hidden and output layer are discriminated row-wise. The first column, contains the information of the presynaptic spike train spike train $S_j^{(l)}$, the second column shows the evolution of the membrane potential \gls{v_mem} with respect to the total synaptic input generated by the incoming spikes and in the third column the adapted von Rossum error $e^{(l)}$ is displayed.}
+	\label{debugplot}
+\end{figure}
+
+...
+\begin{figure}
+	\centering
+	\input{figures/dweight_plot.pgf}
+	\caption[Traces in the backward pass using SuperSpike.]{Computation traces of the backward pass using SuperSpike. The integrand of the weight update $\Delta w_{ij}^{(o)}$ is given by the adapted von Rossum error $e^{(o)}$ (first column) and the convolution of the surrogate gradient with the presynaptic spike activity $\lambda_{ij}^{(o)} = \alpha \ast \left(\sigma'(V_{\text{m},i}^{(o)}) \left(\epsilon \ast S_j^{(o)}\right)\right)$ (second column). The final weight update is given by the sum over temporal traces of the last column.}
+	\label{weightchangesplot}
+\end{figure}
+
 	
 \subsection{Results}
 \begin{itemize}

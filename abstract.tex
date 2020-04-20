@@ -1,10 +1,13 @@
 \begin{abstract}
 \textbf{DUMMY ABSTRACT}
+In meinem Masterprojekt in der Electronic Vision(s) Gruppe habe ich mich mit Deep Learning auf neuromorpher Hardware auseinander gesetzt. Dabei sind zwei Experimente entstanden.
 
-Die Spin-Gitter-Relaxation beschreibt wie Spins in einem Festkörper Energie ins umliegende Gitter abgeben. Dieser Prozess wird über die Spin-Gitter-Relaxationskonstante ($T_{1}$) charakterisiert. Diese Konstante wird im Rahmen dieser Arbeit bei unterschiedlichen Phantomen gemessen: einem reinen Wasserphantom und zwei mit Wasser gefüllte Strukturphantome, deren Struktur aus Polysterolstäben besteht. Für eine benutzerfreundliche und effiziente Messung wird zudem ein Messprogramm in der MRT-Steuerungssoftware ParaVision 6.0.1 entwickelt. Als Messsystem wird ein Niederfeld-MRT mit 1.0 \,T der Firma Bruker verwendet (ICON).
+Das erste ist ein ratenbasierter Task, der komplett auf dem Chip realisiert werden konnte, d.h. die verwendete Lernmethode ist auf einem dezidierten Plastizitäts-Prozessor auf dem Chip implementiert worden. Eine Verbindung zu einem Host nur notwendig um den Chip einmal zu intialisieren und dann den laufenden Lernfortschritt zu beobachten.
 
-Die durchschnittliche $T_{1}$-Konstante im homogenen Phantom bei einer Raumtemperatur von $T_{\text{Labor}} = (21.9 \pm 0.5)\,^{\circ}\text{C}$ beträgt $T_{1,\text{exp. 1}} = 2981 \pm 240\,\text{ms}$  bzw. $T_{1,\text{exp. 2}} = 2984 \pm 172\,\text{ms}$. Für die Berechnung von $T_{1,\text{exp. 1}}$ wird vor der Fitroutine gemittelt und bei $T_{1,\text{exp. 2}}$ passiert die Mittlung erst danach.
-Die $T_{1}$-Konstante der Strukturphantome wird nur qualitativ bestimmt: das grob-strukturierte Phantom hat Werte rund um 3000\,ms und die Werte des fein-strukturierte Phantom liegen um 400 bis 500\,ms höher.
+Das zweite Experiment verwendet den neuesten Prototypen der BrainScaleS-2 Plattform, der nicht nur größer ist als seine Vorgänger sondern auch über zusätzliche Auslesefähigkeiten verfügt, insbesondere über das Membran Potential. Damit konnte erfolgreich ein neuartige zeitbasierte Lernregel für Gepulste Neuronal Netzwerke (SNNs) implementiert werden.
+
+Beide Experiment-Ansätze wurden bisher noch nie auf analoger neuromorpher Hardware erfolgreich durchgeführt. Für das zweite ist bereits eine Publikation in Zusammenarbeit mit dem Autor der neuartigen Lernregel in Arbeit.
+
 \end{abstract}
 
 %\renewcommand{\abstractname}{}

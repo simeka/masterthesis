@@ -84,9 +84,9 @@ At the time of the experiment, the development of chip-specific software for the
 
 The efficient parallelized readout of the \gls{cadc} presented itself to be a viable basis to put a quick alternative calibration routine into action. The main objective of the new routine is to provide a fast calibration that requires little interaction to bring a setup into a usable state with respect to the specific experiment requirements. 
 
-Similar to the circles task, the binary search algorithm is chosen to find the proper \gls{dac} values of the analog parameters. Moreover, only a subset of the available parameters is tuned, namely the potentials of the \gls{lif} model \gls{v_leak}, \gls{v_reset} and \gls{thres}. By design, the potentials of the synaptic input $V_\text{syn, inh}$ and $V_\text{syn, exc}$ have a cross-dependency to the resting potential and thus need to be considered as well. The temporal constants \gls{tau_m} and \gls{tau_syn} are certainly important parameters in the \gls{lif} model, but the induced error by their misalignment is, at least for the trained task, not heavily hampering the performance.
+Similar to the circles task, the binary search algorithm is chosen to find the proper \gls{dac} values of the analog parameters. Moreover, only a subset of the available parameters is tuned, namely the potentials of the \gls{lif} model \gls{v_leak}, \gls{v_reset} and \gls{thres}. By design, the potentials of the synaptic input $V_\text{syn, inh}$ and $V_\text{syn, exc}$ have a cross-dependency to the resting potential and thus need to be considered as well. The temporal constants \gls{tau_m} and \gls{tau_syn} are certainly important parameters in the \gls{lif} model, but the induced error by their misalignment is, at least for the chosen task, not heavily hampering the performance.
 
-
+At the beginning, the calibration appeared to not work properly. A known issue is the cross talk between individual capacitive parameter memory cells, that arises if several cells are set to same value. By the design of the binary search algorithm, this event occurs repeatedly making the binary search a suboptimal choice for the calibration of the new chip. The development of a proper gradient based calibration has already been started, but for the use case in this experiment the existing code base could be sufficiently stabilized with two minor adaptations. First, a random variation is consequently applied to all ``unused" \gls{dac}-values and second, the binary search algorithm is extended with a fall back option of the best parameter setting so far. The results of the final calibration for the \gls{lif} parameters are shown in \cref{hxprepostcalib}.
 \begin{figure}
 	\begin{subfigure}{0.32\textwidth}
 		\caption{}
@@ -107,22 +107,44 @@ Similar to the circles task, the binary search algorithm is chosen to find the p
 	\label{hxprepostvthreshold}
 \end{subfigure}
 	\caption[Pre and post calibration state of the analog \gls{lif} parameters.]{Pre and post calibration state of the analog \gls{lif} parameters. (\subref{precadccalib}) The raw cadc data of an controlled voltage ranging from 0 to \SI{1.2}{\V}. (\subref{postcadccalib}) the cadc parameters are manually adjusted, such that they cover a useful dynamic range. The offset per channel can then be easily computed and corrected. The manual method was preferred over an automated fit-routine, since the ramp and slope parameters showed a sensitive cross-dependency in certain areas.}
-	\label{cadccalibration2}
+	\label{hxprepostcalib}
 \end{figure}
 
-
-\begin{itemize}
-	\item vsyn
-	\item cadc
-	\item vleak
-	\item vreset
-	\item vthreshold
-\end{itemize}
-
-
-
 \subsection{Implementation on BSS-2 Platform}
+Unlike the previous experiment, SuperSpike is not implemented in an on-chip fashion. ..explain what is all missing to do it...
+sth similar to the blackbox should be on-chip. ppu doesnt know the spike times of neither input nor output nor hidden layer. on-chip calibration. not so much agility when trying out and exploring things. numpy and python is quite convenient.
 
+The experiment setup is mainly controlled by a Python class called ``blackbox" representing a minimalistic set of tools that put the \gls{hx} into operation. These tools are in turn based on a new C++ software stack ``haldls" managing the neuromorphic platform. 
+
+On the level of the blackbox, the implementation of new experiments is straight forward. The setup of the network structure is implemented by a weight matrix, that is discriminates between input and recurrent connections. The latter can be used to design multilayer network structures. A presynaptic spike train is stated in an array with a tuples containing a target neuron and a spike time. 
+...maybe write it down on paper first and the structure it here.
+CADC Readout is triggered on the ppu when the input spike train is injected.
+digital backend provides extensive information about spikes from any sources and cadc data the membrane traces, spike traces are generated by the spike times and a chosen synaptic constant ressembling approximately the hardware time constants -> room for improvement
+
+This is then incorporated in an existing simulation frame of superspike that is based on the implementation of \citealp{zenke2018superspike}. The forward pass is replaced by the blackbox and the resulting parameter updates are applied to blackbox before. The resulting software frame work is embedded in a python class HXSuperSpikeBlackbox. 
+
+Setup of the experiment:
+
+most important parameters in table from (hyperparams.npz)
+96 inputs
+30 hidden units
+2 outputs
+128 total
+ 
+threshold hidden/output
+tau mem (not calibrated)
+tau leak (not calibrated)
+alpha 
+eps
+tau syn (theoretical! mention it somewhere)
+
+learning rates
+
+no need for bias, bias is part of the task
+
+no need for noise, there is plenty of noise there (check the traces from the figures)
+
+optimzation of time critical parts (inversion of cadc, sending spikes)
 
 
 \begin{itemize}
@@ -136,6 +158,22 @@ Similar to the circles task, the binary search algorithm is chosen to find the p
 	\item future plans for mnist (maybe erst in discussion erwähnen)
 \end{itemize}
 
+\subsection{Training and Results}
+init settings!
+
+Minibatch of size 8
+
+2000 iterations and seeds = trials = 10
+
+testing with each pattern (4)
+
+accuracy
+
+Different methods: BP, FA (uniform vs normal), no hidden learning, no hidden layer
+
+Different setups? (63 vs 73)
+
+
 \begin{figure}
 	\centering
 	\input{figures/superspiketaskconsecutive.pgf}
@@ -146,7 +184,7 @@ Similar to the circles task, the binary search algorithm is chosen to find the p
 
 \begin{figure}
 	\centering
-	\input{figures/debug_plot_100.pgf}
+	\input{figures/debug_plot_0_100.pgf}
 	\caption[Monitoring of the analog traces measured on the \gls{hx}.]{Monitoring of the analog traces measured on the \gls{hx}. Each column represents an important observable for the backward pass. The hidden and output layer are discriminated row-wise. The first column, contains the information of the presynaptic spike train spike train $S_j^{(l)}$, the second column shows the evolution of the membrane potential \gls{v_mem} with respect to the total synaptic input generated by the incoming spikes and in the third column the adapted von Rossum error $e^{(l)}$ is displayed.}
 	\label{debugplot}
 \end{figure}
@@ -154,13 +192,12 @@ Similar to the circles task, the binary search algorithm is chosen to find the p
 ...
 \begin{figure}
 	\centering
-	\input{figures/dweight_plot.pgf}
+	\input{figures/dweight_plot_0_100.pgf}
 	\caption[Traces in the backward pass using SuperSpike.]{Computation traces of the backward pass using SuperSpike. The integrand of the weight update $\Delta w_{ij}^{(o)}$ is given by the adapted von Rossum error $e^{(o)}$ (first column) and the convolution of the surrogate gradient with the presynaptic spike activity $\lambda_{ij}^{(o)} = \alpha \ast \left(\sigma'(V_{\text{m},i}^{(o)}) \left(\epsilon \ast S_j^{(o)}\right)\right)$ (second column). The final weight update is given by the sum over temporal traces of the last column.}
 	\label{weightchangesplot}
 \end{figure}
 
-	
-\subsection{Results}
+
 \begin{itemize}
 	\item Backprop weights, FA, no hidden layer learning
 \end{itemize}

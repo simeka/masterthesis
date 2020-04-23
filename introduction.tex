@@ -1,6 +1,10 @@
 \chapter{Introduction}
 
-\begin{align}
-\label{lifeq}
-C_{\text{m}} \frac{d\gls{v_mem}}{dt} &= -g_{\text{leak}} (\gls{v_mem} - \gls{v_leak}) + \gls{isyn}.
-\end{align}
+Kommt ähnlich oder so in die introduction, aber das chapter experiments wird durch zwei explizite chapters der beiden experimente ersetzt.
+
+
+At the beginings the machine learing era, \cite{perceptron} have shown that a simplified version of a one-layer ANN, the perceptron, cannot solve the XOR operator. The XOR or ``exclusive or" is the combination of the logical operators OR and NOT AND (maybe small grafic?). However, with the use of a deep network the task can be solved. In modern machine learning, solving the XOR operator has become the a basic testbench for novel designs of network structures or adapted learning algorithms proving that they can solve non-linear separable tasks. As all deep layer networks can solve such tasks, a \glsfirst{snn} can as well. This offers a wide range of possibilities for the experiment design with \glspl{snn}.
+
+In the introduction to deep learning (c.f. \ref{deeplearning}) two ways of neural coding are presented. In a first experiment, called \textit{circles}, the rate coding approach is used in combination with an \textit{on-chip} implementation of gradient descent. The task is performed on the prototype \gls{dls}. On-chip stands for a standalone execution of the experiment on the chip, i.e. only on-chip resources are used to compute and apply the plasticity rule. For monitoring purposes of the training process certain observables are continuously read-out by the FPGA interface.
+
+A second experiment is conducted on the final revision of the \gls{bss2} platform. With additional built-in observation features of the membrane, a temporal coding approach and a \gls{snn} specific plasticity rule (SuperSpike) is chosen to solve an XOR related task. A complete and high-performance on-chip implementation is not yet possible, despite the steady progress of the group's neuromorphic platforms. The bottlenecks and potential future workarounds will be discussed at the end of the chapter.\\

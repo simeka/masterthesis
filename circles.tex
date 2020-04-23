@@ -104,7 +104,7 @@ return *seed;
 
 
 
-\subsection{Transfer Function on \gls{dls}}
+\section{Transfer Function on \gls{dls}}
 %The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ centered around the resting potential \gls{v_leak} as depicted in \cref{vleak_w_noise}). In a naive approach, the part of the distribution that exceeds a certain threshold potential correlates to the number of fired spikes. This neglects non vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \citealp{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of very short time constants for the synaptic input \gls{tau_syn} and the membrane \gls{tau_m}.
 %
 %However, despite the strongly simplified picture, this view still offers a correct intuition how the threshold and leak potential as well as the strength of the noise effect the free membrane potential and in turn change the shape of the transfer function: more noise leads to a broader distribution and thus a more gently incline of the sigmoid; synaptic input moves the distribution to either to a lower or higher mean value; moving the threshold corresponds to an additional bias term.
@@ -175,7 +175,7 @@ The calibration of the maximum and center rate is repeated several times to redu
 
 
 
-\subsection{Experiment Setup on \gls{dls}}
+\section{Experiment Setup on \gls{dls}}
 The circles task is solved by training a single hidden layer network on-chip using a \acrlong{sgd}. The controlling unit of the experiment is the \gls{ppu}. In analogy to the training approach the implementation is can be divided into a forward and a backward pass. %. After a proper initialization routine, the training loop is started: In a first step the input rates of a randomly drawn data point $p(x,y)$ are generated (c.f. \cref{poissonspiketrains}) and the forward pass is performed. The observables are then evaluated with the feedback alignment routine on the \gls{ppu} (backward pass) and the resulting in updates for weights and biases are applied, before the next iteration starts. 
 
 \subsubsection*{Forward Pass}
@@ -285,14 +285,3 @@ For further monitoring purposes, the evolution of the weights and biases are tra
     \input{figures/network_evolution_circles.pgf}
 	\caption{Describe what happens in the picture...}
 \end{figure}
-
-\subsection{Discussion}
-MOVE TO VERY END
-
-- transfer function needs to be non-linear the exact shape and its dependencies on noise rate, time constants, .. is not so important if it is somehow shaped like a non linear activation function.
-
-- working point of membrane -> noise and spread as soon as the working point is left (see transfer function with bias plot) -> not so bad actually for training. the error is trained as well. 
-
-- init conditions of task are important. somehow neurons dont learn if the init condition is "bad". but what does that even  mean.. the init condition is bad. the behaviour: the neuron stays silent throughout the learning process. 
-
-- ausblick: notes from mfp talk maybe?

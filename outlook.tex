@@ -1,5 +1,15 @@
-\chapter{Summary and Outlook}
+\chapter{Discussion}
 
+\subsubsection{Rate Coding with SGD}
+- transfer function needs to be non-linear the exact shape and its dependencies on noise rate, time constants, .. is not so important if it is somehow shaped like a non linear activation function.
 
-\section{Future Projects}
+- working point of membrane -> noise and spread as soon as the working point is left (see transfer function with bias plot) -> not so bad actually for training. the error is trained as well. 
+
+- init conditions of task are important. somehow neurons dont learn if the init condition is "bad". but what does that even  mean.. the init condition is bad. the behaviour: the neuron stays silent throughout the learning process. 
+
+- ausblick: notes from mfp talk maybe?
+\subsubsection{Temporal Coding with SuperSpike}
+% blabla about why not on chip
+Unlike the previous experiment, SuperSpike is not implemented in an on-chip fashion. ..explain what is all missing to do it...sth similar to the blackbox should be on-chip. ppu doesnt know the spike times of neither input nor output nor hidden layer. on-chip calibration. not so much agility when trying out and exploring things. numpy and python is quite convenient.
+\subsubsection*{Future Projects}
 \label{futureprojects}

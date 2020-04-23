@@ -1,11 +1,11 @@
-\chapter{Surrograte Gradient Descent (SuperSpike) on \acrshort{bss2}}
+\chapter{Surrograte Gradient Descent on \acrshort{bss2}}
 
-The second experiment in this thesis is done on the most recent tape-out of the \gls{bss2} platform the \gls{hx}. In contrast to the first experiment the neural coding is changed from rate based to temporal based. In particular, the access to the evolution of the membrane potential allows the implementation of the SuperSpike learning rule from \cref{superspike}, a unique approach to training \glspl{snn} on the basis of individual spikes. With the increased temporal resolution, the overall measurement period can be reduced to the length of several spike duration equivalents, making SuperSpike a candidate to process streaming spike data \emph{online}.
+The second experiment in this thesis is done on the most recent tape-out of the \gls{bss2} platform the \gls{hx}. In contrast to the first experiment the neural coding scheme is changed from rate based to temporal based. The prerequisites for a temporal coding on \glspl{snn} is to find a suitable plasticity rule, that copes well with the non-differential nature of individual spikes. A possible candidate, SuperSpike, was presented in \cref{superspike}. With the access to the temporal evolution of the membrane potential, it is now possible to implement the learning rule for the \gls{bss2} platform.
 
+% überleitungssatz to the task
 To challenge the surrogate gradient approach a constructed task that is equivalent to solving the XOR operator is taken from its original publication by \cite{zenke2018superspike}.
 
 \section{Task}
-
 A total of 96 input units, each firing once at a fixed random spike time, is split into four overlapping collections of different size. As in the exclusive-or, the four different input patterns are assigned to two target classes which are represented as two distinct neurons in the output layer. Despite the multiple input sources, the task is by construction only two-dimensional. The first input spike train $S_1$ overlaps with all other patterns. The units involved in $S_1$ can therefore be interpreted as bias units, since they will fire regardless of the active pattern. In analogy to the xor operator yielding $1 \veebar 0 = 0 \veebar 1 = 1$ for a single active input, the second and third spike train don't overlap except for the bias units. The union of $S_2$ and $S_3$ yields the final pattern, equaling to two active inputs $1 \veebar 1 = 0$. With respect to the xor operator, $S_1$ and $S_4$ yield class $0$ whereas the remaining two are part of class $1$. 
 
 \begin{figure}
@@ -49,13 +49,14 @@ For debug reasons the accuracy was also monitored per pattern.
 
 For the training, input batches of size eight are randomly drawn from a uniform distribution, resulting in an overall balanced training data set, but unbalanced batches. The performance of a test data set is evaluated on the fly by measuring the accuracy of all patterns after each parameter update. Depending on the initial conditions and the error propagation method (backpropagation or feedback alignment) the task converged after 500 to 2000 iterations.
 
-\subsection{Experiment Implementation}
-The necessity of a hidden layer has already been motivated in \cref{deeplearning} for non-linear tasks such as circles or the exclusive-or. In the following a network with a single hidden layer containing 30 units, 96 input sources and two output neurons which serve as target classes is configured on the \gls{hx}. 
+\section{Implementation on the \acrshort{bss2} Platform}
+The tape-out of the \gls{hx} came with some flaws requiring several software workarounds. To minimize the implementation effort the use of the chip is restricted to the upper half and only one \gls{ppu}. Unlike the previous experiment, SuperSpike is not implemented in an on-chip fashion. However, a key element of SuperSpike, the access to the membrane potential via the \gls{cadc} is implemented as an on-chip readout routine.
 
-The first tape-out of the new chip revision came with some flaws requiring several software workarounds. To minimize the implementation effort only the forward pass is performed on-chip and restricted to the upper half of the chip, i.e. the first two quadrants as shown in REF TO HX design. The computation required by the backward pass as well as the experiment control is outsourced to the controlling host. However, a key element of SuperSpike, the access to the membrane potential, has been implemented as an on-chip readout routine.
+%The overall measurement period can be reduced to the length of several spike duration equivalents for temporal coded \glspl{snn}, making SuperSpike a candidate to process streaming spike data \emph{online}.
+\subsection{\gls{cadc} Readout}
+With a few \gls{ppu} instructions for the general purpose part and the vector unit, the readout of the \gls{cadc} is performed. The code base for the readout has been developed as a quick workaround by Aron Leibfried, since the software stack did not support the use of the vector unit at that time.
 
-\subsubsection*{\gls{cadc} Readout}
-With a few \gls{ppu} instructions for the general purpose part and the vector unit, the readout of the \gls{cadc} is performed. For the purpose of the experiment, the membrane traces are required to be sampled at high rate and to cover as much data as possible. The available memory on the \gls{ppu} limits the readout to 100 samples of 128 different neurons with a temporal resolution of roughly \SI{2.5}{\micro \s}. 
+For the purpose of the experiment, the membrane traces are required to be sampled at high rate and to cover as much data as possible. The available memory on the \gls{ppu} limits the readout to 100 samples of 128 different neurons with a temporal resolution of roughly \SI{2.5}{\micro \s}. 
 
 Before usable traces can be recorded with the \gls{cadc}, its characteristic needs to be calibrated. The \gls{cadc} has tunable an analog slope and offset parameter per quadrant. In addition to the per-quadrant settings, each channel has an individual offset parameter, that can be adjusted as well.
 
@@ -75,9 +76,7 @@ In the \cref{cadccalibration} the final state of the characteristics is plotted 
 	\label{cadccalibration}
 \end{figure}
 
-For the use-case of the \gls{cadc} readout during the experiment, it is vital that both the measured trace and the recorded spike times by the digital back end are synchronized. The result of a respective offset measurement yields an offset of $\delta t \approx \SI{2.2}{\milli \s}$.
-
-\subsubsection*{Calibration of \gls{lif} Neuron}
+\subsection{Calibration of \gls{lif} Neuron}
 The new chip revision did not yet get rid of the imperfection the come with analog neuromorphic hardware. Despite the self-correcting behavior of learning algorithms, the chip requires at least some calibrating before the experiment can be executed.
 
 At the time of the experiment, the development of chip-specific software for the new prototype was in an early stage. Among others, there was a lack of a calibration database and more generally, a lack of available calibrated hardware resources. This was largely due to an at that time slow and static calibration routine, that required the allocation of human and hardware resources for several hours to tune a setup.
@@ -110,33 +109,95 @@ At the beginning, the calibration appeared to not work properly. A known issue i
 	\label{hxprepostcalib}
 \end{figure}
 
-\subsection{Implementation on BSS-2 Platform}
-Unlike the previous experiment, SuperSpike is not implemented in an on-chip fashion. ..explain what is all missing to do it...
-sth similar to the blackbox should be on-chip. ppu doesnt know the spike times of neither input nor output nor hidden layer. on-chip calibration. not so much agility when trying out and exploring things. numpy and python is quite convenient.
 
-The experiment setup is mainly controlled by a Python class called ``blackbox" representing a minimalistic set of tools that put the \gls{hx} into operation. These tools are in turn based on a new C++ software stack ``haldls" managing the neuromorphic platform. 
 
-On the level of the blackbox, the implementation of new experiments is straight forward. The setup of the network structure is implemented by a weight matrix, that is discriminates between input and recurrent connections. The latter can be used to design multilayer network structures. A presynaptic spike train is stated in an array with a tuples containing a target neuron and a spike time. 
-...maybe write it down on paper first and the structure it here.
-CADC Readout is triggered on the ppu when the input spike train is injected.
+
+\subsection{Experimental Setup}
+The experiment is mainly controlled by a Python class called \texttt{HXBlackbox} representing a minimalistic set of tools that puts the \gls{hx} into operation. The software has been co-written by Sebastian Billaudelle and Benjamin Cramer. These tools are in turn based on a new software stack for the \gls{bss2} platform, which is still under continuous development (\citealp{mueller2020bss2ll}).
+
+The execution of the experiment is embedded in an existing Python-based simulation frame that is oriented on the implementation of SuperSpike in \citealp{zenke2018superspike}. The forward pass is then replaced by measuring the analog traces and spike times on the \gls{hx} before the respective updates of the network parameters are computed in the backward pass on the host.
+
+\subsubsection*{Chip based Forward Pass}
+The necessity of a hidden layer has already been motivated in \cref{deeplearning} for non-linear tasks such as circles or the exclusive-or. In the following a network with a single hidden layer containing 30 units, 96 input sources and two output neurons which serve as target classes is configured using the \texttt{HXBlackbox}.
+
+On the level of the \texttt{HXBlackbox}, the implementation of the experiment is straight forward. The setup of the multilayer network structure is implemented by the event router and the synapse array using corresponding weights and addresses to discriminate between input and recurrent connections. The issue that arises with alternating weights for a single synapse is solved by same the double-row approach from the circles implementation. However, in this case the workaround is already implemented within the \texttt{HXBlackbox} and the user only needs to properly fill a logical weight matrix that is divided into input and recurrent connections as shown in \cref{hxnetworksetup}.
+\begin{figure}
+\[
+\sbox0{$\begin{matrix}1&2&3\\0&1&1\\0&0&1\\0&0&1\end{matrix}$}
+\sbox1{$\begin{matrix}1&2&3\\0&1&1\\0&0&1\end{matrix}$}
+\sbox2{$\begin{matrix}1&2\\0&1\end{matrix}$}
+%
+W_\text{logical}=\left(
+\begin{array}{c c c}
+\vphantom{\usebox{0}}\underbrace{\Bigg(\makebox[\wd0]{\large$I \rightarrow H$}\Bigg)}_{n_\text{h}}\Bigg\}\scriptstyle{n_\text{in}}&
+\makebox[\wd0]{\Large0\quad} & 
+\makebox[0.5\wd0]{\Large0}\\
+%\hdashline[0.3pt/5pt]
+\vphantom{\usebox{1}}	\makebox[\wd1]{\Large0\quad}&
+\underbrace{\Big(\makebox[1.3\wd0]{\large$H \rightarrow O$}\Big)}_{n_\text{out}}\Big\}\scriptstyle{n_\text{h}} &
+\makebox[0.5\wd1]{\Large0}\\
+
+\vphantom{\usebox{2}}	\makebox[\wd2]{\Large0\quad}&
+\makebox[\wd2]{\Large0\quad}&
+\makebox[0.5\wd2]{\Large0}
+
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c c c}
+\vphantom{\usebox{2}}\makebox[\wd2]{\Large$W^{(h)}$}&
+\makebox[\wd2]{\Large0\quad} & 
+\makebox[0.5\wd2]{\Large0}\\
+%\hdashline[0.3pt/5pt]
+\vphantom{\usebox{2}}	\makebox[\wd2]{\Large0\quad}&
+\makebox[\wd2]{\Large$W^{(o)}$} &
+\makebox[0.5\wd2]{\Large0}\\
+\vphantom{\usebox{2}}	\makebox[\wd2]{\Large0\quad}&
+\makebox[\wd2]{\Large0\quad} &
+\makebox[0.5\wd2]{\Large0}
+
+\end{array}
+\right)
+	\]
+\caption[Structure of the logical weight matrix on \gls{hx}]{Structure of the logical weight matrix on \gls{hx}. The first $n_\text{in}$ rows are reserved for the inputs and connected to the $n_\text{h}$ hidden units ($I\rightarrow H$) and are set by the weight matrix $W^{(h)}$. The recurrent connections  $H\rightarrow O $ are managed the remaining rows ... Todo sort out where exactly (0,0) is...probably on the bottom left coroner}
+\label{hxnetworksetup}
+\end{figure}
+
+The input pattern is formulated as an array containing tuples of the target neuron and a spike time. The forward pass is then evaluated by a designated \texttt{stimulate} function, which returns all recorded spikes at the end of the measurement. The membrane potential traces are measured by triggering the on-chip \gls{cadc} readout program on the \gls{ppu} as soon as the input pattern is injected by the host. For the computations in the backward pass it is vital that both the measured trace and the recorded spike times by the digital back end are synchronized. The result of a respective offset measurement yields a time delta of only $\delta t \approx \SI{2.2}{\milli \s}$, which can be easily corrected later on.
+
+\subsubsection*{Host based Backward Pass}
+
 digital backend provides extensive information about spikes from any sources and cadc data the membrane traces, spike traces are generated by the spike times and a chosen synaptic constant ressembling approximately the hardware time constants -> room for improvement
 
-This is then incorporated in an existing simulation frame of superspike that is based on the implementation of \citealp{zenke2018superspike}. The forward pass is replaced by the blackbox and the resulting parameter updates are applied to blackbox before. The resulting software frame work is embedded in a python class HXSuperSpikeBlackbox. 
+optimzation of time critical parts (inversion of cadc, sending spikes)
 
-Setup of the experiment:
-
+\subsubsection*{Initial Conditions and Hyperparameters}
 most important parameters in table from (hyperparams.npz)
-96 inputs
-30 hidden units
-2 outputs
-128 total
- 
+ 	
 threshold hidden/output
 tau mem (not calibrated)
 tau leak (not calibrated)
 alpha 
 eps
 tau syn (theoretical! mention it somewhere)
+\begin{table}\centering\ra{1.3}
+	\begin{tabular}{@{}rcllclllcl@{}}\toprule
+		&layer	 & & $w_{ij}^\text{init}$		& \gls{v_leak} 	& \gls{v_reset}	& \gls{thres} 	& & $\eta$	\\ \midrule
+		&hidden  & & $\in \mathcal{N}(0,13)$	& $\SI{0.5}{\V}$& $\SI{0.4}{\V}$&$\SI{0.75}{\V}$& & 2000	\\
+		&output  & & $\in \mathcal{N}(0,18)$	& $\SI{0.5}{\V}$& $\SI{0.4}{\V}$&$\SI{0.7}{\V}$	& & 30		\\ \bottomrule
+	\end{tabular}
+	\caption[Hyperparameters for SuperSpike.]{Hyperparameters for SuperSpike. }
+\end{table}
+
+
+\begin{table}\centering\ra{1.3}
+	\begin{tabular}{@{}rlllll@{}}\toprule
+		 & \gls{tau_m}		& \gls{tau_syn} 	& $\tau_\alpha$	& $\tau_\epsilon$ & $\tau_\sigma$\\ 
+		 & $\SI{8}{\micro \s}$	& $\SI{5}{\micro \s}$& $\SI{12}{\micro \s}$&$\SI{12}{\micro\s}$&$\SI{0.05}{\V^{-1}}$\\ \bottomrule
+		 \end{tabular}
+	\caption[Temporal Constants for SuperSpike.]{Hyperparameters for SuperSpike. }
+\end{table}
 
 learning rates
 
@@ -144,22 +205,7 @@ no need for bias, bias is part of the task
 
 no need for noise, there is plenty of noise there (check the traces from the figures)
 
-optimzation of time critical parts (inversion of cadc, sending spikes)
-
-
-\begin{itemize}
-	\item CADC readout of membrane potential
-	\item BLACKBOX
-	\item HOST implementation of superspike (short)!
-	\item calibration of tausyn, vsyn, cadc, vleak, vreset, vthreshold
-	\item optimization: c++ speed up using the haldls frame
-	\item Backprop weights
-	\item FA weights
-	\item future plans for mnist (maybe erst in discussion erwähnen)
-\end{itemize}
-
-\subsection{Training and Results}
-init settings!
+\section{Training and Results}
 
 Minibatch of size 8
 

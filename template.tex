@@ -42,6 +42,7 @@
 \usepackage{wrapfig}
 \usepackage{minted}
 \usepackage{import}
+
 \titleformat{\chapter}{\vspace{-20mm}\Huge\bfseries}{\thechapter\hsp\textcolor{gray75}{}\hsp}{0pt}{\Huge\bfseries}
 
 % hyperref wants to be imported as last package
@@ -50,6 +51,11 @@
 % cleveref wants to be imported even later
 %\usepackage[noabbrev,capitalise]{cleveref}
 \usepackage{cleveref}
+
+% quote at the beginning of intro
+\usepackage{epigraph}
+\setlength\epigraphwidth{8cm}
+\setlength\epigraphrule{0pt}
 
 % General formatting
 \parskip1ex

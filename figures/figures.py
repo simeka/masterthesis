@@ -4,6 +4,7 @@ import time
 import matplotlib.gridspec as gs
 from scipy.stats import entropy
 import pandas as pd
+from scipy.optimize import curve_fit
 
 duration = 2.3  # [T] = ms -> [rate] = kHz
 from matplotlib.lines import Line2D
@@ -95,27 +96,23 @@ n_h_nrns = 11
 n_nrns = 12
 real_epochs = np.array(range(learning_steps))*5
 
-
-
-
-
 if __name__ == "__main__":
 
     ###################################################################################
     # single activation function with multiple weights
-    # mmnt = 0
-    # nrn = 9
-    # figure = plt.figure()
-    #
-    # plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
-    # plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
-    # for p in range(4):
-    #     plt.plot(input_rates, data[mmnt, p, :, nrn], label="input weight %s" % input_weights[p])
-    #     # plt.legend([Line2D([0],[0], marker='o', color="w", markerfacecolor="black")],
-    #     #           ["input weight = {}".format(input_weights[p])])
-    # plt.legend()
-    # save_plot(figure, "single_calibrated_transfer_function_w_various_weights", (5,3))
-    #
+    mmnt = 0
+    nrn = 9
+    figure = plt.figure()
+
+    plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
+    plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
+    for p in range(4):
+        plt.plot(input_rates, data[mmnt, p, :, nrn], label="input weight %s" % input_weights[p])
+        # plt.legend([Line2D([0],[0], marker='o', color="w", markerfacecolor="black")],
+        #           ["input weight = {}".format(input_weights[p])])
+    plt.legend()
+    save_plot(figure, "single_calibrated_transfer_function_w_various_weights", (5,3))
+
     #
     # ###################################################################################
     # # uncalibrated activation function (b=0, w=30)
@@ -337,123 +334,163 @@ if __name__ == "__main__":
     # plt.ylabel("$\Phi'(x) = \\frac{d\Phi}{dx}$")
     # save_plot(fig, "deeplearning_activation_functions_derivative", (3, 2.7))
 
+    ############# theoretical sigmoid activation function ############################
+    sigmoid_mmnt_npz = np.load("sigmoid_mmnt_20000.npz")
+    freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
+    freq_out = sigmoid_mmnt_npz["freq_output_sequence"] / 1e3
+
+
+    # sigmoid fit
+    def fsigmoid(x, vmax, a, b):
+        return vmax / (1.0 + np.exp(-a * (x - b)))
+
+
+    popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out, method='dogbox',
+                             bounds=([0, 0., -10000], [100, 0.1, 10000.]))
+
+    fig = plt.figure()
+    plt.plot(freq_in, freq_out, '.', label="simulated activation function")
+    plt.plot(freq_in, fsigmoid(freq_in, *popt1), label="sigmoid fit")
+    plt.xlabel("input frequency $\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
+    plt.ylabel("output frequency $\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
+    plt.legend()
+    save_plot(fig, "theoretical_activation_function",(3.5,3))
+
+    free_membrane_npz = np.load("free_membrane_mmnt_20000.npz")
+    mem_tr = free_membrane_npz["mem_tr"]
+    def gaus(x, mue, sig):
+        return np.exp(-(x - mue) ** 2 / (2 * sig ** 2)) / sig / np.sqrt(2 * np.pi)
+
+    x = np.linspace(-1, 1, 100)
+    gaus_fit = gaus(x, mem_tr.mean(), np.std(mem_tr))
+
+    fig = plt.figure()
+    plt.ylabel("density")
+    plt.xlabel("membrane potential $V_\mathrm{m} \; (\\si{\V})$")
+    plt.plot(x, gaus_fit, label="Gaussian fit")
+    plt.hist(mem_tr, bins='fd', density=True, alpha=0.5, label="free membrane")
+    plt.legend()
+    plt.ylim(0,1.6)
+
+    save_plot(fig, "theoretical_free_membrane",(3.5,3))
+
     ##############################################################################################
     ######################## HX SUPER SPIKE FIGURE ###############################################
     ##############################################################################################
 
-    pop_xor = np.loadtxt("pop_xor.data")
-    pop_xor[:, 1] /= 250  # use times up to 200µs instead of 10ms
-    pop_xor[:, 0] -= 1  # start at zero until 95
-    pop_xor_spiketrains = {0: (pop_xor[:20], 0),
-                           1: (pop_xor[20:60], 1),
-                           2: (pop_xor[60:100], 1),
-                           3: (pop_xor[100:160], 0)}
-
-    colors = ["#555555", "#AF5A50", "#005B82", "#7D966E", "#D7AA50"]
-    target = [0, 1, 1, 0]
-    m = ["o", "o", "o", "o"]
-    s = [(r) ** 2 for r in np.arange(1, 9, 2.5)]
-    s = s[::-1]
-    lw = 1.4
-    fig = plt.figure(figsize=(3, 3))
-    for p, (spiketrain, c) in pop_xor_spiketrains.items():
-        if p != 3:
-            plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
-                        edgecolors=colors[p])
-        else:
-            plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=2, color=colors[p])
-    plt.legend(["$S_{%s}$" % (i) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 1))
-    # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
-    plt.ylim(60, 72)
-    plt.xlim(72/5, 120/5)
-    #plt.title('XOR Input  raster plot')
-    plt.xlabel('spike time $(\si{\micro \s})$')
-    plt.ylabel('input unit')
-    save_plot(fig, "superspiketasksector", (3, 3))
-
-    s = [(r) ** 2 for r in np.arange(1, 5, 1)]
-    s = s[::-1]
-    lw = 0.8
-    fig = plt.figure(figsize=(3, 3))
-    for p, (spiketrain, c) in pop_xor_spiketrains.items():
-        if p != 3:
-            plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
-                        edgecolors=colors[p], label="$S_{%s}$" % (p+1))
-        else:
-            plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, color=colors[p], label="$S_{%s}$" % (p+1))
-    legend_handles_labels = fig.gca().get_legend_handles_labels()
-    plt.legend(loc='upper right', bbox_to_anchor=(1, 1))
-    # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
-    plt.xlim(0, 250/5)
-    #plt.title('XOR Input  raster plot')
-    plt.xlabel('spike time $(\si{\micro \s})$')
-    plt.ylabel('input unit')
-    save_plot(fig, "superspiketask", (3, 3))
-
-    s = [(r) ** 2 for r in np.arange(1, 5, 1)]
-    s = s[::-1]
-    lw = 0.8
-    fig = plt.figure(figsize=(3, 3))
-
-    batchsize = 8
-    batch = np.random.randint(0, 4, size=batchsize)
-    for i, p in enumerate(batch):
-        (spiketrain, c) = pop_xor_spiketrains[p]
-        if p != 3:
-            plt.scatter(spiketrain[:, 1] * 1e6 + 250*i, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
-                        edgecolors=colors[p])
-        else:
-            plt.scatter(spiketrain[:, 1] * 1e6 + 250*i, spiketrain[:, 0], s=s[p], lw=lw, color=colors[p])
-
-    plt.legend(*legend_handles_labels, loc='upper right', bbox_to_anchor=(1, 1))
-    # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
-    plt.xlim(-30, 250*batchsize)
-    #plt.title('XOR Input  raster plot')
-    plt.xlabel('spike time $(\si{\micro \s})$')
-    plt.ylabel('input unit')
-    save_plot(fig, "superspiketaskconsecutive", (6, 3))
+    # pop_xor = np.loadtxt("pop_xor.data")
+    # pop_xor[:, 1] /= 250  # use times up to 200µs instead of 10ms
+    # pop_xor[:, 0] -= 1  # start at zero until 95
+    # pop_xor_spiketrains = {0: (pop_xor[:20], 0),
+    #                        1: (pop_xor[20:60], 1),
+    #                        2: (pop_xor[60:100], 1),
+    #                        3: (pop_xor[100:160], 0)}
+    #
+    # colors = ["#555555", "#AF5A50", "#005B82", "#7D966E", "#D7AA50"]
+    # target = [0, 1, 1, 0]
+    # m = ["o", "o", "o", "o"]
+    # s = [(r) ** 2 for r in np.arange(1, 9, 2.5)]
+    # s = s[::-1]
+    # lw = 1.4
+    # fig = plt.figure(figsize=(3, 3))
+    # for p, (spiketrain, c) in pop_xor_spiketrains.items():
+    #     if p != 3:
+    #         plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
+    #                     edgecolors=colors[p])
+    #     else:
+    #         plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=2, color=colors[p])
+    # plt.legend(["$S_{%s}$" % (i) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 1))
+    # # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
+    # plt.ylim(60, 72)
+    # plt.xlim(72/5, 120/5)
+    # #plt.title('XOR Input  raster plot')
+    # plt.xlabel('spike time $(\si{\micro \s})$')
+    # plt.ylabel('input unit')
+    # save_plot(fig, "superspiketasksector", (3, 3))
+    #
+    # s = [(r) ** 2 for r in np.arange(1, 5, 1)]
+    # s = s[::-1]
+    # lw = 0.8
+    # fig = plt.figure(figsize=(3, 3))
+    # for p, (spiketrain, c) in pop_xor_spiketrains.items():
+    #     if p != 3:
+    #         plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
+    #                     edgecolors=colors[p], label="$S_{%s}$" % (p+1))
+    #     else:
+    #         plt.scatter(spiketrain[:, 1] * 1e6, spiketrain[:, 0], s=s[p], lw=lw, color=colors[p], label="$S_{%s}$" % (p+1))
+    # legend_handles_labels = fig.gca().get_legend_handles_labels()
+    # plt.legend(loc='upper right', bbox_to_anchor=(1, 1))
+    # # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
+    # plt.xlim(0, 250/5)
+    # #plt.title('XOR Input  raster plot')
+    # plt.xlabel('spike time $(\si{\micro \s})$')
+    # plt.ylabel('input unit')
+    # save_plot(fig, "superspiketask", (3, 3))
+    #
+    # s = [(r) ** 2 for r in np.arange(1, 5, 1)]
+    # s = s[::-1]
+    # lw = 0.8
+    # fig = plt.figure(figsize=(3, 3))
+    #
+    # batchsize = 8
+    # batch = np.random.randint(0, 4, size=batchsize)
+    # for i, p in enumerate(batch):
+    #     (spiketrain, c) = pop_xor_spiketrains[p]
+    #     if p != 3:
+    #         plt.scatter(spiketrain[:, 1] * 1e6 + 250*i, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
+    #                     edgecolors=colors[p])
+    #     else:
+    #         plt.scatter(spiketrain[:, 1] * 1e6 + 250*i, spiketrain[:, 0], s=s[p], lw=lw, color=colors[p])
+    #
+    # plt.legend(*legend_handles_labels, loc='upper right', bbox_to_anchor=(1, 1))
+    # # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
+    # plt.xlim(-30, 250*batchsize)
+    # #plt.title('XOR Input  raster plot')
+    # plt.xlabel('spike time $(\si{\micro \s})$')
+    # plt.ylabel('input unit')
+    # save_plot(fig, "superspiketaskconsecutive", (6, 3))
 
     ###################################################################################
     # pre post calibration
-    vleak_pre_post = np.load("vleak_pre_post_500.npz")
-    # vreset_pre_post_150 = np.load("vreset_pre_post_150.npz")
-    # vreset_pre_post_200 = np.load("vreset_pre_post_200.npz")
-    # vreset_pre_post_300 = np.load("vreset_pre_post_300.npz")
-    vreset_pre_post_400 = np.load("vreset_pre_post_400.npz")
-    vthreshold_pre_post_750 = np.load("vthreshold_pre_post_750.npz")
-    vthreshold_pre_post_800 = np.load("vthreshold_pre_post_800.npz")
-    # vthreshold_pre_post_900 = np.load("vthreshold_pre_post_900.npz")
-
-    # vleak
-    fig = plt.figure(figsize=(3, 3))
-    sns.distplot(np.median(vleak_pre_post["pre_cadc_data_V"], axis=0), label="pre $\SI{0.5}{\V}$")
-    sns.distplot(np.median(vleak_pre_post["post_cadc_data_V"], axis=0), label="post $\SI{0.5}{\V}$")
-    plt.legend()
-    plt.xlim(0.35, 0.7)
-    plt.xlabel('$V_\mathrm{leak} \quad (\si{\V})$')
-    plt.ylabel('density')
-    save_plot(fig, "vleak_pre_post_calibration", (2, 2))
-
-    # vreset
-    fig = plt.figure(figsize=(3, 3))
-    # sns.distplot(vreset_pre_post_300["pre_cadc_data_V"], label="pre 0.3 V")
-    sns.distplot(vreset_pre_post_400["pre_cadc_data_V"], label="pre $\SI{0.4}{\V}$")
-    # sns.distplot(vreset_pre_post_300["post_cadc_data_V"], bins=5, label="post 0.3 V")
-    sns.distplot(vreset_pre_post_400["post_cadc_data_V"], bins=5, label="post $\SI{0.4}{\V}$")
-    plt.legend()
-    plt.xlim(0.32, 0.5)
-    plt.xlabel('$V_\mathrm{reset} \quad (\si{\V})$')
-    plt.ylabel('density')
-    save_plot(fig, "vreset_pre_post_calibration", (2, 2))
-
-    # vthreshold
-    fig = plt.figure(figsize=(3, 3))
-    sns.distplot(vthreshold_pre_post_750["pre_cadc_max_V"], label="pre $\SI{0.75}{\V}$")
-    sns.distplot(vthreshold_pre_post_750["post_cadc_max_V"], bins=4, label="post $\SI{0.75}{\V}$")
-    sns.distplot(vthreshold_pre_post_800["pre_cadc_max_V"], label="pre $\SI{0.8}{\V}$")
-    sns.distplot(vthreshold_pre_post_800["post_cadc_max_V"], bins=4, label="post $\SI{0.8}{\V}$")
-    plt.legend()
-    plt.xlim(0.65,1)
-    plt.xlabel('$\\vartheta \quad (\si{\V})$')
-    plt.ylabel('density')
-    save_plot(fig, "vthreshold_pre_post_calibration", (2, 2))
+    # vleak_pre_post = np.load("vleak_pre_post_500.npz")
+    # # vreset_pre_post_150 = np.load("vreset_pre_post_150.npz")
+    # # vreset_pre_post_200 = np.load("vreset_pre_post_200.npz")
+    # # vreset_pre_post_300 = np.load("vreset_pre_post_300.npz")
+    # vreset_pre_post_400 = np.load("vreset_pre_post_400.npz")
+    # vthreshold_pre_post_750 = np.load("vthreshold_pre_post_750.npz")
+    # vthreshold_pre_post_800 = np.load("vthreshold_pre_post_800.npz")
+    # # vthreshold_pre_post_900 = np.load("vthreshold_pre_post_900.npz")
+    #
+    # # vleak
+    # fig = plt.figure(figsize=(3, 3))
+    # sns.distplot(np.median(vleak_pre_post["pre_cadc_data_V"], axis=0), label="pre $\SI{0.5}{\V}$")
+    # sns.distplot(np.median(vleak_pre_post["post_cadc_data_V"], axis=0), label="post $\SI{0.5}{\V}$")
+    # plt.legend()
+    # plt.xlim(0.35, 0.7)
+    # plt.xlabel('$V_\mathrm{leak} \quad (\si{\V})$')
+    # plt.ylabel('density')
+    # save_plot(fig, "vleak_pre_post_calibration", (2, 2))
+    #
+    # # vreset
+    # fig = plt.figure(figsize=(3, 3))
+    # # sns.distplot(vreset_pre_post_300["pre_cadc_data_V"], label="pre 0.3 V")
+    # sns.distplot(vreset_pre_post_400["pre_cadc_data_V"], label="pre $\SI{0.4}{\V}$")
+    # # sns.distplot(vreset_pre_post_300["post_cadc_data_V"], bins=5, label="post 0.3 V")
+    # sns.distplot(vreset_pre_post_400["post_cadc_data_V"], bins=5, label="post $\SI{0.4}{\V}$")
+    # plt.legend()
+    # plt.xlim(0.32, 0.5)
+    # plt.xlabel('$V_\mathrm{reset} \quad (\si{\V})$')
+    # plt.ylabel('density')
+    # save_plot(fig, "vreset_pre_post_calibration", (2, 2))
+    #
+    # # vthreshold
+    # fig = plt.figure(figsize=(3, 3))
+    # sns.distplot(vthreshold_pre_post_750["pre_cadc_max_V"], label="pre $\SI{0.75}{\V}$")
+    # sns.distplot(vthreshold_pre_post_750["post_cadc_max_V"], bins=4, label="post $\SI{0.75}{\V}$")
+    # sns.distplot(vthreshold_pre_post_800["pre_cadc_max_V"], label="pre $\SI{0.8}{\V}$")
+    # sns.distplot(vthreshold_pre_post_800["post_cadc_max_V"], bins=4, label="post $\SI{0.8}{\V}$")
+    # plt.legend()
+    # plt.xlim(0.65,1)
+    # plt.xlabel('$\\vartheta \quad (\si{\V})$')
+    # plt.ylabel('density')
+    # save_plot(fig, "vthreshold_pre_post_calibration", (2, 2))

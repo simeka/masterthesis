@@ -97,40 +97,54 @@ n_nrns = 12
 real_epochs = np.array(range(learning_steps))*5
 
 if __name__ == "__main__":
-
+    colors = ["#555555", "#AF5A50", "#005B82", "#7D966E", "#D7AA50"]
+    label_voutput = "output frequency $\\nu_\mathrm{out} \; (\\si{\kilo \Hz})$"
+    label_vinput = "input frequency $\\nu_\mathrm{in} \; (\\si{\kilo \Hz})$"
+    double_shape = (3, 2.5)
+    def fsigmoid(x, vmax=1, a=2, b=0):
+        return vmax / (1.0 + np.exp(-a * (x - b)))
     ###################################################################################
     # single activation function with multiple weights
-    mmnt = 0
-    nrn = 9
-    figure = plt.figure()
 
-    plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
-    plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
-    for p in range(4):
-        plt.plot(input_rates, data[mmnt, p, :, nrn], label="input weight %s" % input_weights[p])
-        # plt.legend([Line2D([0],[0], marker='o', color="w", markerfacecolor="black")],
-        #           ["input weight = {}".format(input_weights[p])])
-    plt.legend()
-    save_plot(figure, "single_calibrated_transfer_function_w_various_weights", (5,3))
+    # mmnt = 0
+    # nrn = 9
+    # figure = plt.figure()
+    #
+    # plt.ylabel(label_voutput)
+    # plt.xlabel(label_vinput)
+    # for p in range(4):
+    #     freq_in = input_rates
+    #     freq_out = data[mmnt, p, :, nrn]
+    #     popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out, method='dogbox',
+    #                              bounds=([0, 0., -10000], [500, 0.1, 10000.]))
+    #     plt.plot(freq_in, freq_out, '.',
+    #              label="$b \\propto \delta V = \\vartheta = \SI{%s}{\V}$" % input_weights[p], color=colors[p])
+    #     plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[p])  # , label="sigmoid fit")
+    #
+    #     # plt.legend([Line2D([0],[0], marker='o', color="w", markerfacecolor="black")],
+    #     #           ["input weight = {}".format(input_weights[p])])
+    # plt.ylim(-5,136)
+    # plt.legend()
+    # save_plot(figure, "single_calibrated_transfer_function_w_various_weights", double_shape)
 
     #
     # ###################################################################################
-    # # uncalibrated activation function (b=0, w=30)
+    # uncalibrated activation function (b=0, w=30)
     # mmnt = 2
     # w = 2 # corresponds to 30
     # fig = plt.figure()
-    # plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
-    # plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
+    # plt.ylabel(label_voutput)
+    # plt.xlabel(label_vinput)
     # plt.plot(input_rates, data[mmnt, w, :, 0:12])
-    # save_plot(fig, "uncalibrated_activation_function", (3,2))
+    # save_plot(fig, "uncalibrated_activation_function", double_shape)
     #
     # mmnt = 0
     # w = 2 # corresponds to 30
     # fig = plt.figure()
-    # plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
-    # plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
+    # plt.ylabel(label_voutput)
+    # plt.xlabel(label_vinput)
     # plt.plot(input_rates, data[mmnt, w, :, 0:12])
-    # save_plot(fig, "calibrated_activation_function", (3,2))
+    # save_plot(fig, "calibrated_activation_function", double_shape)
     #
     # ###################################################################################
     # # activation function with bias
@@ -147,14 +161,15 @@ if __name__ == "__main__":
     #                pseudo_adc_conversion_analog(thres[1]),
     #                pseudo_adc_conversion_analog(thres[2]))
     #               for thres in thresholds]
-    # input_rates = true_input_spike_rate(np.linspace(-560, 560, 37)) * 1e3
+    # input_rates = np.linspace(-560, 560, 37)#true_input_spike_rate(np.linspace(-560, 560, 37)) * 1e3
     # workpoint = pseudo_adc_conversion_analog(300)
     #
     # mmnt = 0
     # n_params = 0
     # figure = plt.figure()
-    # plt.ylabel("$\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
-    # plt.xlabel("$\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
+    # plt.ylabel(label_voutput)
+    # plt.xlabel(label_vinput)
+    # plt.ylim(-5,136)
     # #figure.gca().set_prop_cycle(color=colors)
     # styles = ["--", "-", ":"]
     #
@@ -162,11 +177,11 @@ if __name__ == "__main__":
     #     plt.plot(input_rates, data[mmnt, i, :, 0:12], linestyle=styles[i])
     #
     # plt.legend([Line2D([0], [0], marker='', linestyle=style, color="black") for style in styles],
-    #            ["$b \propto  \delta V = \SI{%s}{\milli \V}$" % (np.round(workpoint - t, 1)) for t in thresholds[mmnt]],
+    #            ["$\delta V = \SI{%s}{\milli \V}$" % (np.round(workpoint - t, 1)) for t in thresholds[mmnt]],
     #            loc="upper left")
-    # save_plot(figure, "activation_function_w_bias", (5,3))
-    #
-    #
+    # save_plot(figure, "activation_function_w_bias", double_shape)
+
+
     # ###################################################################################
     # # Gaussian Free Membrane Distribution
     # mmnts = ["membrane_data_0.npy", "membrane_data_1.npy"]
@@ -192,7 +207,7 @@ if __name__ == "__main__":
     #     kullback_leibler_divergence += [kb_lb_entropy, ]
     #
     #     y_normed, _ = np.histogram(data, bins=200, density=True)
-    #     ax.set_ylabel("Density")
+    #     ax.set_ylabel("density")
     #
     #     mean_stored = mean
     #     ax.plot(x, gaus(x, mean, std))
@@ -204,8 +219,8 @@ if __name__ == "__main__":
     #     ax.bar(x[150:], y_normed[150:])
     #
     #     # ax.legend(["Gaussian Fit", "$V_{leak}$", "$V_{thres}$", "Histogram", "Spiking"], loc="upper left")
-    # ax.set_xlabel("$V_\mathrm{m} \; (\si{\milli \V})$")
-    # save_plot(fig, "activation_function_vmem_distr_with_thres", (5,3))
+    # ax.set_xlabel("$membrane potential V_\mathrm{m} \; (\si{\milli \V})$")
+    # save_plot(fig, "activation_function_vmem_distr_with_thres", (5,3.5))
 
     # ##################################################################################
     # # Gaussian Free Membrane Distribution
@@ -247,8 +262,8 @@ if __name__ == "__main__":
     #                   loc=(xlegend, 0.6), )  # title="Unit", title_fontsize=6)
     #
     # # labels
-    # axes[0, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{h})} \quad (\si{\milli \V})$")
-    # axes[1, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{o})} \quad (\si{\milli \V})$")
+    # axes[0, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{h})} \; (\si{\milli \V})$")
+    # axes[1, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{o})} \;(\si{\milli \V})$")
     # axes[0, 0].set_ylabel("$W^{(\mathrm{h})}$")
     # axes[1, 0].set_ylabel("$W^{(\mathrm{o})}$")
     # for i in range(2):
@@ -294,8 +309,7 @@ if __name__ == "__main__":
     # relu = lambda x: np.maximum(0, x)
     #
     #
-    # def fsigmoid(x, a=2, b=0):
-    #     return 1.0 / (1.0 + np.exp(-a * (x - b)))
+    #
     #
     #
     # def dsig(x):
@@ -315,64 +329,120 @@ if __name__ == "__main__":
     # x = np.linspace(-3, 3, 200)
     # fig = plt.figure()
     # plt.plot(x, relu(x), label="ReLu, $\Phi(x) = \mathrm{max}(0,x)$")
-    # plt.plot(x, fsigmoid(x), label="Sigmoid, $\Phi(x) = \\frac{1}{1 + e^{(-\\beta x)}}$")
-    # plt.plot(x, np.tanh(x), label="Tanh, $\Phi(x) = \\frac{e^x - e^{-x}}{e^x + e^{-x}}$")
+    # plt.plot(x, fsigmoid(x), label="sigmoid, $\Phi(x) = \\frac{1}{1 + e^{(-\\beta x)}}$")
+    # plt.plot(x, np.tanh(x), label="tanh, $\Phi(x) = \\frac{e^x - e^{-x}}{e^x + e^{-x}}$")
     # plt.ylim(-1, 2)
     # plt.legend()
     # plt.xlabel("x")
-    # plt.ylabel("Transfer function $\Phi(x)$")
-    # save_plot(fig, "deeplearning_activation_functions", (3, 2.7))
+    # plt.ylabel("transfer function $\Phi(x)$")
+    # save_plot(fig, "deeplearning_activation_functions", double_shape)
     #
     # x = np.linspace(-3, 3, 200)
     # fig = plt.figure()
     # plt.plot(x, drelu(x), label="dReLu, $\Phi'(x) = \Theta(x)$")
-    # plt.plot(x, dsig(x), label="dSigmoid, $\Phi'(x) = \Phi (1-\Phi)$")
-    # plt.plot(x, dtanh(x), label="dTanh, $\Phi'(x) = \\frac{1}{\cosh^2(x)}$")
+    # plt.plot(x, dsig(x), label="dsigmoid, $\Phi'(x) = \Phi (1-\Phi)$")
+    # plt.plot(x, dtanh(x), label="dtanh, $\Phi'(x) = \\frac{1}{\cosh^2(x)}$")
     # plt.legend()
     # plt.ylim(0, 1.4)
     # plt.xlabel("x")
     # plt.ylabel("$\Phi'(x) = \\frac{d\Phi}{dx}$")
-    # save_plot(fig, "deeplearning_activation_functions_derivative", (3, 2.7))
+    # save_plot(fig, "deeplearning_activation_functions_derivative", double_shape)
 
     ############# theoretical sigmoid activation function ############################
-    sigmoid_mmnt_npz = np.load("sigmoid_mmnt_20000.npz")
-    freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
-    freq_out = sigmoid_mmnt_npz["freq_output_sequence"] / 1e3
-
-
     # sigmoid fit
-    def fsigmoid(x, vmax, a, b):
-        return vmax / (1.0 + np.exp(-a * (x - b)))
 
+    # ###### standalone ###########
+    # sigmoid_mmnt_npz = np.load("sigmoid_mmnt_20000.npz")
+    # freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
+    # freq_out = sigmoid_mmnt_npz["freq_output_sequence"] / 1e3
+    #
+    # popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out, method='dogbox',
+    #                          bounds=([0, 0., -10000], [100, 0.1, 10000.]))
+    #
+    # fig = plt.figure()
+    # plt.plot(freq_in, freq_out, '.', label="simulated activation function")
+    # plt.plot(freq_in, fsigmoid(freq_in, *popt1), label="sigmoid fit")
+    #
+    # plt.ylabel(label_voutput)
+    # plt.xlabel(label_vinput)
+    # plt.legend()
+    # save_plot(fig, "theoretical_activation_function",double_shape)
+    # save_plot(fig, "theoretical_activation_function", (4, 3))
 
-    popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out, method='dogbox',
-                             bounds=([0, 0., -10000], [100, 0.1, 10000.]))
+    ###### variable weight#####
+
+    sigmoid_mmnt_npz = np.load("sigmoid_mmnt_variable_weights_longer.npz")
+    freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
+    freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
+    changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
 
     fig = plt.figure()
-    plt.plot(freq_in, freq_out, '.', label="simulated activation function")
-    plt.plot(freq_in, fsigmoid(freq_in, *popt1), label="sigmoid fit")
-    plt.xlabel("input frequency $\\nu_\mathrm{input} \; (\\si{\kilo \Hz})$")
-    plt.ylabel("output frequency $\\nu_\mathrm{output} \; (\\si{\kilo \Hz})$")
+    for i, p in enumerate(changing_parameter):
+        popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out[i], method='dogbox',
+                                 bounds=([0, 0., -10000], [100, 0.1, 10000.]))
+        plt.plot(freq_in, freq_out[i], '.', label="$w_\mathrm{in} = %s$" % p, color=colors[i])
+        plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[i])#, label="sigmoid fit")
+
+    plt.ylabel(label_voutput)
+    plt.xlabel(label_vinput)
     plt.legend()
-    save_plot(fig, "theoretical_activation_function",(3.5,3))
+    save_plot(fig, "theoretical_activation_function_variableweight_longer", double_shape)
 
-    free_membrane_npz = np.load("free_membrane_mmnt_20000.npz")
-    mem_tr = free_membrane_npz["mem_tr"]
-    def gaus(x, mue, sig):
-        return np.exp(-(x - mue) ** 2 / (2 * sig ** 2)) / sig / np.sqrt(2 * np.pi)
+    # ###### variable biases#####
+    sigmoid_mmnt_npz = np.load("sigmoid_mmnt_variable_bias.npz")
+    freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
+    freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
+    changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
 
-    x = np.linspace(-1, 1, 100)
-    gaus_fit = gaus(x, mem_tr.mean(), np.std(mem_tr))
-
+    # freq_out = freq_out[[1,2,3,4,5],:]
+    # changing_parameter = changing_parameter[[1,2,3,4,5]]
     fig = plt.figure()
-    plt.ylabel("density")
-    plt.xlabel("membrane potential $V_\mathrm{m} \; (\\si{\V})$")
-    plt.plot(x, gaus_fit, label="Gaussian fit")
-    plt.hist(mem_tr, bins='fd', density=True, alpha=0.5, label="free membrane")
-    plt.legend()
-    plt.ylim(0,1.6)
+    for i, p in enumerate(changing_parameter):
+        popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out[i], method='dogbox',
+                                 bounds=([0, 0., -10000], [100, 0.1, 10000.]))
+        plt.plot(freq_in, freq_out[i], '.', label="$\delta V = \SI{%s}{\V}$" % p, color=colors[i])
+        plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[i])#, label="sigmoid fit")
 
-    save_plot(fig, "theoretical_free_membrane",(3.5,3))
+
+    plt.ylabel(label_voutput)
+    plt.xlabel(label_vinput)
+    plt.legend()
+    save_plot(fig, "theoretical_activation_function_variablebias", double_shape)
+
+    # ######### FREE MEMBRANE ###############
+    # free_membrane_npz = np.load("free_membrane_mmnt_20000.npz")
+    # mem_tr = free_membrane_npz["mem_tr"]
+    # n_bins = 100
+    # # _, x_bins = np.histogram(mem_tr, bins=n_bins)
+    # bin_height, bins_edges = np.histogram(mem_tr, bins=n_bins, density=True)
+    # binwidth = np.median(np.diff(bins_edges))
+    # x_bins = bins_edges[1:] - 0.5*binwidth
+    # def gaus(x, mue, sig):
+    #     return np.exp(-(x - mue) ** 2 / (2 * sig ** 2)) / sig / np.sqrt(2 * np.pi)
+    #
+    # x = np.linspace(-1, 1, n_bins)
+    # mean = mem_tr.mean()
+    # gaus_fit = gaus(x, mean, np.std(mem_tr))
+    #
+    # fig = plt.figure()
+    # plt.ylabel("density")
+    # plt.xlabel("membrane potential $V_\mathrm{m} \; (\\si{\V})$")
+    # plt.plot(x, gaus_fit, label="Gaussian fit")
+    # plt.hist(mem_tr, bins=n_bins, density=True, alpha=0.5, label="free membrane")
+    # # recolor and naming
+    # a = 65
+    # plt.bar(x_bins[a:], bin_height[a:], width=binwidth*1.05)
+    # plt.axvline(mean, linestyle="--", color="black")
+    # plt.text(mean+0.05, .61, '$V_{\mathrm{leak}}$')
+    # plt.text(x_bins[a] + 0.05, .61, '$\\vartheta$', color="red")
+    # plt.axvline(x_bins[a] - 0.5*binwidth, linestyle="--", color="red")
+    # plt.legend()
+    # # plt.ylim(0,1.6)
+    #
+    #
+    # save_plot(fig, "theoretical_free_membrane_small",double_shape)
+    # save_plot(fig, "theoretical_free_membrane_small",(5,3.5))
+
 
     ##############################################################################################
     ######################## HX SUPER SPIKE FIGURE ###############################################
@@ -451,7 +521,7 @@ if __name__ == "__main__":
     # save_plot(fig, "superspiketaskconsecutive", (6, 3))
 
     ###################################################################################
-    # pre post calibration
+    # # pre post calibration
     # vleak_pre_post = np.load("vleak_pre_post_500.npz")
     # # vreset_pre_post_150 = np.load("vreset_pre_post_150.npz")
     # # vreset_pre_post_200 = np.load("vreset_pre_post_200.npz")
@@ -463,34 +533,51 @@ if __name__ == "__main__":
     #
     # # vleak
     # fig = plt.figure(figsize=(3, 3))
-    # sns.distplot(np.median(vleak_pre_post["pre_cadc_data_V"], axis=0), label="pre $\SI{0.5}{\V}$")
-    # sns.distplot(np.median(vleak_pre_post["post_cadc_data_V"], axis=0), label="post $\SI{0.5}{\V}$")
+    # sns.distplot(np.median(vleak_pre_post["pre_cadc_data_V"], axis=0), kde=False, norm_hist=True, label="pre $\SI{0.5}{\V}$")
+    # sns.distplot(np.median(vleak_pre_post["post_cadc_data_V"], axis=0), kde=False, norm_hist=True, label="post $\SI{0.5}{\V}$")
     # plt.legend()
     # plt.xlim(0.35, 0.7)
-    # plt.xlabel('$V_\mathrm{leak} \quad (\si{\V})$')
+    # plt.xlabel('$V_\mathrm{leak} \; (\si{\V})$')
     # plt.ylabel('density')
     # save_plot(fig, "vleak_pre_post_calibration", (2, 2))
     #
     # # vreset
     # fig = plt.figure(figsize=(3, 3))
     # # sns.distplot(vreset_pre_post_300["pre_cadc_data_V"], label="pre 0.3 V")
-    # sns.distplot(vreset_pre_post_400["pre_cadc_data_V"], label="pre $\SI{0.4}{\V}$")
+    # sns.distplot(vreset_pre_post_400["pre_cadc_data_V"], kde=False, norm_hist=True,  label="pre $\SI{0.4}{\V}$")
     # # sns.distplot(vreset_pre_post_300["post_cadc_data_V"], bins=5, label="post 0.3 V")
-    # sns.distplot(vreset_pre_post_400["post_cadc_data_V"], bins=5, label="post $\SI{0.4}{\V}$")
+    # sns.distplot(vreset_pre_post_400["post_cadc_data_V"], bins=5, kde=False, norm_hist=True,  label="post $\SI{0.4}{\V}$")
     # plt.legend()
     # plt.xlim(0.32, 0.5)
-    # plt.xlabel('$V_\mathrm{reset} \quad (\si{\V})$')
+    # plt.xlabel('$V_\mathrm{reset} \; (\si{\V})$')
     # plt.ylabel('density')
     # save_plot(fig, "vreset_pre_post_calibration", (2, 2))
     #
     # # vthreshold
     # fig = plt.figure(figsize=(3, 3))
-    # sns.distplot(vthreshold_pre_post_750["pre_cadc_max_V"], label="pre $\SI{0.75}{\V}$")
-    # sns.distplot(vthreshold_pre_post_750["post_cadc_max_V"], bins=4, label="post $\SI{0.75}{\V}$")
-    # sns.distplot(vthreshold_pre_post_800["pre_cadc_max_V"], label="pre $\SI{0.8}{\V}$")
-    # sns.distplot(vthreshold_pre_post_800["post_cadc_max_V"], bins=4, label="post $\SI{0.8}{\V}$")
+    # sns.distplot(vthreshold_pre_post_750["pre_cadc_max_V"], kde=False, norm_hist=True, label="pre $\SI{0.75}{\V}$")
+    # sns.distplot(vthreshold_pre_post_750["post_cadc_max_V"],kde=False, norm_hist=True,  bins=4, label="post $\SI{0.75}{\V}$")
+    # sns.distplot(vthreshold_pre_post_800["pre_cadc_max_V"], kde=False, norm_hist=True, label="pre $\SI{0.8}{\V}$")
+    # sns.distplot(vthreshold_pre_post_800["post_cadc_max_V"],kde=False, norm_hist=True,  bins=4, label="post $\SI{0.8}{\V}$")
     # plt.legend()
     # plt.xlim(0.65,1)
-    # plt.xlabel('$\\vartheta \quad (\si{\V})$')
+    # plt.xlabel('$\\vartheta \; (\si{\V})$')
     # plt.ylabel('density')
     # save_plot(fig, "vthreshold_pre_post_calibration", (2, 2))
+
+    # # time offset cadc ppu
+    cadcppuoffset = np.load("cadcppuoffset.npz")
+    offsets = cadcppuoffset["offsets"]
+    offsets_corrected = cadcppuoffset["offsets_corrected"]
+    a = 0.5
+    fig = plt.figure()
+    plt.hist(offsets, alpha=a, color=colors[0], label="$\Delta T$", density=True)
+    plt.axvline(offsets.mean(), color=colors[0], ls="--", label="mean")
+    plt.hist(offsets_corrected, alpha=a, color=colors[1], label="$\Delta T_\mathrm{corr}$",
+             density=True)
+    plt.axvline(offsets_corrected.mean(), color=colors[1], ls="--", label="corr. mean")
+    plt.xlabel("$\Delta T \; (\si{\micro \s})$")
+    plt.ylabel("density")
+    plt.ylim(0,0.42)
+    plt.legend()
+    save_plot(fig, "cadcppuoffset", (2.5,2.0))

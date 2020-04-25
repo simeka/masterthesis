@@ -115,12 +115,10 @@ At the beginning, the calibration appeared to not work properly. A known issue i
 \subsection{Experimental Setup}
 The experiment is mainly controlled by a Python class called \texttt{HXBlackbox} representing a minimalistic set of tools that puts the \gls{hx} into operation. The software has been co-written by Sebastian Billaudelle and Benjamin Cramer. These tools are in turn based on a new software stack for the \gls{bss2} platform, which is still under continuous development (\citealp{mueller2020bss2ll}).
 
-The execution of the experiment is embedded in an existing Python-based simulation frame that is oriented on the implementation of SuperSpike in \citealp{zenke2018superspike}. The forward pass is then replaced by measuring the analog traces and spike times on the \gls{hx} before the respective updates of the network parameters are computed in the backward pass on the host.
+The execution of the experiment is embedded in an existing Python-based simulation frame that is oriented on the implementation of SuperSpike in \citealp{zenke2018superspike}. The forward pass is then replaced by measuring the analog traces and spike times on the \gls{hx} before the respective updates of the network parameters are computed in the backward pass on the host. In the following a network with a single hidden layer containing 30 units, 96 input sources and two output neurons which serve as target classes is configured using the \texttt{HXBlackbox}.
 
-\subsubsection*{Chip based Forward Pass}
-The necessity of a hidden layer has already been motivated in \cref{deeplearning} for non-linear tasks such as circles or the exclusive-or. In the following a network with a single hidden layer containing 30 units, 96 input sources and two output neurons which serve as target classes is configured using the \texttt{HXBlackbox}.
-
-On the level of the \texttt{HXBlackbox}, the implementation of the experiment is straight forward. The setup of the multilayer network structure is implemented by the event router and the synapse array using corresponding weights and addresses to discriminate between input and recurrent connections. The issue that arises with alternating weights for a single synapse is solved by same the double-row approach from the circles implementation. However, in this case the workaround is already implemented within the \texttt{HXBlackbox} and the user only needs to properly fill a logical weight matrix that is divided into input and recurrent connections as shown in \cref{hxnetworksetup}.
+\subsubsection{Chip based Forward Pass}
+The implementation of the experiment using the  is straight forward. The setup of the multilayer network structure is implemented by the event router and the synapse array using corresponding weights and addresses to discriminate between input and recurrent connections. The issue that arises with alternating weights for a single synapse is solved by the same double-row approach from the previous experiment implementation (\cref{circlesimplementation}). However, in this case the workaround is already implemented within the \texttt{HXBlackbox} and the user only needs to properly fill a logical weight matrix that is divided into input and recurrent connections as shown in \cref{hxnetworksetup}.
 \begin{figure}
 \[
 \sbox0{$\begin{matrix}1&2&3\\0&1&1\\0&0&1\\0&0&1\end{matrix}$}
@@ -164,40 +162,77 @@ W_\text{logical}=\left(
 \label{hxnetworksetup}
 \end{figure}
 
-The input pattern is formulated as an array containing tuples of the target neuron and a spike time. The forward pass is then evaluated by a designated \texttt{stimulate} function, which returns all recorded spikes at the end of the measurement. The membrane potential traces are measured by triggering the on-chip \gls{cadc} readout program on the \gls{ppu} as soon as the input pattern is injected by the host. For the computations in the backward pass it is vital that both the measured trace and the recorded spike times by the digital back end are synchronized. The result of a respective offset measurement yields a time delta of only $\delta t \approx \SI{2.2}{\milli \s}$, which can be easily corrected later on.
+The input pattern is formulated as an array containing tuples of the target neuron and a spike time. The forward pass is then evaluated by a designated \texttt{stimulate} function, which returns all recorded spikes at the end of the measurement. The membrane potential traces are measured by triggering the on-chip \gls{cadc} readout program on the \gls{ppu} as soon as the input pattern is injected by the host. 
 
 \subsubsection*{Host based Backward Pass}
+Within the simulation framework of SuperSpike the gathered experimental data of the membrane traces and the spike events is processed to determine the updates of the weight matrices as derived in \cref{superspike}. 
 
-digital backend provides extensive information about spikes from any sources and cadc data the membrane traces, spike traces are generated by the spike times and a chosen synaptic constant ressembling approximately the hardware time constants -> room for improvement
+\begin{wrapfigure}{R}{0.45\textwidth}
+	\centering
+	\input{figures/cadcppuoffset.pgf}
+	\caption[Offset measurement between \acrshort{cadc} traces and digital back end.]{Offset measurement between \acrshort{cadc} traces and digital back end. The time delta between peaks in the \acrshort{cadc} traces and the recorded spike times needs to be corrected.} 
+	\label{cadcppuoffset}
+\end{wrapfigure}
 
-optimzation of time critical parts (inversion of cadc, sending spikes)
+For a correct computations it is vital that both the measured \acrshort{cadc} traces and the recorded spike times by the digital back end are synchronized. In a respective offset measurement, the neurons are stimulated with a continuous input current such that they spike repetitively but with a low frequency. The located peaks in the resulting membrane traces are then compared to the digitally recorded spike times, yielding an offset $\Delta T$ of $(2.7 \pm 1.1)\; \si{\milli \s}$, see \cref{cadcppuoffset}. The recorded membrane maxes always before or exactly at the actual spike time, which results in a systematic error from evaluating the exact peak position in the \acrshort{cadc} traces. The offset has therefore been slightly corrected to $\Delta T_\text{corr} = (2.1 \pm 1.1)\; \si{\milli \s}$. 
+
+In an attempt to optimize the performance of the Python based simulation environment, Python bindings are used to speed up time consuming code in C++. In the final setup, the runtime could be improved by about 25 percent. 
 
 \subsubsection*{Initial Conditions and Hyperparameters}
+
+The chosen initial conditions and hyperparameters for this experiment are inspired by the configuration in \citealp{zenke2018superspike}. However, some adaptations and a respective time-scaling had to be made, to cope with the accelerated analog hardware. ...
+First temporal constants used in backward pass. \cref{temporalconstants}
+\begin{table}\centering\ra{1.3}
+	\begin{tabular}{@{}rlll@{}}\toprule
+		& Parameter		& 	\gls{hx} & 	SuperSpike\footnote{\citealp{zenke2018superspike}} \\ \midrule
+		& membrane constant \gls{tau_m}		& 	$\SI{8}{\micro \s}$ & 	$\SI{10}{\milli \s}$\\
+		& synaptic constant \gls{tau_syn}	&	$\SI{5}{\micro \s}$ & 	$\SI{5}{\milli \s}$\\
+		& $\alpha$ kernel constant $\tau_\alpha$	&	$\SI{12}{\micro \s}$& 	$\SI{10}{\milli \s}$\\
+		& $\epsilon$ kernel constant $\tau_\epsilon$ 	&	$\SI{12}{\micro \s}$& 	$\SI{10}{\milli \s}$\\
+		\bottomrule
+	\end{tabular}
+	\caption[Temporal hyperparameters for SuperSpike.]{Temporal hyperparameters for SuperSpike.}
+	\label{temporalconstants}
+\end{table}
+
+And more lif neuron parameters
+
+\begin{table}\centering\ra{1.3}
+	\begin{tabular}{@{}rlll@{}}\toprule
+		& Parameter								& 	hidden neurons 			& 	output neurons \\ \midrule
+		& initial weights $w_{ij}^\text{init}$	& 	$\in \mathcal{N}(0,13)$ & 	$\in \mathcal{N}(0,18)$\\
+		& resting potential \gls{v_leak}		&	$\SI{0.5}{\V}$ 			& 	$\SI{0.5}{\V}$\\
+		& reset potential \gls{v_reset}			&	$\SI{0.4}{\V}$			& 	$\SI{0.4}{\V}$\\
+		& threshold \gls{thres} 				&	$\SI{0.75}{\V}$			& 	$\SI{0.7}{\V}$\\
+		& learning rate $\eta$ 					&	2000					& 	30			\\
+		& slope of fast sigmoid $\beta_\sigma$ 	&	$\SI{0.05}{\V^{-1}}$		& 	$\SI{0.05}{\V^{-1}}$	\\
+		\bottomrule
+	\end{tabular}
+	\caption[Initial and Hyperparameter per layer.]{Initial and Hyperparameter per layer.}
+\end{table}
+
 most important parameters in table from (hyperparams.npz)
- 	
+
 threshold hidden/output
 tau mem (not calibrated)
 tau leak (not calibrated)
 alpha 
 eps
 tau syn (theoretical! mention it somewhere)
-\begin{table}\centering\ra{1.3}
-	\begin{tabular}{@{}rcllclllcl@{}}\toprule
-		&layer	 & & $w_{ij}^\text{init}$		& \gls{v_leak} 	& \gls{v_reset}	& \gls{thres} 	& & $\eta$	\\ \midrule
-		&hidden  & & $\in \mathcal{N}(0,13)$	& $\SI{0.5}{\V}$& $\SI{0.4}{\V}$&$\SI{0.75}{\V}$& & 2000	\\
-		&output  & & $\in \mathcal{N}(0,18)$	& $\SI{0.5}{\V}$& $\SI{0.4}{\V}$&$\SI{0.7}{\V}$	& & 30		\\ \bottomrule
-	\end{tabular}
-	\caption[Hyperparameters for SuperSpike.]{Hyperparameters for SuperSpike. }
-\end{table}
+%\begin{table}\centering\ra{1.3}
+%	\begin{tabular}{@{}rcllclllcl@{}}\toprule
+%		&layer	 & & $w_{ij}^\text{init}$		& \gls{v_leak} 	& \gls{v_reset}	& \gls{thres} 	& & $\eta$	\\ \midrule
+%		&hidden  & & $\in \mathcal{N}(0,13)$	& $\SI{0.5}{\V}$& $\SI{0.4}{\V}$&$\SI{0.75}{\V}$& & 2000	\\
+%		&output  & & $\in \mathcal{N}(0,18)$	& $\SI{0.5}{\V}$& $\SI{0.4}{\V}$&$\SI{0.7}{\V}$	& & 30		\\ \bottomrule
+%	\end{tabular}
+%	\caption[Hyperparameters for SuperSpike.]{Hyperparameters for SuperSpike. }
+%\end{table}
+%$\tau_sigma = \SI{0.05}{\V^{-1}}$
 
 
-\begin{table}\centering\ra{1.3}
-	\begin{tabular}{@{}rlllll@{}}\toprule
-		 & \gls{tau_m}		& \gls{tau_syn} 	& $\tau_\alpha$	& $\tau_\epsilon$ & $\tau_\sigma$\\ 
-		 & $\SI{8}{\micro \s}$	& $\SI{5}{\micro \s}$& $\SI{12}{\micro \s}$&$\SI{12}{\micro\s}$&$\SI{0.05}{\V^{-1}}$\\ \bottomrule
-		 \end{tabular}
-	\caption[Temporal Constants for SuperSpike.]{Hyperparameters for SuperSpike. }
-\end{table}
+
+
+
 
 learning rates
 
@@ -206,6 +241,12 @@ no need for bias, bias is part of the task
 no need for noise, there is plenty of noise there (check the traces from the figures)
 
 \section{Training and Results}
+
+The performance of the SuperSpike approach is now tested using different propagation methods in the backward pass. All experiments have been 
+
+
+
+The training data set of the classifcation task consists of a total of 2000 minibatches of size eight. The minibatches are created by randomly drawing eight patterns from a uniform distribution, yielding an overall balanced data set. The validation data simply contains every pattern a single time.
 
 Minibatch of size 8
 

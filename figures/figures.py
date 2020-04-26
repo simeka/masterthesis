@@ -225,54 +225,61 @@ if __name__ == "__main__":
     # ##################################################################################
     # # Gaussian Free Membrane Distribution
     #
-    # alpha = 0.27
-    # fs = 6
-    # fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(7, 4), sharex=True, sharey="col")
-    # wh_legend_labels = ["$w_{%s%s}$" % (i, j) for i in range(2) for j in range(5)]
-    # wo_legend_labels = ["$w_{%s%s}$" % (i, j) for i in range(5) for j in range(1)]
-    # bh_legend_labels = ["$b_%s$" % i for i in range(5)]
-    # bo_legend_labels = ["$b_%s$" % i for i in range(1)]
-    #
-    # # hidden weights
-    # axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 0, :5])
-    # axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 1, :5], ls="--")
-    # axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 0, 5:], alpha=alpha)
-    # axes[0, 0].plot(real_epochs, weights_hidden_storage[:, 1, 5:], ls="--", alpha=alpha)
-    #
-    # # hidden bias
-    # axes[0, 1].plot(real_epochs, bias_storage[:, :5])
-    # axes[0, 1].plot(real_epochs, bias_storage[:, 5:n_h_nrns], alpha=alpha)
-    #
-    # # output weights (with hidden in background)
-    # axes[1, 0].plot(real_epochs, weights_out_storage[:, :5])
-    # axes[1, 0].plot(real_epochs, weights_out_storage[:, 5:], alpha=alpha)
-    #
-    # # output bias with hidden in background
-    # axes[1, 1].plot(real_epochs, bias_storage[:, -1])
-    # #axes[1, 1].plot(real_epochs, bias_storage[:, :5], alpha=alpha)
-    # #axes[1, 1].plot(real_epochs, bias_storage[:, 5:n_h_nrns], alpha=alpha)
-    #
-    # # legends
-    # xlegend = 0.98
-    # axes[0, 1].legend(bh_legend_labels, fontsize=fs, loc=(xlegend, 0.6))
-    # axes[0, 0].legend(wh_legend_labels, fontsize=fs,
-    #                   loc=(xlegend, .2), )  # title="Unit", title_fontsize=6)
-    # axes[1, 1].legend(bo_legend_labels, fontsize=fs, loc=(xlegend, .9))
-    # axes[1, 0].legend(wo_legend_labels, fontsize=fs,
-    #                   loc=(xlegend, 0.6), )  # title="Unit", title_fontsize=6)
-    #
-    # # labels
-    # axes[0, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{h})} \; (\si{\milli \V})$")
-    # axes[1, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{o})} \;(\si{\milli \V})$")
-    # axes[0, 0].set_ylabel("$W^{(\mathrm{h})}$")
-    # axes[1, 0].set_ylabel("$W^{(\mathrm{o})}$")
-    # for i in range(2):
-    #     axes[1, i].set_xlabel("Iteration")
-    #
-    # plt.subplots_adjust(hspace=0.05
-    #                     , wspace=0.4)
-    #
-    # save_plot(fig, "network_evolution_circles", (7, 4))
+    n = 2500 // 5
+
+    real_epochs = np.array(range(n)) * 5
+
+    alpha = 0.27
+    fs = 4
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(7, 3), sharex=True, sharey="col")
+    wh_legend_labels = ["$w_{%s%s}$" % (i, j) for i in range(2) for j in range(5)]
+    wo_legend_labels = ["$w_{%s%s}$" % (i, j) for i in range(5) for j in range(1)]
+    bh_legend_labels = ["$b_%s$" % i for i in range(5)]
+    bo_legend_labels = ["$b_%s$" % i for i in range(1)]
+
+    # hidden weights
+    axes[0, 0].plot(real_epochs, weights_hidden_storage[:n, 0, :5])
+    axes[0, 0].plot(real_epochs, weights_hidden_storage[:n, 1, :5], ls="--")
+    axes[0, 0].plot(real_epochs, weights_hidden_storage[:n, 0, 5:], alpha=alpha)
+    axes[0, 0].plot(real_epochs, weights_hidden_storage[:n, 1, 5:], ls="--", alpha=alpha)
+
+    # hidden bias
+    axes[0, 1].plot(real_epochs, bias_storage[:n, :5])
+    axes[0, 1].plot(real_epochs, bias_storage[:n, 5:n_h_nrns], alpha=alpha)
+
+    # output weights (with hidden in background)
+    axes[1, 0].plot(real_epochs, weights_out_storage[:n, :5])
+    axes[1, 0].plot(real_epochs, weights_out_storage[:n, 5:], alpha=alpha)
+
+    # output bias with hidden in background
+    axes[1,1].plot(real_epochs, bias_storage[:n,-1])
+    #axes[1, 1].plot(real_epochs, bias_storage[:, :5], alpha=alpha)
+    #axes[1, 1].plot(real_epochs, bias_storage[:, 5:n_h_nrns], alpha=alpha)
+
+    # legends
+    xlegend = 0.98
+    axes[0, 1].legend(bh_legend_labels, fontsize=fs, loc=(xlegend, 0.6))
+    axes[0, 0].legend(wh_legend_labels, fontsize=fs,
+                      loc=(xlegend, .2), )  # title="Unit", title_fontsize=6)
+    axes[1, 1].legend(bo_legend_labels, fontsize=fs, loc=(xlegend, .9))
+    axes[1, 0].legend(wo_legend_labels, fontsize=fs,
+                      loc=(xlegend, 0.6), )  # title="Unit", title_fontsize=6)
+
+    # labels
+    axes[0, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{h})} \; (\si{\milli \V})$")
+    axes[1, 1].set_ylabel("$\\vartheta \propto -b^{(\mathrm{o})} \;(\si{\milli \V})$")
+    axes[0, 0].set_ylabel("$W^{(\mathrm{h})}$")
+    axes[1, 0].set_ylabel("$W^{(\mathrm{o})}$")
+    for i in range(2):
+        axes[1, i].set_xlabel("Iteration")
+
+    plt.subplots_adjust(hspace=0.05
+                        , wspace=0.4)
+
+    save_plot(fig, "network_evolution_circles", (7, 3))
+    plt.subplots_adjust(hspace=0.4
+                        , wspace=0.4)
+    save_plot(fig, "network_evolution_circles_larger", (7, 4))
     #
     # # circles plots
     # def points_to_rates(points):
@@ -371,43 +378,43 @@ if __name__ == "__main__":
 
     ###### variable weight#####
 
-    sigmoid_mmnt_npz = np.load("sigmoid_mmnt_variable_weights_longer_final.npz")
-    freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
-    freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
-    changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
-
-    fig = plt.figure()
-    for i, p in enumerate(changing_parameter):
-        popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out[i], method='dogbox',
-                                 bounds=([0, 0., -10000], [100, 0.1, 10000.]))
-        plt.plot(freq_in, freq_out[i], '.', label="$w_\mathrm{in} = %s$" % p, color=colors[i])
-        plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[i])#, label="sigmoid fit")
-
-    plt.ylabel(label_voutput)
-    plt.xlabel(label_vinput)
-    plt.legend()
-    save_plot(fig, "theoretical_activation_function_variableweight_longer", double_shape)
-
-    # ###### variable biases#####
-    sigmoid_mmnt_npz = np.load("sigmoid_mmnt_variable_bias.npz")
-    freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
-    freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
-    changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
-
-    # freq_out = freq_out[[1,2,3,4,5],:]
-    # changing_parameter = changing_parameter[[1,2,3,4,5]]
-    fig = plt.figure()
-    for i, p in enumerate(changing_parameter):
-        popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out[i], method='dogbox',
-                                 bounds=([0, 0., -10000], [100, 0.1, 10000.]))
-        plt.plot(freq_in, freq_out[i], '.', label="$\delta V = \SI{%s}{\V}$" % p, color=colors[i])
-        plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[i])#, label="sigmoid fit")
-
-
-    plt.ylabel(label_voutput)
-    plt.xlabel(label_vinput)
-    plt.legend()
-    save_plot(fig, "theoretical_activation_function_variablebias_longer_final", double_shape)
+    # sigmoid_mmnt_npz = np.load("sigmoid_mmnt_variable_weights_longer_final.npz")
+    # freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
+    # freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
+    # changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
+    #
+    # fig = plt.figure()
+    # for i, p in enumerate(changing_parameter):
+    #     popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out[i], method='dogbox',
+    #                              bounds=([0, 0., -10000], [100, 0.1, 10000.]))
+    #     plt.plot(freq_in, freq_out[i], '.', label="$w_\mathrm{in} = %s$" % p, color=colors[i])
+    #     plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[i])#, label="sigmoid fit")
+    #
+    # plt.ylabel(label_voutput)
+    # plt.xlabel(label_vinput)
+    # plt.legend()
+    # save_plot(fig, "theoretical_activation_function_variableweight_longer", double_shape)
+    #
+    # # ###### variable biases#####
+    # sigmoid_mmnt_npz = np.load("sigmoid_mmnt_variable_bias.npz")
+    # freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
+    # freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
+    # changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
+    #
+    # # freq_out = freq_out[[1,2,3,4,5],:]
+    # # changing_parameter = changing_parameter[[1,2,3,4,5]]
+    # fig = plt.figure()
+    # for i, p in enumerate(changing_parameter):
+    #     popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out[i], method='dogbox',
+    #                              bounds=([0, 0., -10000], [100, 0.1, 10000.]))
+    #     plt.plot(freq_in, freq_out[i], '.', label="$\delta V = \SI{%s}{\V}$" % p, color=colors[i])
+    #     plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[i])#, label="sigmoid fit")
+    #
+    #
+    # plt.ylabel(label_voutput)
+    # plt.xlabel(label_vinput)
+    # plt.legend()
+    # save_plot(fig, "theoretical_activation_function_variablebias_longer_final", double_shape)
 
     # ######### FREE MEMBRANE ###############
     # free_membrane_npz = np.load("free_membrane_mmnt_20000.npz")
@@ -583,47 +590,47 @@ if __name__ == "__main__":
     # save_plot(fig, "cadcppuoffset", (2.5,2.0))
 
     # # cadc calibration
-    cadc_calib = np.load("cadc_calib_70.npz")
-    def cadc_to_neuron(cadc):
-        neuron_half = (cadc // 64) + 1
-        neuron_quad = cadc // 128
-        vector_part = (cadc // 16) % 4
-        vector_count = cadc % 16
-        neuron_index = 128 * (neuron_half % 2) + vector_count + 16 * (
-                    7 - (2 * vector_part)) - 16 * neuron_quad
-        return neuron_index
-    idx_on_neuron = cadc_to_neuron(np.array(range(256)))
-
-    n = cadc_calib["n"]
-    dynamic_range_in_V = cadc_calib["dac_in_V"]
-    p_per_q = cadc_calib["lin_fit_params_per_quadrant"]
-    # pre calibration
-    fig, axes = plt.subplots(1,2, figsize=(4,2))
-    for quad in range(2):
-        mask = ((128 * quad) <= idx_on_neuron) & (idx_on_neuron < (128 * (quad + 1)))
-        cadc_per_quad = cadc_calib["pre_calib_cadc_storage"][:, mask]
-
-        axes[quad].plot(dynamic_range_in_V, cadc_per_quad)
-        axes[quad].set_xlabel("reference voltage $(\si{\V})$")
-        axes[quad].set_ylabel("CADC lsb")
-    save_plot(fig, "pre_cadc_calib", (4,2))
-
-    # post calibration
-    fig = plt.figure()
-    for quad in range(2):
-        mask = ((128 * quad) <= idx_on_neuron) & (idx_on_neuron < (128 * (quad + 1)))
-        cadc_per_quad = cadc_calib["post_calib_cadc_storage"][:, mask]
-
-
-        lin_fit = lambda x: p_per_q[quad, 0] * x + p_per_q[quad, 1]
-        # find offsets:
-        i = n//2
-        data = cadc_per_quad[i]
-        plt.plot(dynamic_range_in_V, lin_fit(dynamic_range_in_V), label="linear fit q%s " % quad) #: %s *x + %s " %(np.round(p[0],2), np.round(p[1],2)))
-        plt.plot(dynamic_range_in_V, cadc_per_quad, ls="--", alpha=0.1)
-        plt.xlabel("reference voltage $(\si{\V})$")
-        plt.ylabel("CADC lsb")
-        plt.legend()
-        plt.ylim(10, 235)
-
-    save_plot(fig, "post_cadc_calib", (2,2))
+    # cadc_calib = np.load("cadc_calib_70.npz")
+    # def cadc_to_neuron(cadc):
+    #     neuron_half = (cadc // 64) + 1
+    #     neuron_quad = cadc // 128
+    #     vector_part = (cadc // 16) % 4
+    #     vector_count = cadc % 16
+    #     neuron_index = 128 * (neuron_half % 2) + vector_count + 16 * (
+    #                 7 - (2 * vector_part)) - 16 * neuron_quad
+    #     return neuron_index
+    # idx_on_neuron = cadc_to_neuron(np.array(range(256)))
+    #
+    # n = cadc_calib["n"]
+    # dynamic_range_in_V = cadc_calib["dac_in_V"]
+    # p_per_q = cadc_calib["lin_fit_params_per_quadrant"]
+    # # pre calibration
+    # fig, axes = plt.subplots(1,2, figsize=(4,2))
+    # for quad in range(2):
+    #     mask = ((128 * quad) <= idx_on_neuron) & (idx_on_neuron < (128 * (quad + 1)))
+    #     cadc_per_quad = cadc_calib["pre_calib_cadc_storage"][:, mask]
+    #
+    #     axes[quad].plot(dynamic_range_in_V, cadc_per_quad)
+    #     axes[quad].set_xlabel("reference voltage $(\si{\V})$")
+    #     axes[quad].set_ylabel("CADC lsb")
+    # save_plot(fig, "pre_cadc_calib", (4,2))
+    #
+    # # post calibration
+    # fig = plt.figure()
+    # for quad in range(2):
+    #     mask = ((128 * quad) <= idx_on_neuron) & (idx_on_neuron < (128 * (quad + 1)))
+    #     cadc_per_quad = cadc_calib["post_calib_cadc_storage"][:, mask]
+    #
+    #
+    #     lin_fit = lambda x: p_per_q[quad, 0] * x + p_per_q[quad, 1]
+    #     # find offsets:
+    #     i = n//2
+    #     data = cadc_per_quad[i]
+    #     plt.plot(dynamic_range_in_V, lin_fit(dynamic_range_in_V), label="linear fit q%s " % quad) #: %s *x + %s " %(np.round(p[0],2), np.round(p[1],2)))
+    #     plt.plot(dynamic_range_in_V, cadc_per_quad, ls="--", alpha=0.1)
+    #     plt.xlabel("reference voltage $(\si{\V})$")
+    #     plt.ylabel("CADC lsb")
+    #     plt.legend()
+    #     plt.ylim(10, 235)
+    #
+    # save_plot(fig, "post_cadc_calib", (2,2))

@@ -70,7 +70,8 @@ In the \cref{cadccalibration} the final state of the characteristics is plotted 
 \end{figure}
 
 \subsection{Calibration of \gls{lif} Neuron}
-The manufacturing process of analog neuromorphic hardware causes systematic stochastic deviations in the neuron and synapse parameters. The thereby induced heterogeneity between neurons and synapses is referred to as \emph{fixed-pattern noise} and is constant in time. Despite the detuned parameters, it has been shown that plasticity rules can correct the intrinsic imperfections of the analog hardware to a certain degree (\citealp{wunderlich2019advantages}). It is therefore a constant trade-off of between resources invested into the calibration and a decreasing accuracy that comes with less tuned analog setups.
+%The manufacturing process of analog neuromorphic hardware causes systematic stochastic deviations in the neuron and synapse parameters. The thereby induced heterogeneity between neurons and synapses is referred to as \emph{fixed-pattern noise} and is constant in time. Despite the detuned parameters, it has been shown that plasticity rules can correct the intrinsic imperfections of the analog hardware to a certain degree (\citealp{wunderlich2019advantages}). 
+During the calibration routine for the \gls{dls} it has already been mentioned, that analog neuromorphic hardware contains fixed-pattern noise, which in turn can be corrected up to a certain degree by the plasticity rule (\citealp{wunderlich2019advantages}). It is therefore a constant trade-off of between resources invested into the calibration and a decreasing accuracy that comes with less tuned analog setups.
 
 At the time of the experiment, the development of chip-specific software for the new prototype was in an early stage. Among others, there was a lack of a calibration database and more generally, a lack of available calibrated hardware resources. This was largely due to an at the time slow and static calibration routine, that required the allocation of human and hardware resources for several hours to tune a setup.
 
@@ -181,9 +182,15 @@ In an attempt to optimize the performance of the Python based simulation environ
 The chosen initial conditions and neuron parameters for this experiment are inspired by the configuration used in \citealp{zenke2018superspike}. However, some adaptations and a respective time-scaling have to be made, to cope with the analog hardware's acceleration factor of $10^3$. 
 
 The temporal constants used in the backward pass are shown in the \cref{temporalconstants} and resemble an estimate of the detuned hardware time constants. .... 
-\begin{table}\centering\ra{1.3}
+
+
+The \gls{lif} neuron can be fully described by a set of temporal and potential parameters. The potential parameters have been calibrated are set as indicated in \cref{initparameters}. It is important the distance between the resting potential and the threshold is not big, since the synaptic strength is limited on the chip. Yet, a greater gap between these potentials provides a better accuracy for the computation of the backward pass. The final setting is a compromise of both assuring that the 6-bit weights are not exceeding their maximum during training, despite the lack of weight regularization.
+
+In addition to a proper choice of the neuron parameters, the performance of the training strongly depends on the initialized weights and the chosen learning rate (ref to citations for init stuff). In analogy to the simulation of SuperSpike\footnote{\label{fnote}\citealp{zenke2018superspike}} the weights are drawn from a normal distribution which is centered around zero. The learning rates are set, such that both layers show activity but at the same time do not cause rapid weight updates that would in turn required a regularize to keep the weights within their limited range.
+
+\begin{table}[t!]\centering\ra{1.3}
 	\begin{tabular}{@{}rlll@{}}\toprule
-		& Parameter		& 	\gls{hx} & 	SuperSpike\footnote{\citealp{zenke2018superspike}} \\ \midrule
+		& Parameter		& 	\gls{hx} & 	$\text{SuperSpike}^1$ \\ \midrule
 		& membrane constant \gls{tau_m}		& 	$\SI{8}{\micro \s}$ & 	$\SI{10}{\milli \s}$\\
 		& synaptic constant \gls{tau_syn}	&	$\SI{5}{\micro \s}$ & 	$\SI{5}{\milli \s}$\\
 		& refractory period \gls{refrac}	&	$\SI{30}{\micro \s}$ & 	$\SI{5}{\milli \s}$\\
@@ -194,10 +201,6 @@ The temporal constants used in the backward pass are shown in the \cref{temporal
 	\caption[Temporal parameters for SuperSpike.]{Temporal parameters for SuperSpike.}
 	\label{temporalconstants}
 \end{table}
-
-The \gls{lif} neuron can be fully described by a set of temporal and potential parameters. The potential parameters have been calibrated are set as indicated in \cref{initparameters}. It is important the distance between the resting potential and the threshold is not big, since the synaptic strength is limited on the chip. Yet, a greater gap between these potentials provides a better accuracy for the computation of the backward pass. The final setting is a compromise of both assuring that the 6-bit weights are not exceeding their maximum during training, despite the lack of weight regularization.
-
-In addition to a proper choice of the neuron parameters, the performance of the training strongly depends on the initialized weights and the chosen learning rate (ref to citations for init stuff). In analogy to the simulation of SuperSpike\footnote{\citealp{zenke2018superspike}} the weights are drawn from a normal distribution which is centered around zero. The learning rates are set, such that both layers show activity but at the same time do not cause rapid weight updates that would in turn required a regularize to keep the weights within their limited range.
 
 Another tunable parameter in the SuperSpike plasticity rule is the slope of the auxiliary function $\beta$, which is defined in \cref{auxilliaryfunction}. This parameter is chosen with respect to the distance between the resting potential and the threshold. The surrogate gradient increases, the closer the membrane is about the cross the threshold. At rest, the surrogate gradient provides little to no contribution. 
 
@@ -296,7 +299,7 @@ In a more drastic approach the whole hidden layer is removed. According to the t
 The performance of the setup with the applied limitations for the hidden layer is shown in \cref{hiddenlearning}. With the inability to train the hidden layer the accuracy cannot increase. The initial conditions are set in a way, that only little activity is generated by the hidden layer. In the following, the output layer receives only few spikes and fails to build a fire response upon them. In case of the removed hidden layer, the accuracy settles below 50 \%. This reflects the nature of the XOR-related classification task. In the best case only two out four patterns are correctly identified. 
 All in all, this confirms that the presented experimental implementation of SuperSpike requires not only a deep network structure but also training activity within the hidden layer.
 
-\begin{figure}
+\begin{figure}[htb!]
 		\centering
 		\input{figures/accuracy_63_hiddentraining.pgf}
 	\caption[Performance of SuperSpike without hidden learning or hidden layer.]{Performance of SuperSpike without hidden learning or hidden layer. The accuracy without the possibility to train the hidden layer remains low, as the initial state does not allow many spikes to pass the hidden layer. The accuracy of with a missing hidden layer settles below 50 \%. Due to the nature of the XOR related task, only two out of four answers can be correctly given without a deep structure.}
@@ -304,15 +307,54 @@ All in all, this confirms that the presented experimental implementation of Supe
 \end{figure}
 
 \subsubsection*{Transferability between Chips}
-Throughout the development process of the experimental setup for SuperSpike several \gls{hx} setups have been in use. During this phase, the differences between the individual chips could be noticed to some extent, especially when hand tuned calibration routines had to be redone for a new setup. Overall, the performance appeared to not suffer too much. In an attempt to create some evidence, the presented data from above is remeasured on different setup.
+Throughout the development process of the experimental setup for SuperSpike several \gls{hx} setups have been in use. During this phase, the differences between the individual chips could be noticed to some extent, especially when hand tuned calibration routines had to be redone for a new setup.
+\begin{figure}[b!]
+	\begin{subfigure}{0.5\textwidth}
+		%		\caption{}
+		\centering
+		\input{figures/hidden_mem_tra_73.pgf}
+		%		\label{hx63vs73bp}
+	\end{subfigure}
+	\begin{subfigure}{0.5\textwidth}
+		%		\caption{}
+		\centering
+		\input{figures/hidden_mem_tra_63.pgf}
+		%		\label{hx63vs73bp}
+	\end{subfigure}
+	\caption[Membrane trace comparison between \gls{hx} setups.]{Membrane trace comparison between \gls{hx} setups. The calibration of the resting potential for the setup ``63" (right) did not work as well as for ``73" (left).}
+	\label{hxsetupmemtracescomparison}
+\end{figure}
+In a direct comparison of the calibrated membrane traces, the second chip is less precise. Specifically the resting potential is well spread (\cref{hxsetupmemtracescomparison}). As a consequence, the threshold level in the hidden and output layer has been increased by \SI{0.05}{V}. Overall, the performance appeared to not suffer too much. In an attempt to create some evidence, the presented data from above is remeasured on different setup.
 
-In a direct comparison, the calibration results of the second chip are less precise. Specifically the resting potential is well spread. As a consequence, the threshold level in the hidden and output layer have been shifted by \SI{0.5}{V}. 
+Given the fair amount of spread in the resting potential, the second chip performs still reasonable well. In \cref{hxsetuptransferability} the individual performance of the setups is compared per measurement method. \textbf{Write something to BP}. The performance of a random propagation matrix based on a normal distribution is almost identical for both chips. However, the uniform distribution performed worse on the second chip, which is most likely due to the larger amount of fixed-pattern noise. 
 
-example plot of traces maybe? 73 vs 63
+All in all, the transferability between setups can not only be subjectively observed, but actually works without causing too much issues. One should keep in mind, that the calibration routine in use is heavily exposed to the cross-talk problematic, which can differ from setup to setup. Furthermore, the reduction of the fixed-pattern noise is limited to the neuron potentials. With the use of a more extensive and robust calibration routines, the performance and transferability will most certainly be increased. 
 
-und dann noch vergleich der ergbenisse.
-
-schlussfolgerung.
-
-ende hxsuperspike
-
+\begin{figure}[htb!]
+	\begin{subfigure}{0.24\textwidth}
+%		\caption{}
+		\centering
+		\input{figures/accuracy_63VS73_BP_small.pgf}
+%		\label{hx63vs73bp}
+	\end{subfigure}
+	\begin{subfigure}{0.24\textwidth}
+%		\caption{}
+		\centering
+		\input{figures/accuracy_63VS73_FAnormal_small.pgf}
+%		\label{hx63vs73bp}
+	\end{subfigure}
+	\begin{subfigure}{0.24\textwidth}
+%		\caption{}
+		\centering
+		\input{figures/accuracy_63VS73_FAuniform_small.pgf}
+%		\label{hx63vs73bp}
+	\end{subfigure}
+	\begin{subfigure}{0.24\textwidth}
+%		\caption{}
+		\centering
+		\input{figures/accuracy_63VS73_nohiddenlearning_small.pgf}
+%		\label{hx63vs73}
+	\end{subfigure}
+	\caption[Setup transferability for SuperSpike.]{Setup transferability for SuperSpike. The \gls{hx} setups ``63" and ``73" are compared to each other. The performances of backpropagation, feedback alignment with a normal and uniform distribution and the no hidden learning are shown.}
+	\label{hxsetuptransferability}
+\end{figure}

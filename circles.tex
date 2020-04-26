@@ -1,6 +1,6 @@
 \chapter{Classification of the Circles Data Set on \acrshort{bss2}}
 \label{circles}
-At the beginnings of the machine learing era, \cite{perceptron} have shown that a simplified single-layer neuronal network, the perceptron, cannot solve the XOR operator, which resembles a combination of the logical operators OR and NOT AND resulting in an ``exclusive or". The XOR operator represent a class of problems, that are non-linear and thus require a multi-layer network structure to be solved. In modern machine learning solving the XOR operator has therefore become sort of a sanity-check for novel network designs and algorithms.
+At the beginnings of the machine learing era, \cite{perceptron} have shown that a simplified single-layer neuronal network, the perceptron, cannot solve the XOR problem or ``exclusive or". The XOR operator represent a class of problems, that are non-linear and thus require a multi-layer network structure with non-linear activation function to be solved (\citealp{Goodfellow-et-al-2016}). In modern machine learning solving the XOR operator has therefore become sort of a sanity-check for novel network designs and algorithms.
 
 Circles is the first of two deep learning experiments implemented on the \gls{bss2} platform and focuses on a rate coding approach which has been motivated in \cref{ratecoding}. After successfully testing the \acrlong{sgd} approach with a quick XOR implementation on the prototype \gls{dls}, the difficulty of the task has been increased with the circles data set. Additionally, the task is implemented as an on-chip experiment, i.e. the training implementation of circles is executed using only on-chip available resources, such as the dedicated \acrlong{ppu}. For monitoring purposes of the training process certain hardware parameters and training related variables are continuously read-out through the FPGA interface.
 
@@ -54,34 +54,40 @@ With a slight modification of the task, the implementation effort on the \gls{pp
 
 To identify the classes in the output layer only a single unit is required. Each data point $p$ yields a certain output fire rate $\gls{nuout}(p)$ in the output layer, which is compared to a target rate $\nu^*$ depending on the class of point $p$
 \begin{align}
-\label{circlestarget}
 \nu^*(p) =
 \begin{cases}
 \nu_0^* = \SI{32.6}{\kilo \Hz} ,&\quad \quad \text{class}(p) = 0,\\
 \nu_1^* = \SI{93.5}{\kilo \Hz} ,&\quad \quad \text{class}(p) = 1.
 \end{cases}
+\label{circlestarget}
 \end{align}
 The mismatch between the target and fire rate then determines the error of the output layer $e^{(o)}$
-\begin{equation}
+\begin{equation*}
 e^{(o)}(p) = \gls{nuout}(p) - \nu^*(p).
-\end{equation}
+\end{equation*}
 A reasonable choice of the target rates is crucial to the training success. If the rates are either too close or too far from each other, the network will have troubles to solve the task. The decision boundary, the rate separating both classes, is chosen to be the mean of both target rates
-\begin{equation}
+\begin{equation*}
 \nu_\text{DB} = \frac{\nu_0^* + \nu_1^*}{2} = \SI{63.05}{\kilo \Hz}.
-\end{equation}
+\end{equation*}
 
 
-\section{Poisson Spike Trains Generation}
+\section{Poisson Spike Train Generator}
 \label{poissonspiketrains}
 In the introduction to rate coding (\cref{ratecoding}) the mean fire rate $\nu$ of a neuron has been defined by the number of spikes $n_\text{spikes}$ sent within a period $T$
-\begin{equation}
+\begin{equation*}
 \nu = \frac{n_\text{spikes}}{T},
-\end{equation}
+\end{equation*}
 and it was mentioned that this formalism is only well defined, if the temporal distribution of the spikes within a spike train is based on Poisson processes.
 
-One way to numerically generate such a Poisson spike train is to repeatedly perform a Bernoulli process on a short time interval $\Delta t$ until a spike train of period $T$ is filled with spike or no-spike events. The Bernoulli process is equal to an unfair coin flip with probability $p$, which is set depending on the desired fire rate $\nu$ by $p = \nu \cdot \Delta t$.
+One way to numerically generate such a Poisson spike train is to repeatedly perform a Bernoulli process on a short time interval $\Delta t$ over a period $T$. The Bernoulli process is equivalent to an unfair coin flip with probability $p$, which is set depending on the desired fire rate $\nu$ by $p(\nu) = \nu \cdot \Delta t$. Given that the probability equals one, i.e. at every time interval a spike will be fired, the fire rate reaches its maximum at $\nu_\text{max} = \nicefrac{1}{\Delta t}$.
 
-Given the coin's probability equals one, the fire rate reaches its maximum at $\nu_\text{max} = \nicefrac{1}{\Delta t}$. With respect to the hardware limitations, in particular the time required to generate an artificial spike on the \gls{ppu}, the maximum fire rate is limited to $\nu_\text{max, ppu} = \nicefrac{1}{\SI{0.44}{\mu \s}} = \SI{2.27}{\mega \Hz}$. However, at maximum rate, the spike generation can no longer be assumed to follow a Poisson Distribution and should only be used for frequencies $\nu \ll \nu_\text{max, ppu}$.
+With respect to the hardware limitations, in particular the time required to generate the shortest possible spike on the \gls{ppu} $\Delta t_\text{spike}$, the maximum fire rate is limited to 
+\begin{align*}
+\nu_\text{max, ppu} = \frac{1}{\Delta t_\text{spike}} = \frac{1}{\SI{0.44}{\mu \s}} = \SI{2.27}{\mega \Hz}.
+\end{align*}
+The duration of the shortest configurable spike on the \gls{ppu} is determined by measuring the duration of a constant spiking pattern with the highest possible frequency and for a known number of spikes. The number of spikes is determined by the on-chip spike counters and the duration is simply measured by recording the membrane potential with an oscilloscope.
+
+However, at maximum rate, the spike generation can no longer be assumed to follow a Poisson Distribution and should only be used for frequencies $\nu \ll \nu_\text{max, ppu}$.
 
 % Stopped here, rewrite again not schlüssig yet...
 The use case of the spike generator in the final setup is to generate noise spike trains for the sigmoid transfer function and to map the translate the circles data set into input rates. Only the latter requires high input rates up to $\SI{500}{\kilo \Hz}$, the noise rate is only in order of a few $\si{\kilo \Hz}$.
@@ -89,7 +95,7 @@ The use case of the spike generator in the final setup is to generate noise spik
 %In theory the maximum fire rate of a \gls{lif} neuron $\nu_\text{max}$ is give by $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$.
 %In the final experiment setup, the output rate of an individual neuron is further constraint by a chosen 8-bit resolution of the spike counts and a measurement period of a few milliseconds to a measurable rate in order of few $\SI{100}{\kilo \Hz}$.
 %will be divided into four independent channels, each producing at max a fourth of $\nu_\text{max, hw}$.
-On the \gls{ppu} the Bernoulli process is implemented by comparing a certain probability with a randomly drawn number. A popular method to generate random numbers on a system with limited memory and computational resources is the \emph{xorshift} (\citealp{marsaglia2003xorshift}). A random number is thereby generated by repeatedly applying the XOR operator on a seed variable and a bit-shifted versions of itself. The \emph{bit shift} of a variable $x$ to the left by $n$, written as $x\;{\scriptstyle<<}\;n$, corresponds to the multiplication by $2^n$. In analogy, a shift the right, $x\;{\scriptstyle>>}\;n$, is equivalent to the division by $2^n$. The xorshift can be implemented in C as follows.
+On the \gls{ppu} the Bernoulli process is implemented by comparing the frequency dependent probability $p(\nu)$ with a randomly drawn number. A popular method to generate random numbers on a system with limited memory and computational resources is the \emph{xorshift} (\citealp{marsaglia2003xorshift}). A random number is thereby generated by repeatedly applying the XOR operator on a seed variable and a bit-shifted versions of itself. The \emph{bit shift} of a variable $x$ to the left by $n$, written as $x\;{\scriptstyle<<}\;n$, corresponds to the multiplication by $2^n$. In analogy, a shift the right, $x\;{\scriptstyle>>}\;n$, is equivalent to the division by $2^n$. The xorshift can be implemented in C as follows.
 
 %\begin{minted}{C}
 %uint32_t xorshift32(uint32_t* seed)
@@ -113,7 +119,7 @@ On the \gls{ppu} the Bernoulli process is implemented by comparing a certain pro
 %	\label{vleak_w_noise}
 %\end{figure}
 
-The theoretical ground for a sigmoid transfer function for a \gls{lif} neuron has been motivated in section \cref{ratebasedtraining}. The overall transfer function then depends on several parameters
+The theoretical ground for a sigmoid activation function for a \gls{lif} neuron has been motivated in \cref{ratebasedtraining}: The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ which in turn leads to a sigmoid activation function. The overall transfer function then depends on several parameters
 \begin{equation}
 \gls{transfer} = \gls{transfer}(\gls{nuin}, b, \gls{refrac}, f_{\gls{v_mem}}),
 \end{equation}
@@ -136,7 +142,7 @@ In an uncalibrated state of the \gls{dls}, the transfer functions of the neurons
 		\input{figures/calibrated_activation_function.pgf}
 		\label{transferfunction_w_calib}
 	\end{subfigure}
-	\caption[Calibration of the sigmoid activation function on \acrshort{dls}.]{Calibration of the activation function on \acrshort{dls}. \textbf{(\subref{transferfunction_wout_calib})}: In the uncalibrated state the maximum (\gls{refrac}) and center rate (\gls{v_leak}) deviates due to analog imperfections of the hardware. \textbf{(\subref{transferfunction_w_calib})}: The calibration aligns the dynamic range of individual neurons, which will helps the training.}
+	\caption[Calibration of the sigmoid activation function on \acrshort{dls}.]{Calibration of the activation function on \acrshort{dls}. \textbf{(\subref{transferfunction_wout_calib})}: In the uncalibrated state the maximum (\gls{refrac}) and center rate (\gls{v_leak}) deviates due to imperfection in the manufacturing process of the analog hardware.  \textbf{(\subref{transferfunction_w_calib})}: The calibration aligns the dynamic range of individual neurons, which will helps the training.}
 \end{figure}
 
 The on-chip calibration uses a binary search algorithm to find suitable \gls{dac}-values for the analog neuron parameters (\citealp{binarysearchsource}). In a binary search, a target value is compared to the middle value of an sorted array. Depending on the outcome of the comparison the lower or the upper half is eliminated from searched space. The search is repeated with new boundaries set by the remaining half. In a worst case scenario, after $\mathcal{O}(\log(n))$ repetitions the algorithm finds the target value in an array with $n$ entries.
@@ -155,7 +161,7 @@ The alignment along the x-axis is slightly more complicated. A neuron approximat
 \end{equation}
 In the binary search, the \gls{dac} value of the resting potential is calibrated while the threshold is kept fixed at $\gls{thres} \approx \SI{450}{\milli \V}$. The target center rate is set to $\nu_\text{center}^* = \nicefrac{\gls{nuout}^*}{2}$.
 
-In theory, the choice of the potential for the fixed threshold is kind of arbitrary, but during testing, the neurmorphic hardware in use proved to have more and less stable working points. 
+The chosen work point of the threhold and resting potential should in principle be arbitrary, but during testing, more stable and less stable choices have been observed why the choice of the potential for the fixed threshold is kind of arbitrary, but during testing, the neurmorphic hardware in use proved to have more and less stable working points. 
 
 The calibration of the maximum and center rate is repeated several times to reduce the potential the influence of the other yet uncalibrated parameter. In \cref{transferfunction_w_calib} the final calibrated state is shown. 
 

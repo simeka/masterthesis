@@ -371,7 +371,7 @@ if __name__ == "__main__":
 
     ###### variable weight#####
 
-    sigmoid_mmnt_npz = np.load("sigmoid_mmnt_variable_weights_longer.npz")
+    sigmoid_mmnt_npz = np.load("sigmoid_mmnt_variable_weights_longer_final.npz")
     freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
     freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
     changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
@@ -407,7 +407,7 @@ if __name__ == "__main__":
     plt.ylabel(label_voutput)
     plt.xlabel(label_vinput)
     plt.legend()
-    save_plot(fig, "theoretical_activation_function_variablebias", double_shape)
+    save_plot(fig, "theoretical_activation_function_variablebias_longer_final", double_shape)
 
     # ######### FREE MEMBRANE ###############
     # free_membrane_npz = np.load("free_membrane_mmnt_20000.npz")
@@ -565,19 +565,65 @@ if __name__ == "__main__":
     # plt.ylabel('density')
     # save_plot(fig, "vthreshold_pre_post_calibration", (2, 2))
 
-    # # time offset cadc ppu
-    cadcppuoffset = np.load("cadcppuoffset.npz")
-    offsets = cadcppuoffset["offsets"]
-    offsets_corrected = cadcppuoffset["offsets_corrected"]
-    a = 0.5
+    # # # time offset cadc ppu
+    # cadcppuoffset = np.load("cadcppuoffset.npz")
+    # offsets = cadcppuoffset["offsets"]
+    # offsets_corrected = cadcppuoffset["offsets_corrected"]
+    # a = 0.5
+    # fig = plt.figure()
+    # plt.hist(offsets, alpha=a, color=colors[0], label="$\Delta T$", density=True)
+    # plt.axvline(offsets.mean(), color=colors[0], ls="--", label="mean")
+    # plt.hist(offsets_corrected, alpha=a, color=colors[1], label="$\Delta T_\mathrm{corr}$",
+    #          density=True)
+    # plt.axvline(offsets_corrected.mean(), color=colors[1], ls="--", label="corr. mean")
+    # plt.xlabel("$\Delta T \; (\si{\micro \s})$")
+    # plt.ylabel("density")
+    # plt.ylim(0,0.42)
+    # plt.legend()
+    # save_plot(fig, "cadcppuoffset", (2.5,2.0))
+
+    # # cadc calibration
+    cadc_calib = np.load("cadc_calib_70.npz")
+    def cadc_to_neuron(cadc):
+        neuron_half = (cadc // 64) + 1
+        neuron_quad = cadc // 128
+        vector_part = (cadc // 16) % 4
+        vector_count = cadc % 16
+        neuron_index = 128 * (neuron_half % 2) + vector_count + 16 * (
+                    7 - (2 * vector_part)) - 16 * neuron_quad
+        return neuron_index
+    idx_on_neuron = cadc_to_neuron(np.array(range(256)))
+
+    n = cadc_calib["n"]
+    dynamic_range_in_V = cadc_calib["dac_in_V"]
+    p_per_q = cadc_calib["lin_fit_params_per_quadrant"]
+    # pre calibration
+    fig, axes = plt.subplots(1,2, figsize=(4,2))
+    for quad in range(2):
+        mask = ((128 * quad) <= idx_on_neuron) & (idx_on_neuron < (128 * (quad + 1)))
+        cadc_per_quad = cadc_calib["pre_calib_cadc_storage"][:, mask]
+
+        axes[quad].plot(dynamic_range_in_V, cadc_per_quad)
+        axes[quad].set_xlabel("reference voltage $(\si{\V})$")
+        axes[quad].set_ylabel("CADC lsb")
+    save_plot(fig, "pre_cadc_calib", (4,2))
+
+    # post calibration
     fig = plt.figure()
-    plt.hist(offsets, alpha=a, color=colors[0], label="$\Delta T$", density=True)
-    plt.axvline(offsets.mean(), color=colors[0], ls="--", label="mean")
-    plt.hist(offsets_corrected, alpha=a, color=colors[1], label="$\Delta T_\mathrm{corr}$",
-             density=True)
-    plt.axvline(offsets_corrected.mean(), color=colors[1], ls="--", label="corr. mean")
-    plt.xlabel("$\Delta T \; (\si{\micro \s})$")
-    plt.ylabel("density")
-    plt.ylim(0,0.42)
-    plt.legend()
-    save_plot(fig, "cadcppuoffset", (2.5,2.0))
+    for quad in range(2):
+        mask = ((128 * quad) <= idx_on_neuron) & (idx_on_neuron < (128 * (quad + 1)))
+        cadc_per_quad = cadc_calib["post_calib_cadc_storage"][:, mask]
+
+
+        lin_fit = lambda x: p_per_q[quad, 0] * x + p_per_q[quad, 1]
+        # find offsets:
+        i = n//2
+        data = cadc_per_quad[i]
+        plt.plot(dynamic_range_in_V, lin_fit(dynamic_range_in_V), label="linear fit q%s " % quad) #: %s *x + %s " %(np.round(p[0],2), np.round(p[1],2)))
+        plt.plot(dynamic_range_in_V, cadc_per_quad, ls="--", alpha=0.1)
+        plt.xlabel("reference voltage $(\si{\V})$")
+        plt.ylabel("CADC lsb")
+        plt.legend()
+        plt.ylim(10, 235)
+
+    save_plot(fig, "post_cadc_calib", (2,2))

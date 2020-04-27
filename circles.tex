@@ -32,11 +32,11 @@ The Circles data set from \cref{circlestasksketch} describes in principle a set 
 \end{align}
 with the confining inner and outer radiuses of the first and second annulus $r_{\text{inner}}$, $r_{\text{outer}}$ and  $R_{\text{inner}}$, $R_{\text{outer}}$ respectively. The goal of the task is to find a decision boundary that successfully separates the both annuli.
 
-For a rate-based task, the data points need to be translated into fire rates. A point $p$ is represented by two signed \SI{8}{\bit} integers resembling its coordinates $x$ and $y$ which fall in the range $x, y \in [-128,127]$. Each point is then mapped onto a frequency depending on either of the coordinates. The rate dependency of a coordinate $c \in \{x,y\}$ is given by
+For a rate-based task, the data points need to be translated into firing rates. A point $p$ is represented by two signed \SI{8}{\bit} integers resembling its coordinates $x$ and $y$ which fall in the range $x, y \in [-128,127]$. Each point is then mapped onto a frequency depending on either of the coordinates. The rate dependency of a coordinate $c \in \{x,y\}$ is given by
 \begin{equation}\label{inputfrequency}
 \nu_{\text{input, c}}(c) = \nu_\text{max} \cdot \frac{c + 128}{255},
 \end{equation}
-with the maximum fire rate $\nu_\text{max}$ that is given by a Poisson spike train source. 
+with the maximum firing rate $\nu_\text{max}$ that is given by a Poisson spike train source. 
 
 
 
@@ -59,7 +59,7 @@ In \cref{circlesinputs} the frequency dependent input and the final shape of the
 	\caption[Rate coding for the circles experiment.]{Rate coding for the circles experiment. Each point $p(x,y)$ of a representative validation data set with 100 points per class is mapped to a frequency depending on the x-direction. The figure resembles one of two input nodes in the input layer of the network. The second input node depends on the y-direction.}
 	\label{circlesinputs}
 \end{figure}
-To identify the classes in the output layer only a single unit is required. Each data point $p$ yields a certain output fire rate $\gls{nuout}(p)$ in the output layer, which is compared to a target rate $\nu^*$ depending on the class of point $p$
+To identify the classes in the output layer only a single unit is required. Each data point $p$ yields a certain output firing rate $\gls{nuout}(p)$ in the output layer, which is compared to a target rate $\nu^*$ depending on the class of point $p$
 \begin{align}
 \nu^*(p) =
 \begin{cases}
@@ -68,7 +68,7 @@ To identify the classes in the output layer only a single unit is required. Each
 \end{cases}
 \label{circlestarget}
 \end{align}
-The mismatch between the target and fire rate then determines the error of the output layer $e^{(o)}$
+The mismatch between the target and firing rate then determines the error of the output layer $e^{(o)}$
 \begin{equation*}
 e^{(o)}(p) = \gls{nuout}(p) - \nu^*(p).
 \label{circleserror}
@@ -238,7 +238,14 @@ A Poisson spike train generator on the \gls{ppu} provides a stream of random spi
 \subsubsection*{Backward Pass}
 The \textbf{backward pass} evaluates the output rates of each node in the network that have been obtained by the forward pass and computes an update for weights and biases according to \glsfirst{sgd} (\cref{stochasticgradientdescent}).
 
-The general-purpose unit of the \gls{ppu} operates with a 32-bit architecture without hardware-support to floating point types. To increase the precision of the parameter updates, the computation is bit-shifted to the left. The calculated results are then stochastically rounded and and shifted back right before being applied to the hardware. Stochastic rounding has been proven to be a viable workaround for deep learning with parameters of limited precision (\citealp{limitedprecisionpaper}). Typical methods of directed rounding to an integer $x$ are rounding up $\lceil x\rceil$, down $\lfloor x\rfloor$ or to the nearest neighbor $\lceil\frac{\lfloor2x\rfloor}{2}\rceil$. Stochastic rounding on the other hand rounds with a probability p corresponding to the proximity to the upper or lower neighbor.
+The general-purpose unit of the \gls{ppu} operates with a 32-bit architecture without hardware-support to floating point types. To increase the precision of the parameter updates, the computation is bit-shifted to the left. The calculated results are then stochastically rounded and and shifted back right before being applied to the hardware. Stochastic rounding has been proven to be a viable workaround for deep learning with parameters of limited precision (\citealp{limitedprecisionpaper}). Typical methods of directed rounding to an integer $x$ are rounding up $\lceil x\rceil$, down $\lfloor x\rfloor$ or to the nearest neighbor $\lceil\frac{\lfloor2x\rfloor}{2}\rceil$. Stochastic rounding on the other hand rounds $x$ with a probability $p$ corresponding to the proximity to the upper or lower neighbor
+\begin{equation*}
+x_\text{stoch}(x) = 
+\begin{cases}
+\lfloor x \rfloor \quad \quad &\text{with } p = 1 - (x - \lfloor x \rfloor), \\
+\lfloor x \rfloor + 1 &\text{with } p = 1 - \lfloor x \rfloor. \\
+\end{cases}
+\end{equation*}
 
 Direct access to the analog weight parameters from the general-purpose unit is time-consuming and computation intensive due to the lack of parallelizations. With feedback alignment, the need of the current weight information becomes irrelevant to the plasticity rule. Only the computed weight update needs to be applied somehow. This can be implemented by using the vector unit. The \gls{simd} instructions allow parallel access to all weights and therefore it is not only used to efficiently apply the weight updates but also to silence and reactivated the respective synapses in the double-row structure of the synapse array. The \emph{assembly} code-base for this implementation has been co-written by Sebastian Billaudelle and Benjamin Cramer.
 
@@ -252,19 +259,19 @@ The impact of the regularization is fine tuned by applying it only with a probab
 
 The bias is set by lowering or raising the \gls{dac}-value of the threshold potential. The resolution of the capacitive parameter memory equals to roughly \SI{1.7}{\milli \V}, which in turn translates to a change of the input frequency of about \SI{9.9}{\kilo \Hz}. As a comparison the maximum input frequency of a neuron is around \SI{1}{\mega \Hz}, but the magnitude of the typical presynaptic activity will only be at a few \SI{100}{\kilo \Hz}. Hence, the bias has a rather coarse resolution.
 
-However, compared to the speed of the accelerated neuromorphic core, the \acrlong{dac} is slow. Instead of an instant and large change of the bias, a continuous and slow implementation can reduce potential negative effects of the coarse bias resolution.
+However, compared to the speed of the accelerated neuromorphic core, the \acrlong{dac} is slow. Instead of an instant and large change of the bias, a continuous and slow implementation can reduce potential negative effects of the coarse bias resolution, especially in combination with a low learning rate.
 
 \subsubsection*{Initial Conditions and Hyperparameters}
 
-The final experiment setup involves the setting of initial conditions, neuron parameters and the tuning of so called hyper-parameters. The latter are a set of parameters, that is not changed by during the training process but their choice often determines whether or not the training succeeds (\citealp{Goodfellow-et-al-2016}). A subset of the most relevant parameters is listed in \cref{circlesinitparameters}.
+The final experiment setup involves the setting of initial conditions, neuron parameters and the tuning of hyper-parameters. The latter are a set of parameters, that is not changed by during the training process but their choice often determines whether or not the training succeeds (\citealp{Goodfellow-et-al-2016}). A subset of the most relevant parameters is listed in \cref{circlesinitparameters}.
 
 At the beginning of the experiment all weights of both layers are randomly initialized using a uniform distribution ranging from $-25$ to $25$. 
 
-The bias of both layers is initially set to zero, i.e. $\gls{thres} = \gls{v_leak}$. In this setting it has been observed that a ``silent" hidden unit at the start of the training has a hard to time becoming active during the training process. As a workaround, a weight dependent term is added to the zero bias, such that $b_i^\text{init} \propto \sum_j w_{ij}$. A initial fire rate of every neuron is now ensured at the beginning of the training solving the problem of silenced hidden units.
+The initial bias of both layers is set to zero, i.e. $\gls{thres} = \gls{v_leak}$. In this setting it has been observed that a ``silent" hidden unit at the start of the training most likely remains inactive throughout the training process. As a workaround, a weight dependent term is added to the zero bias, such that $b_i^\text{init} \propto \sum_j w_{ij}$. This ensures an initial firing rate of every neuron at the beginning of the training.
 
-In the final setting, the incline of the activation function needed to be raised by a fairly amount resulting in a noise frequency $\nu_\text{noise}$ of roughly \SI{1.1}{\kilo \Hz}, which corresponds only to a fraction of the available resource. The impact of the noise spikes is tuned by the synaptic weight $w_\text{noise}$ which is set to $\pm 15$ for excitatory and inhibitory spikes respectively.
+In the final setting, the incline of the activation function needed to be raised by a fair amount resulting in a noise frequency $\nu_\text{noise}$ of roughly \SI{1.1}{\kilo \Hz}, which corresponds only to a fraction of the available resource. The impact of the noise spikes is tuned by the synaptic weight $w_\text{noise}$ which is set to $\pm 15$ for excitatory and inhibitory spikes respectively.
 
-The input layer, on the other hand, exploit almost the maximum with fire rates ranging from \SIrange{0}{500}{\kilo \Hz}. The maximum input rate of a hidden unit is then given by the combined input of both input units. The same applies to the output layer where the output rates of the hidden units are combined to a maximum input of $11 \times \SI{111.3}{\kilo \Hz}$.
+The input layer, on the other hand, exploit almost the maximum with firing rates ranging from \SIrange{0}{500}{\kilo \Hz}. The maximum input rate of a hidden unit is then given by the combined input of both input units. The same applies to the output layer where the output rates of the hidden units are combined to a maximum input of $11 \times \SI{111.3}{\kilo \Hz}$.
 
 \begin{table}\centering\ra{1.3}
 	\begin{tabular}{@{}rlll@{}}\toprule
@@ -280,14 +287,14 @@ The input layer, on the other hand, exploit almost the maximum with fire rates r
 		& max input frequency $\nu_{\text{in}}$	&	$2 \times \SI{500}{\kilo \Hz}$	& $11 \times \SI{111.3}{\kilo\Hz}$	\\
 		\bottomrule
 	\end{tabular}
-	\caption[Initial, hyper and neuron parameters per layer.]{Initial, hyper and neuron parameters per layer. Some parameters differ for the hidden and the output layer.}
+	\caption[Initial, hyper and neuron parameters per layer.]{Initial, hyper and neuron parameters per layer. Some parameters require a different setting for the hidden and the output layer.}
 	\label{circlesinitparameters}
 \end{table}
 
 The learning rates may appear unusually high, which is mainly due to the lack of normalization. The normalization was not done beforehand in order to reduce the risk of eliminating small contributions of variables in the on-chip computation of the parameter updates. Furthermore the learning rates are divided into layer and parameter, to cope with the individual magnitudes. Even without the necessity to norm resulting parameter updates, it is not unusual to tune learning rates separately (\citealp{Goodfellow-et-al-2016}). The final rates are set to provide a fair amount of activity for both layers and parameters (c.f. \cref{monitoringplots}).
 
 \section{Training}
-The implementation of a full on-chip training is achieved by generating the required training data set on the fly. In this way, each forward pass is performed with a randomly drawn data point from either of the two annuli from \cref{circlestask}. The backward pass is performed directly after the first training sample, i.e. the minibatch size is one.
+The implementation of a full on-chip training is achieved by generating the required training dataset on the fly. In this way, each forward pass is performed with a randomly drawn data point from either of the two annuli from \cref{circlestask}. The backward pass is performed directly after the first training sample, i.e. the minibatch size is one.
 
 \begin{figure}
 	\begin{center}
@@ -297,13 +304,13 @@ The implementation of a full on-chip training is achieved by generating the requ
 	\label{circles_acc}
 \end{figure}
 
-In the following the network is trained for 2500 iterations. For a better illustration of the training process, a balanced validation data set with $100$ randomly drawn data points per class is chosen to reflecting the current state of the network after every fourth iteration. 
+In the following the network is trained for 2500 iterations. For a better illustration of the training process, a balanced \emph{validation} dataset with $100$ randomly drawn data points per class is chosen to validating the current state of the network after every fifth iteration. The limitation to every fifth step was chosen to reduce the measurement time to a few hours and to cope with the increasing instability of the \gls{fpga} during long measurements.
 
-The same data set is also used to monitor the performance of the training process by computing the \gls{rmse} and the accuracy. The \gls{rmse} is given by
+The same dataset is also used to monitor the performance of the training process by computing the \gls{rmse} and the accuracy. The \gls{rmse} is given by
 \begin{equation}
 \text{\gls{rmse}} = \sqrt{\frac{\sum_p e^{(o)}(p)^2}{n_\text{points}}},
 \end{equation}
-with the error $e^{(o)}$ from \cref{circleserror} and the number of data points $n_\text{points}$ in the validation data set and the accuracy yields
+with the error $e^{(o)}$ from \cref{circleserror} and the number of data points $n_\text{points}$ in the validation dataset and the accuracy yields
 \begin{equation}
 \text{Accuracy} = \frac{n_\text{true}}{n_\text{points}},
 \end{equation}

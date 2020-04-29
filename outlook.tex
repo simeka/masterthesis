@@ -1,7 +1,7 @@
 \chapter{Discussion}
+Within this thesis the implementation of deep learning methods for \gls{snn} has been demonstrated on analog neuromorphic hardware. In a first example the rate-based approach was successfully executed fully \emph{on-chip} on an early prototype of the \acrfull{bss2} platform. A second more complicated method, SuperSpike, was implemented on a full-size version of the platform using a temporal coding and performed well at solving  an XOR-related problem on two distinct setups.
 
-\subsubsection{Rate Coding with SGD}
-- transfer function needs to be non-linear the exact shape and its dependencies on noise rate, time constants, .. is not so important if it is somehow shaped like a non linear activation function.
+\paragraph{Rate Coding with SGD} An on-chip realization of gradient descent for a rate-based \gls{snn} was developed for the \gls{dls}. Despite continuing stability issues of the \gls{fpga} and imperfections of the analog hardware, the Circles dataset could be classified with an accuracy of $(99.6 \pm 0.8) \%$. However, a transferability of the results to other setups could not be achieved without extensive fine-tuning of the new chip.  the calibration Transfer function needs to be non-linear the exact shape and its dependencies on noise rate, time constants, .. is not so important if it is somehow shaped like a non linear activation function.
 
 - working point of membrane -> noise and spread as soon as the working point is left (see transfer function with bias plot) -> not so bad actually for training. the error is trained as well. 
 

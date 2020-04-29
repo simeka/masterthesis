@@ -106,26 +106,26 @@ if __name__ == "__main__":
     ###################################################################################
     # single activation function with multiple weights
 
-    # mmnt = 0
-    # nrn = 9
-    # figure = plt.figure()
-    #
-    # plt.ylabel(label_voutput)
-    # plt.xlabel(label_vinput)
-    # for p in range(4):
-    #     freq_in = input_rates
-    #     freq_out = data[mmnt, p, :, nrn]
-    #     popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out, method='dogbox',
-    #                              bounds=([0, 0., -10000], [500, 0.1, 10000.]))
-    #     plt.plot(freq_in, freq_out, '.',
-    #              label="$b \\propto \delta V = \\vartheta = \SI{%s}{\V}$" % input_weights[p], color=colors[p])
-    #     plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[p])  # , label="sigmoid fit")
-    #
-    #     # plt.legend([Line2D([0],[0], marker='o', color="w", markerfacecolor="black")],
-    #     #           ["input weight = {}".format(input_weights[p])])
-    # plt.ylim(-5,136)
-    # plt.legend()
-    # save_plot(figure, "single_calibrated_transfer_function_w_various_weights", double_shape)
+    mmnt = 0
+    nrn = 9
+    figure = plt.figure()
+
+    plt.ylabel(label_voutput)
+    plt.xlabel(label_vinput)
+    for p in range(4):
+        freq_in = input_rates
+        freq_out = data[mmnt, p, :, nrn]
+        # popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out, method='dogbox',
+        #                          bounds=([0, 0., -10000], [500, 0.1, 10000.]))
+        plt.plot(freq_in, freq_out,
+                 label="$w_\\text{in} = %s$" % input_weights[p], color=colors[p])
+        # plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[p])  # , label="sigmoid fit")
+
+        # plt.legend([Line2D([0],[0], marker='o', color="w", markerfacecolor="black")],
+        #           ["input weight = {}".format(input_weights[p])])
+    plt.ylim(-5,136)
+    plt.legend()
+    save_plot(figure, "single_calibrated_transfer_function_w_various_weights", double_shape)
 
     #
     # ###################################################################################
@@ -184,43 +184,43 @@ if __name__ == "__main__":
 
     # ###################################################################################
     # # Gaussian Free Membrane Distribution
-    # mmnts = ["membrane_data_0.npy", "membrane_data_1.npy"]
-    # input_rates = [0, true_input_spike_rate(100)]
-    # noise_rates = true_input_spike_rate(70)
-    # full_data = np.zeros((2, 26137))
-    # for i in range(2):
-    #     full_data[i] = np.load(mmnts[i])[:26137]
-    #
-    # def gaus(x, mue, sig):
-    #     return np.exp(-(x - mue) ** 2 / (2 * sig ** 2)) / sig / np.sqrt(2 * np.pi)
-    #
-    # fig, axes = plt.subplots(nrows=1)
-    # for i in range(1):
-    #     ax = axes
-    #     kullback_leibler_divergence = []
-    #     data = pd.Series(full_data[i]).dropna()
-    #     y, x = np.histogram(data, bins=200)
-    #     x = x[1:] - (x[1] - x[0]) / 2
-    #     std = data.std()
-    #     mean = data.mean()
-    #     kb_lb_entropy = entropy(y, gaus(x, mean, std))
-    #     kullback_leibler_divergence += [kb_lb_entropy, ]
-    #
-    #     y_normed, _ = np.histogram(data, bins=200, density=True)
-    #     ax.set_ylabel("density")
-    #
-    #     mean_stored = mean
-    #     ax.plot(x, gaus(x, mean, std))
-    #     ax.axvline(mean, linestyle="--")
-    #     ax.text(mean + 2, 0.02, '$V_{\mathrm{leak}}$')
-    #     ax.hist(data, bins=200, alpha=0.3, density=True)
-    #     ax.axvline(x[150 - 1], linestyle="--", color="red")
-    #     ax.text(x[150 - 1] + 2, 0.02, '$\\vartheta$')
-    #     ax.bar(x[150:], y_normed[150:])
-    #
-    #     # ax.legend(["Gaussian Fit", "$V_{leak}$", "$V_{thres}$", "Histogram", "Spiking"], loc="upper left")
-    # ax.set_xlabel("$membrane potential V_\mathrm{m} \; (\si{\milli \V})$")
-    # save_plot(fig, "activation_function_vmem_distr_with_thres", (5,3.5))
+    mmnts = ["membrane_data_0.npy", "membrane_data_1.npy"]
+    input_rates = [0, true_input_spike_rate(100)]
+    noise_rates = true_input_spike_rate(70)
+    full_data = np.zeros((2, 26137))
+    for i in range(2):
+        full_data[i] = np.load(mmnts[i])[:26137]
+
+    def gaus(x, mue, sig):
+        return np.exp(-(x - mue) ** 2 / (2 * sig ** 2)) / sig / np.sqrt(2 * np.pi)
+
+    fig, axes = plt.subplots(nrows=1)
+    for i in range(1):
+        ax = axes
+        kullback_leibler_divergence = []
+        data = pd.Series(full_data[i]).dropna()
+        y, x = np.histogram(data, bins=200)
+        x = x[1:] - (x[1] - x[0]) / 2
+        std = data.std()
+        mean = data.mean()
+        kb_lb_entropy = entropy(y, gaus(x, mean, std))
+        kullback_leibler_divergence += [kb_lb_entropy, ]
+
+        y_normed, _ = np.histogram(data, bins=200, density=True)
+        ax.set_ylabel("density")
+
+        mean_stored = mean
+        ax.plot(x, gaus(x, mean, std))
+        ax.axvline(mean, linestyle="--")
+        ax.text(mean + 2, 0.02, '$V_{\mathrm{leak}}$')
+        ax.hist(data, bins=200, alpha=0.3, density=True)
+        ax.axvline(x[150 - 1], linestyle="--", color="red")
+        ax.text(x[150 - 1] + 2, 0.02, '$\\vartheta$')
+        ax.bar(x[150:], y_normed[150:])
+
+        # ax.legend(["Gaussian Fit", "$V_{leak}$", "$V_{thres}$", "Histogram", "Spiking"], loc="upper left")
+    ax.set_xlabel("$membrane potential V_\mathrm{m} \; (\si{\milli \V})$")
+    save_plot(fig, "activation_function_vmem_distr_with_thres", (5,3.5))
 
     # ##################################################################################
     # # Gaussian Free Membrane Distribution

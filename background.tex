@@ -1,13 +1,13 @@
 \chapter{Background}
 %Starting my final year project at the Electronic Vision(s) group, I soon realized the diversity of their research. 
-The required knowledge to work in the field of neuromorphic computing is broad and manifold, ranging from the biological view of the human brain further to machine learning algorithms. In the next sections, we will introduce the most important concepts and physical backgrounds upon which the presented research in this thesis is based on. Starting with deep learning and an overview of the biological neuron, the transition to neuron models, neuronal coding schemes and their training approaches will be given before introducing the neuromorphic \gls{bss2} platform.
+The required knowledge to work in the field of neuromorphic computing is broad and manifold, ranging from the biological view of the human brain further to machine learning algorithms. In the next sections, the main concepts and the physical background, upon which the presented research is based on is, are introduced. Starting with deep learning and an overview of the biological neuron, the transition to neuron models, neuronal coding schemes and their training approaches will be given before introducing the neuromorphic \gls{bss2} platform. Throughout the thesis, vectors are indicated by an upright boldface $\mathbf{v}$ and matrices by capital letters $M$.
 \section{Deep Learning}
 \label{deeplearning}
-Deep learning is among the most useful and powerful tools machine learning has provided to the scientific community. Image or pattern recognition are in general hard to solve tasks for traditional computation concepts. Deep learning abstracts such task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going down on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it is called \emph{deep learning} (\citealp{Goodfellow-et-al-2016}).
+Deep learning is among the most useful and powerful tools machine learning has provided to the scientific community. Image or pattern recognition are in general hard to solve for traditional computation concepts. Deep learning abstracts such task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going down on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it is called \emph{deep learning} (\citealp{Goodfellow-et-al-2016}).
 
 A popular example for deep learning is the \gls{mlp}, a deep feed-forward network. As the name suggests, the information is forwarded from one layer to another (see \cref{multilayernetwork}). At each layer $l$ the input $\mathbf{x}^{(l)}$ is mapped to an output $\mathbf{y}^{(l)} = \gls{activation}(\mathbf{x}^{(l)}, \mathbf{\theta}^{(l)})$ with the activation function \gls{activation} and a set of parameters $\mathbf{\theta}^{(l)}$. The output of the layer $l$ then determines the input of the next layer, i.e. $\mathbf{y}^{(l)} = \mathbf{x}^{(l+1)}$, and so forth. The layer structure is inspired by biological neural networks and therefore they are often referred to as \gls{ann}. 
 
-An \gls{ann} is trained by adapting the parameters $\mathbf{\theta}^{(l)}$ for all layers following an algorithm. In machine learning, one discriminates between supervised, and unsupervised learning algorithms. Yet, drawing a consequent line to categorize machine learning methods is difficult, as the approaches are sometimes combined into hybrid forms too. Without a supervisor, an algorithm looks for structures and useful properties within the input data. To this end, unsupervised learning algorithms try to observe the underlying probability distribution of the input data. In supervised learning, on the other side, each input vector $x$ is associated with a target vector $\textbf{y}^*$. In this case, the algorithm is trained to predict a target for a given input.
+An \gls{ann} is trained by adapting the parameters $\mathbf{\theta}^{(l)}$ for all layers $l$ following a training algorithm. In machine learning, one discriminates between supervised, and unsupervised learning algorithms. Yet, drawing a consequent line to categorize machine learning methods is difficult, as the approaches are sometimes combined into hybrid forms too. Without a supervisor, an algorithm looks for structures and useful properties within the input data. To this end, unsupervised learning algorithms try to observe the underlying probability distribution of the input data. In supervised learning, on the other side, each input vector $x$ is associated with a target vector $\textbf{y}^*$. In this case, the algorithm is trained to predict a target for a given input.
 
 
 %Given the task to identify a picture of cat, any computer will have a hard time to map the essential information of the camera's sensor data to the class \textit{cat}. An \gls{ann} solves the problem by learning how to describe the raw data in terms of simpler representations and essentially by combining these simpler representations into a meaningful solution in the last layer - the output layer. The first layer is called input layer and all other layers in between are named hidden layers, since they are usually not visible from the outside.\\
@@ -19,25 +19,21 @@ An \gls{ann} is trained by adapting the parameters $\mathbf{\theta}^{(l)}$ for a
 \begin{figure}
 	\centering
 	\input{figures/single_layer_network.tex}
-	\caption[Multi Hidden Layer Network]{Multi Hidden Layer Network. An \acrfull{ann} can have multiple hidden layers, but will always have one input layer and one output layer. The sizes of the individual layers can vary depending on a chosen problem that needs to be solved.} 
+	\caption[Deep artifical neural network]{Deep artifical neural network. An \acrfull{ann} can n hidden layers will always have an input $\mathbf{x}^{(1)})$ and one output layer $y^{(o)}$. The sizes of the input and the individual layers can vary depending on a chosen problem.} 
 	\label{multilayernetwork}
 \end{figure}
 %\end{wrapfigure}
-The training process of an \gls{ann} can be divided into a \emph{forward pass} where the output of all nodes is evaluated and a \emph{backward pass} which is responsible for the learning.
-
-In the \textbf{forward pass}, the input $\mathbf{x}^{(l)}$ of a layer $l$ sums to a net input $\mathbf{a}^{(l)}$ of
+The supervised training of an \gls{ann} can be divided into a \emph{forward pass} where the output of all nodes is evaluated and a \emph{backward pass} which computes the respective parameter updates. In the \textbf{forward pass}, the input $\mathbf{x}^{(l)}$ of a layer $l$ sums to a net input $\mathbf{a}^{(l)}$ of
 \begin{align*}
 \mathbf{a}^{(l)} = W^{(l)} \, \mathbf{x}^{(l)} + \mathbf{b}^{(l)} + \left(\text{noise}\right), 
 \end{align*}
-with the weight matrix $W^{(l)}$, the bias $\mathbf{b}^{(l)}$ and an optional noise term. The output $\mathbf{y}^{(l)}$ of the layer is then given by the activation function $\phi$, e.g. a sigmoid
+with the weight matrix $W^{(l)}$, the bias $\mathbf{b}^{(l)}$ and an optional noise term. Depending on the task, the bias as well as the optional noise term can be vital: the individual biases for instance allow the network to adjust the dynamic range of each neuron and the injection of artificial noise can significantly increase the training performance (\citealp{an1996effects}).
+
+The output $\mathbf{y}^{(l)}$ of the layer $l$ is then given by the activation function $\phi$, e.g. a sigmoid
 \begin{equation*}
 \mathbf{y}^{(l)} = \phi(\mathbf{a}^{(l)}) = \frac{1}{1 + e^{(-\beta \mathbf{a}^{(l)})}},
 \end{equation*}
-with a slope parameter $\beta$ of the sigmoid. Popular choices for the activation function are among others a \gls{relu}, a hyperbolic tangent ($\tanh$) or a sigmoid (see \cref{deeplearning_activation_functions} for comparison). For the context of this thesis, the sigmoid is the preferred option, which is mainly due to past usage of the function in internal projects.
-
-However, it is important that the chosen function is non-linear. A linear activation function makes the layer structure redundant, as the composition of linear linear functions yields again a linear function and therefore all layers of a deep network could be merged into a single one.
-
-Depending on the task, the bias as well as the optional noise term can be vital: the individual biases for instance allow the network to adjust the dynamic range of each neuron and the injection of artificial noise can significantly increase the training performance.
+with the slope parameter $\beta$. Popular choices for the activation function besides a sigmoid are a \gls{relu} or the hyperbolic tangent ($\tanh$). In \cref{dltransfer} the various activation functions are shown for comparison. However, more important than the exact shape is that the chosen function is non-linear. A linear activation function makes any layer structure redundant, as the composition of linear linear functions yields again a linear function and therefore all layers of a deep network could be merged into a single one.
 
 The same principle is then applied to all other layers to complete the forward pass, i.e. the result of the previous layer is the input for the current layer. The weight matrix $W^{\text{(l)}}$ connecting layer $l$ with $l-1$ has the appropriate shape to fit the number of input nodes $n^{\text{(l-1)}}_\text{nodes}$ and output nodes $n^{\text{(l)}}_\text{nodes}$.
 
@@ -54,22 +50,20 @@ The same principle is then applied to all other layers to complete the forward p
 		\inputpgf{figures}{deeplearning_activation_functions_derivative.pgf}	
 		\label{dltransfergradient}
 	\end{subfigure}
-	\caption[Popular shapes for activation functions in deep learning.]{Popular shapes for activation functions in deep learning. \textbf{(\subref{dltransfer})}: Some of the most popular shapes for the activation function are a \gls{relu}, $\tanh$ or sigmoid. \textbf{(\subref{dltransfergradient})}: Training with a linear function would not work, because the gradient is a constant and does not discriminate between different inputs. A non-linear activation function is thus vital to the training. The \gls{relu} is, despite appearing to be a linear function at first glance, non-linear since it bends at $x=0$.}
+	\caption[Popular shapes for activation functions in deep learning.]{Popular shapes for activation functions in deep learning. \textbf{(\subref{dltransfer})}: Some of the most popular shapes for the activation function are a \gls{relu}, $\tanh$ or sigmoid. \textbf{(\subref{dltransfergradient})}: The derivative of the different activation function gives an insight how the impact of gradient descent changes for different functions. In the case of the sigmoid and the hyperbolic tangent, either a very high or low input leads to a zero gradient and thus to a vanishing parameter update.}
 	\label{deeplearning_activation_functions}
 \end{figure}
 
-In deep learning, gradient descent is probably the most popular algorithm to perform the \textbf{backward pass} on a network (\citealp{Goodfellow-et-al-2016}). A differentiable loss function $\loss(\mathbf{\mathbf{x}, y^*, \theta})$ for a given target $\textbf{y}^*$ is minimized by moving along the negative gradient of the loss with respect to the network's parameters $\mathbf{\theta}$. To avoid extensive computational costs, the gradient is estimated by a uniformly drawn subset of the full training data set, a \emph{minibatch}. In particular, if the size of the minibatch equals one, one speaks of \gls{sgd}.
-
-Here, the loss function is chosen to be a binary cross-entropy loss
+In deep learning, \emph{gradient descent} is probably the most popular algorithm to perform the \textbf{backward pass} on a network (\citealp{Goodfellow-et-al-2016}). A differentiable loss function $\loss(\mathbf{\mathbf{x}, y^*, \theta})$ for a given target $\textbf{y}^*$ is minimized. Here, a binary cross-entropy loss is chosen
 \begin{equation*}
 \mathcal{L} = - \frac{1}{N} \sum_{i=1}^N \textbf{y}^* \log(\textbf{y}_i + (1-\textbf{y}^*) \log(1 - \textbf{y}_i), 
 \end{equation*}
-with a minibatch of size $N$ and the target $\textbf{y}^*$ being scaled between 0 and 1. In combination with a sigmoid-shaped activation function, this choice becomes convenient when computing the new set of parameters $\mathbf{\theta}'$ which is given by
+with a minibatch of size $N$ and the target $\textbf{y}^*$ being scaled between 0 and 1. In combination with a sigmoid-shaped activation function, this choice becomes convenient when computing the new set of parameters $\mathbf{\theta}'$. This is done by moving along the negative gradient of the loss with respect to the network's parameters $\mathbf{\theta}$
 \begin{equation}
 \mathbf{\theta'} = \mathbf{\theta} - \eta \, \nabla_\theta\loss(\mathbf{\mathbf{x}, y^*, \mathbf{\theta}}),
 \label{stochasticgradientdescent}
 \end{equation}
-with the learning rate $\eta$. As an example, the updates of the weight matrices of a single hidden layer network are computed in the next paragraphs using \gls{sgd}. 
+with the learning rate $\eta$. To avoid extensive computational costs, the gradient is estimated by a uniformly drawn subset of the full training data set, a \emph{minibatch}. In particular, if the size of the minibatch equals one, one speaks of \gls{sgd}. As an example, the updates of the weight matrices of a single hidden layer network are computed in the next paragraphs using \gls{sgd}.
 
 First, the derivative of the cross entropy loss function in the output layer $l\equiv o$ is computed
 \begin{equation*}
@@ -95,39 +89,49 @@ According to \cref{stochasticgradientdescent}, the final update of the weight ma
 = - \eta \, \left(\mathbf{e}^{(o)} \mathbf{x}^{(o),T}\right),
 \label{backpropupdate}
 \end{equation}
+with the transpose of the input $x^{(o),T}$.
 
 The computation for the hidden layer ($l\equiv h$) can be done in a similar fashion. Again, the gradient of the loss function is computed
 \begin{equation*}
 \frac{\partial\mathcal{L}}{\partial \mathbf{a}^{(h)}} = \mathbf{e}^{(h)} \;
-\frac{\partial \mathbf{y}^{(h)} }{\partial \mathbf{a}^{(h)}},
+\frac{\partial \mathbf{y}^{(h)} }{\partial \mathbf{a}^{(h)}}.
 \end{equation*}
-and the error of the hidden layer $\mathbf{e}^{(h)}$ is propagated backwards as $\mathbf{e}^{(h)}=W^{(o),T}\mathbf{e}^{(o)}$ yielding a total update of
+The error of the output layer $\mathbf{e}^{(o)}$ is propagated backwards with the transpose of the weight matrix $W^{(o),T}$ as $\mathbf{e}^{(h)}=W^{(o),T}\mathbf{e}^{(o)}$ yielding a total update of
 \begin{equation*}
 \delta W^{\text{(h)}} = - \eta \;
 \left(W^{\text{(o)}T} \mathbf{e}^{(o)}\right) \;
 \frac{\partial \mathbf{y}^{(h)} }{\partial \mathbf{a}^{(h)}} \; \mathbf{x}^{(h), T}.
 \end{equation*}
 
-The backward propagation of the error is eponymous for the method's name \textit{backpropagation}. Despite the great performance for many deep learning tasks, the biological plausibility of propagating the error signal backward has been questioned ever since.
-
-A simple but effective adjustment was suggested by \citealp{lillicrap2016random} which is also known as \textit{feedback alignment}. Instead of the transpose of the feed-forward weight matrix a fixed random matrix $B$ is chosen to propagate the error backwards. Compared to the backpropagation variant from \cref{backpropupdate} the update in the hidden layer changes to
+The backward propagation of the error is eponymous for the method's name \textit{backpropagation}. Despite the great performance for many deep learning tasks, the biological plausibility of propagating the error signal backward has been questioned ever since (\citealp{grossberg1987competitive}). A simple but effective adjustment was suggested by \cite{lillicrap2016random} which is also known as \textit{feedback alignment}. Instead of the transpose of the feed-forward weight matrix, a fixed random matrix $B$ is chosen to propagate the error backwards. Compared to the backpropagation variant from \cref{backpropupdate} the update in the hidden layer changes to
 \begin{equation*}
 \delta W^{(h)} = - \eta \;
 (B \mathbf{e}^{(o)}) \;
 \frac{\partial \mathbf{y}^{(h)}}{\partial \mathbf{a}^{(h)}} \;
 \mathbf{x}^{(h),T}.
 \end{equation*}
-The only constraints to $B$ are that $\mathbf{e}^{(o)T} W^{(o)} B \mathbf{e}^{(o)} > 0$ has to be fulfilled on average, meaning that geometrically, the new feedback signal $B \mathbf{e}^{(o)}$ for the hidden layer lies within $90^{\circ}$ of the one used by backprogation, $W^{\text{(o)}T} \mathbf{e}^{(o)}$.
+The only constraint to $B$ is that $\mathbf{e}^{(o)T} W^{(o)} B \mathbf{e}^{(o)} > 0$ has to be fulfilled on average, meaning that geometrically, the new feedback signal $B \mathbf{e}^{(o)}$ for the hidden layer lies within $90^{\circ}$ of the one used by backprogation, $W^{\text{(o)}T} \mathbf{e}^{(o)}$.
 
 %Q:Überleitung zu biologischem neuron hier?
 
 \section{The Biological Neuron}
 
+%Stopped here.
+
+BIO NEURON IS CURRENTLY UNDER RECONSTRUCTION
+
 Biological neural networks have been a great inspiration for deep learning algorithms and \glspl{ann}. It is estimated that the human brain contains around $10^{11}$ neurons of different shape, size and functions (\citealp{numberofneurons}). By the use of \emph{synapses}, neurons create complex network structures throughout the brain. Usually a neuron has up to $10^4$ partners. The connections vary from dense clusters with nearby neurons to linking distant brain regions with each other.
 
-The intercommunication is established by the use of short electrical pulses (spikes) and neurotransmitters. At most synapses, a small physical gap separates the neurons from each other, dividing them into a \emph{presynaptic} and \emph{postsynaptic} neuron. An electrical pulse of the presynaptic neuron releases various neurotransmitter to overcome this synaptic cleft. Once a transmitter has docked to a corresponding receptor on the other side, activated ion channels convert the chemical transmission back into an electrical signal. Depending on the type of neuro\-transmitters the excitation  can be excitatory or inhibitory. According to Dale's principle a presynaptic neuron releases always the same type of neurotransmitter. To that end, a neuron's output is either inhibitory or excitatory but not both. The input, on the other side, is not restricted to a single type of excitation, as various presynaptic partners can be connected.
+Most neurons can be divided into three functional parts: \textbf{dendrites}, \emph{soma} and \emph{axon}. At the dendrites the \emph{postsynaptic} neuron receives inputs from its \emph{presynaptic} partners. These inputs are converted into graded potentials, so called \glspl{psp}, which are then relayed to the soma where the information is processed. In particular, the soma integrates the currents induced by the \glspl{psp}, which can be tracked by measuring the course of the membrane potential. Once a certain threshold potential is reached, a mechanism gets triggered that initiates a fire response, the so-called action potential or spike.
 
-On the postsynaptic side, the inputs of all presynaptic partners are then gathered by the \emph{dendrites} before they are forwarded to the \emph{soma} where the information is processed (c.f. \cref{biosynapse}). In particular, the soma integrates the currents induced by the input spikes, which can be tracked by measuring the course of the soma's membrane potential. The impact of each spike corresponds to a \gls{psp}. Once a certain threshold potential is reached, a mechanism gets triggered that initiates a fire response, the so-called action potential or spike. The neuron's membrane becomes hyperpolarized and decreases even below the resting potential as shown in \cref{actionpotential}. The neuron is in a so called \emph{refractory state} and due to the ongoing hyperpolarization it is hard but not impossible to fire. The action potentials are then relayed by the axon to its connected partners and the described course of communication starts over. 
+
+. The stimulation increases or decreases the membrane potential of the postsynaptic neuron of the  are then forwarded to the \emph{soma} where the information is processed (c.f. \cref{biosynapse}). 
+In particular, the soma integrates the currents induced by the input spikes, which can be tracked by measuring the course of the soma's membrane potential.
+ The impact of each spike corresponds to a \gls{psp}. Once a certain threshold potential is reached, a mechanism gets triggered that initiates a fire response, the so-called action potential or spike. The neuron's membrane becomes hyperpolarized and decreases even below the resting potential as shown in \cref{actionpotential}. The neuron is in a so called \emph{refractory state} and due to the ongoing hyperpolarization it is hard but not impossible to fire. The action potentials are then relayed by the axon to its connected partners and the described course of communication starts over. 
+
+
+The intercommunication is established by the use of short electrical pulses (spikes) and neurotransmitters. At most synapses, a small physical gap separates the neurons from each other, dividing them into a \emph{presynaptic} and \emph{postsynaptic} neuron. An electrical pulse of the presynaptic neuron releases various neurotransmitter to overcome this synaptic cleft. Once a transmitter has docked to a corresponding receptor on the other side, activated ion channels convert the chemical transmission back into an electrical signal. Depending on the type of neuro\-transmitters the excitation  can be excitatory or inhibitory. According to Dale's principle a presynaptic neuron releases always the same type of neurotransmitter. To that end, a neuron's output is either excitatory or inhibitory but not both. The input, on the other side, is not restricted to a single type of excitation, as various presynaptic partners can be connected.
+
 
 \begin{figure}
 	\begin{subfigure}{0.5\textwidth}

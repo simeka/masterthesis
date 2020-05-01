@@ -183,13 +183,13 @@ with the convolution of a double exponential kernel $\epsilon$ with the input sp
 \end{align*}
 with a rising and falling temporal constant $\tau_\text{rise}$ and $\tau_\text{fall}$ respectively. A constant $\mathcal{N}$ norms the kernel to unity. As the rising constant goes to zero $\tau_\text{rise} \rightarrow 0$ the double exponential turns into a single exponential kernel $\epsilon_\text{single} = \epsilon_\text{fall}$.
 
-The membrane potential \gls{v_mem} changes with the continuous synaptic input causing an unbalanced ion concentration inside the membrane. Passive as well as active processes are permanently restoring the membrane potential back to its equilibrium state which is associated with the resting potential \gls{v_leak}. In the \gls{lif} model, the temporal scale of these restoring processes is defined by the membranes capacitance $C_\text{m}$ and the leakage conductance $g_\text{leak}$ yielding the membrane's time constant $\gls{tau_m} = \frac{C_\text{m}}{g_\text{leak}}$. The dynamics of the membrane for a given neuron $i$ are determined by a single differential equation
+The membrane potential \gls{v_mem} changes with the continuous synaptic input causing an unbalanced ion concentration inside the membrane. Passive as well as active processes are permanently restoring the membrane potential back to its equilibrium state which is associated with the resting potential \gls{v_leak}. In the \gls{lif} model, the temporal scale of these restoring processes is defined by the membranes capacitance $C_\text{m}$ and the leakage conductance $g_\text{leak}$ yielding the membrane's time constant $\gls{tau_m} = \frac{C_\text{m}}{g_\text{leak}}$. The dynamics of the membrane are then given by a single differential equation
 \begin{align}
 \label{lifeq}
 C_{\text{m}} \frac{d\gls{v_mem}}{dt} &= -g_{\text{leak}} (\gls{v_mem} - \gls{v_leak}) + \gls{isyn}.
 \end{align}
 
-As for a biological neuron, a postsynaptic \gls{lif} neuron triggers a spike once a certain threshold \gls{thres} is crossed following the condition
+As for a biological neuron, a \gls{lif} neuron triggers a spike once a certain threshold \gls{thres} is crossed following the condition
 \begin{equation*}
 \gls{v_mem}\big(t^{(s)}\big) = \gls{thres} \Leftrightarrow \text{neuron fires at time } t^{(s)}.
 \end{equation*}
@@ -207,86 +207,93 @@ Unlike for its biological counterpart, the modeled neuron cannot spike during th
 	\label{lifvsadex}
 \end{figure}
 
-A \gls{lif} neuron doesn't keep track of any previous spikes once a spike is released, given that the time constant of the synaptic input is shorter than the one of the membrane potential, in particular if $\tau_\text{m} > \tau_\text{fall}$. These limitations make it impossible for the model to correctly describe neuronal behavior such as spike bursts (\citealp{gerstner2014dynamics}).
-
-The constraints of the \gls{lif} neuron led to a demand of a more detailed model, namely the \glsfirst{adex} model, which is an extension to the \gls{lif} model featuring an additional adaption state variable that provides post-spike memory to the membrane. Depending on the sign of the adaption, the neuron is either inhibited or engaged to fire again after having spiked at least once (see \cref{lifvsadex}).
+A \gls{lif} neuron doesn't keep track of any previous spikes once a spike is released, given that the time constant of the synaptic input is shorter than the one of the membrane potential, in particular if $\tau_\text{m} > \tau_\text{fall}$. These limitations make it impossible for the model to correctly describe neuronal behavior such as spike bursts (\citealp{gerstner2014dynamics}) and led to a demand of a more detailed modeling as the \glsfirst{adex} model. The \gls{adex} model resembles an extension to the \gls{lif} model featuring an additional adaption state variable that provides post-spike memory to the membrane. Depending on the sign of the adaption, the neuron is either inhibited or engaged to fire again after having spiked at least once (see \cref{lifvsadex}).
 
 %Apart from the additional state variable the \gls{adex} neuron features a positive exponential voltage feedback. on the other hand, enables the neuron to have a more complex behavior in the (\gls{v_mem}, w?) phase space.
+For the scope of this thesis a more advanced model is not yet required. All experiments are done using the simpler \gls{lif} model. However, the use of the \gls{adex} model for a spike-based learning rule such as SuperSpike is promising when targeting real-world applications. A respective project has already been planned in the future and will be explained in more detail in \cref{futureprojects}.
 
-%For the scope of this thesis a more advanced model is not yet required. All experiments are done using the simpler \gls{lif} model. However, an \gls{adex} based implementation of similar experiments are part of a future project (see \cref{futureprojects}).
+A supervised learning algorithm based on a single \gls{lif} neuron will not be able to solve any difficult task yet. In the human brain millions of such neurons are split up into various areas which are each responsible to perform a certain type of work such as smell, speak or motor control. In the next section different ways of how neurons can communicate with each other in order to perform a certain task are discussed.
+
 %(see \cref{lifvsadex}).
-
-\section{Spiking Neural Networks}
+\section{Neural Coding with Spiking Neural Networks}
 \label{neuralcoding}
+\glsreset{snn}
+The communication among biological neurons can be modeled by \glspl{snn} where individual neurons convey information by sending spikes to their connected partners. As mentioned before, spikes can be approximated to have a stereotypical shape, leaving the temporal to encode information. In the context of large multilayer networks, the spatial dimension of the network encodes information as well, i.e. the types of synapses, the synaptic strength and the network's topology.
 
 %A neuron's primary way to exchange information with another is to send and receive spikes.
-\Glspl{snn} take the biological inspiration for \glspl{ann} further by conveying and processing information using spikes and neuronal models such as the \gls{lif} neuron. As mentioned before, spikes are assumed to have a stereotypical shape, leaving the temporal dimension to communicate. In the context of large multilayer networks, the topology itself, i.e. the types of synapses, the synaptic strength, the pre- and postsynaptic partners, encodes information as well.
+%\Glspl{snn} take the biological inspiration for \glspl{ann} further by conveying and processing information using spikes and neuronal models such as the \gls{lif} neuron. As mentioned before, spikes are assumed to have a stereotypical shape, leaving the temporal and spatial dimension to communicate. In the context of large multilayer networks, the topology itself, i.e. the types of synapses, the synaptic strength, the pre- and postsynaptic partners, encodes information as well.
 
 In the following, the different training approaches for rate and temporal coding with a feed-forward multi-layer \glspl{snn} using \gls{lif} neurons are presented.
 
 \subsection{Rate Coding}
 \label{ratecoding}
-In an attempt to explain computational processes in the brain, the activation of an artificial neuron has been mapped onto the spike rate of a spiking neuron by \citealp{rieke1999spikes}. This is based on the assumption that spikes follow a Poisson process and therefore the fire rate of a neuron is well described by a Poisson distribution in most cases (\citealp{averbeck2009poisson}), which in turn legitimates the use of a mean fire rate and a certain accuracy.
-
-The exact definition and interpretation of the spike rate can vary. The most apparent approach to define a neuron's spike rate $\nu$ is to count the number of spikes $n_\text{spikes}$ fired within a period $T$
+In an attempt to explain computational processes in the brain, the activation of an artificial neuron has been mapped onto the spike rate of a spiking neuron by \citealp{rieke1999spikes}. The exact definition and interpretation of the spike rate can vary. The most apparent approach to define a neuron's spike rate $\nu$ is to count the number of spikes $n_\text{spikes}$ fired within a period $T$
 \begin{equation*}
 \nu = \frac{n_\text{spikes}}{T}.
 \label{eqratecoding}
 \end{equation*}
 
-From a practical point of view, this method is time consuming and can therefore not be the basis upon which fast decisions are taken by the brain. In another approach, the period $T$ is shortened to $\Delta T$ resulting in a more inaccurate fire rate. By repeating the measurement multiple times, the average rate improves the accuracy, but the total measurement duration is prolonged again. Moreover, it is not really feasible that the exact same situation occurs multiple times in a real world problem. To solve both issues, the population average rate $\nu_\text{pop}$ can be used. A population of $n$ neurons experiences a situation simultaneously. The averaged fire rate over the whole population $\left\langle\nu \right\rangle_\text{pop}$ yields an accurate rate despite the reduced measurement time
+% LATER SOMEWHERE IN THE THEORY PART 
+
+From a practical point of view, this method is time consuming and can therefore not be the basis upon which fast decisions are taken by the brain. In another approach, the period $T$ is shortened to $\Delta T$ resulting in a more inaccurate firing rate. By repeating the measurement multiple times, the average rate improves the accuracy, but the total measurement duration is prolonged again. Moreover, it is not really feasible that the exact same situation occurs multiple times in a real world problem. To solve both issues, a population average rate $\nu_\text{pop}$ can be used. The averaged firing rate of a population with $n$ neurons $\left\langle\nu \right\rangle_\text{pop}$ yields an accurate rate despite the reduced measurement time
 \begin{equation*}
 \left\langle\nu \right\rangle_\text{pop} = \frac{\sum_i n_{\text{spikes},i}}{nT}.
 \end{equation*}
 %As this thesis targets neuronal networks of smaller size, the following paragraphs focus on the temporal dimension of neural coding.
 
-In the terminology of the \gls{lif} model, a presynaptic spiketrain $S_j$ can be associated with a mean fire rate $\nu_j$ assuming it is Poisson based. In this way the time average of the synaptic input can be expressed in terms of fire rates 
+In the terminology of the \gls{lif} model, a presynaptic spike train $S_j$ from a source $j$ can be associated with a mean firing rate $\nu_j$. This is based on the assumption that the spikes of the input follow a Poisson process and therefore the firing rate of a neuron is well described by a Poisson distribution in most cases (\citealp{averbeck2009poisson}), which in turn legitimates the use of a mean firing rate and a certain accuracy. In this way the time average of the synaptic input for a \gls{lif} neuron can be expressed in terms of the incoming firing rates $\nu_{\text{in}, j}$ and their respective synaptic weight $w_j$
 \begin{equation*}
 \left\langle \gls{isyn} \right\rangle = \sum_j w_j \nu_{\text{in}, j}.
 \end{equation*}
 
+\subsubsection*{Training with Rate Coding}
+With a rate coding approach, \glspl{snn} obtains properties from \glspl{ann}. In particular, the activation function resembling the \gls{lif} neuron in a spiking feed-forward network associates an input rate $\nu_{\text{in}}$ with an output rate $\nu_{\text{out}}$
+\begin{equation*}
+	\gls{activation}(\nu_{\text{in}}) = \nu_\text{out}.
+\end{equation*}
+Unlike before, now the gradient for the activation of a node can be formulated and therefore the network can be trained using typical deep learning methods such as \glsfirst{sgd}. The choice for a sigmoid activation function in combination with a cross entropy loss has already been motivated in section \cref{supervisedtraining}. With a few adjustments the activation function of a \gls{lif} neuron is shaped into a sigmoid.
 
-
-\subsection{Supervised Training with Rate Coding}
-\label{ratebasedtraining}
-The similarity to \glspl{ann} implies that typical training methods such as \acrfull{sgd} will work with rate-based \glspl{snn} too. In a spiking feed-forward network the output of a node is determined by the activation function \gls{activation}, which is given by the neuron model in place.
+%The similarity to \glspl{ann} implies that typical training methods such as \acrfull{sgd} will work with rate-based \glspl{snn} too. In a spiking feed-forward network the output of a node is determined by the activation function \gls{activation}, which is given by the neuron model in place.
 % In case of the \gls{lif} neuron, the activation function is similar to a \gls{relu}, with a significant difference, that the rate will no keep increasing but rather saturates quickly at a maximum frequency $\nu_\text{max}$ which is limited by the refractory period $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$.
-The choice for a sigmoid activation function in combination with a cross entropy loss have already been motivated in \cref{supervisedtraining}. With a few adjustments the activation function can be implemented for a \gls{lif} model and rate-based coding.
+%The choice for a sigmoid activation function in combination with a cross entropy loss have already been motivated in. With a few adjustments the activation function can be implemented for a \gls{lif} model and rate-based coding.
 
-The stimulation of a \gls{lif} neuron can be expressed by the synaptic input currents \gls{isyn} or the corresponding input fire rate $\nu_\text{in}$. In analogy to the activation of an \gls{ann} the synaptic current can be split up into an input and bias term $\gls{isyn} = I_\text{in} + I_\text{bias}$. The input spike rate $\nu_\text{in}$ of the neuron scales linear with the synaptic current and therefore $\nu_\text{in} \propto I_\text{in}$. The activation function of the \gls{lif} neuron is then approximated by 
+The stimulation of a \gls{lif} neuron can be expressed by the synaptic input currents \gls{isyn} or the corresponding input firing rate $\nu_\text{in}$. In analogy to the activation of an \gls{ann} the synaptic current is split up into an input and bias term $\gls{isyn} = I_\text{in} + I_\text{bias}$. The input spike rate $\nu_\text{in}$ of the neuron scales linear with the synaptic current and therefore $\nu_\text{in} \propto I_\text{in}$. The activation function of the \gls{lif} neuron is then approximated by 
 \begin{equation}
 \frac{1}{\gls{activation}(\nu_\text{in})} = \frac{1}{\nu_\text{out}} \approx \gls{refrac} + \gls{tau_m} \frac{\gls{thres} - \gls{v_reset}}{\gls{isyn}},
 \label{fireratehigh}
 \end{equation}
-given that the input rate is high and the time constants \gls{tau_m} and \gls{tau_syn} are smaller than \gls{refrac} (c.f. \citealp{brunel2000dynamics}).
-The output rate saturates at the maximum rate $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$ if the input rate is high enough.
+given that the input rate is high and the time constants \gls{tau_m} and \gls{tau_syn} are smaller than the refractory period \gls{refrac} (c.f. \citealp{brunel2000dynamics}). The output rate saturates at a maximum rate $\nu_\text{max} \approx \nicefrac{1}{\gls{refrac}}$ for a high enough input rate.
 
 In the limit $\gls{thres} - \gls{isyn} \gg \sigma$, i.e. for low input rates, the activation function yields
 \begin{equation}
 \nu_\text{out} \approx \frac{(\gls{thres} - \gls{isyn})}{\gls{tau_m}\sigma \sqrt{\pi}} \exp\left(-\frac{(\gls{thres} - \gls{isyn})^2}{\sigma^2}\right),
 \label{fireratelow}
 \end{equation}
-with the fluctuations of a single excitatory input source $\sigma$. 
-Without external noise, the fluctuations are small, reflecting only the intrinsic noise of the hardware and thus the activation function shows a sudden increase, similar to a \gls{relu} activation function. One way to smoothen the course of the activation function is to increase $\sigma$, e.g. by injecting a continuous stream of inhibitory and excitatory Poisson spikes.
+with the fluctuations of a single excitatory input source $\sigma$.
+
+Without external noise, the fluctuations are small, reflecting only the variations of the input spike train and thus the activation function shows a steep incline. One way to smoothen the course of the function is to increase $\sigma$, e.g. by injecting additional Poisson spikes. A continuous noise stimulation with these noise spikes leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ which is centered around the resting potential \gls{v_leak} as depicted in \cref{theoretical_vleak_w_noise}. The term \emph{free} refers to the absence of any spiking mechanisms of the membrane.
 
 \begin{figure}
 	\begin{center}
 		\input{figures/theoretical_free_membrane.pgf}
 	\end{center}
-	\caption[Simulation of the Gaussian free membrane potential distribution.]{Simulation of the Gaussian free membrane potential distribution. The distribution of the membrane potential $f_{\gls{v_mem}}$ centers around \gls{v_leak}. The width of the distribution correlates to the amount of injected noise spikes. Without additional noise, the induced spread from the intrinsic hardware noise is a magnitude lower. The part of the distribution that exceeds the threshold potential leads to spikes. The post fire dynamics of spiking activity changes the shape of the distribution, as the membrane is set to a reset potential before it leaks back to the resting potential (c.f. \citealp{petrovici12phdthesis}). Short time constants for the synaptic input and the membrane as well as sufficiently high input rates, reduce this effect.}
+	\caption[Simulation of the Gaussian free membrane potential distribution.]{Simulation of the Gaussian free membrane potential distribution. The distribution of the membrane potential $f_{\gls{v_mem}}$ centers around \gls{v_leak}. The width of the distribution correlates to the amount of injected noise spikes. The part of the distribution colored in black, exceeds the threshold potential and would lead to spikes. The post fire dynamics of spiking activity changes the shape of the distribution, as the membrane is set to a reset potential before it leaks back to the resting potential (c.f. \citealp{petrovici12phdthesis}). Short time constants for the synaptic input and the membrane as well as sufficiently high input rates, reduce this effect.}
 	\label{theoretical_vleak_w_noise}
 \end{figure}
 
-The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ centered around the resting potential \gls{v_leak} as depicted in \cref{theoretical_vleak_w_noise}. In a naive approach, the part of the distribution that exceeds a certain threshold potential correlates to the number of fired spikes. This neglects non vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \citealp{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of very short time constants for the synaptic input \gls{tau_syn} and the membrane \gls{tau_m}.
+In a naive approach, the part of the free distribution that exceeds a certain threshold potential correlates to the number of fired spikes (see \cref{theoretical_vleak_w_noise}). This neglects non-vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \citealp{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of very short time constants for the synaptic input \gls{tau_syn} and the membrane \gls{tau_m}.
 
-However, despite the strongly simplified picture, this view still offers a correct intuition of how the threshold, the leak potential and the strength of the noise effect the free membrane potential and in turn change the shape of the activation function: more noise leads to a broader distribution and thus a more gentle incline of the output rate, synaptic input moves the distribution to either a lower or a higher mean value, moving the threshold corresponds to an additional bias term.
-
-The latter has been motivated by \citealp{petrovici2016stochastic}. The bias term in the neuron's activation can be adequately replaced by adapting the relative distance $\delta V$ between the resting potential and the threshold (\citealp{petrovici2016stochastic})
+However, despite the strongly simplified picture, this view still offers a correct intuition of how the threshold, the leak potential and the strength of the noise effect the free membrane potential and in turn change the shape of the activation function: more noise leads to a broader distribution and thus a more gentle incline of the output rate, synaptic input moves the distribution to either a lower or a higher mean value, moving the threshold corresponds to an additional bias term. The latter has been motivated by \citealp{petrovici2016stochastic}. The bias term in the neuron's activation can be adequately replaced by adapting the relative distance $\delta V$ between the resting potential and the threshold
 \begin{equation}
 b \propto \delta V = \gls{v_leak} - \gls{thres}.
 \end{equation}
+With the approximations made above in \cref{fireratehigh} and \cref{fireratelow} as well as a suitable choice of neuron parameters, the activation function yields an sigmoidal shape (\cref{theoreticalactivationfunction}). The slope of the sigmoid can be easily adapted by changing the synaptic strength of the input spike trains. However, finding the appropriate neuron model parameters to create a well shaped sigmoid can be tricky. 
 
-With the approximations from above (\cref{fireratehigh} and \cref{fireratelow}) and a suitable choice of the neuron model parameters to create a well shaped distribution of the membrane (\cref{theoretical_vleak_w_noise}), the activation function yields an approximatively sigmoid shape (\cref{theoreticalactivationfunction}). The slope of the sigmoid can be easily adapted by changing the synaptic strength of the input spike trains. The synaptic weights of the noise inhibitory and excitatory noise inputs are left unchanged.
+In figure \cref{theoreticalactivationfunction} the influence of a changing synaptiof the bias
+
+%
+
+TODO: create better pictures in the simulation
 
 \begin{figure}
 	\begin{subfigure}[c]{0.5\textwidth}
@@ -301,14 +308,14 @@ With the approximations from above (\cref{fireratehigh} and \cref{fireratelow}) 
 		\input{figures/theoretical_activation_function_variablebias.pgf}
 		\label{theoreticalactivationfunctionbias}
 	\end{subfigure}
-	\caption[Simulation of a sigmoid activation function using Poisson noise]{Simulation of a sigmoid activation function using Poisson noise. The shape of the activation function \gls{activation} depends on several parameters of the \gls{lif} neuron and the Poisson input  spiketrains. \textbf{(\subref{theoreticalactivationfunctionweight})}: The input current that is seen by the neuron is directly proportional to the weight $\gls{isyn} \propto w_\text{in} \nu_\text{in}$. In this way, a lower weight causes a lower input current which in turn leads to smaller incline of the output rate. As one can see a lower weight causes the maximum rate to drop slightly. The synaptic currents are not strong enough to fight the leaking dynamics of the membrane. \textbf{(\subref{theoreticalactivationfunctionbias})}: Different values for \gls{thres} change the relative potential difference $\delta V$ to the resting potential which corresponds to adding a bias to the net input of the neuron. The activation function is thereby shifted in either direction along the x-axis.}
+	\caption[Simulation of a sigmoid activation function using Poisson noise]{Simulation of a sigmoid activation function using Poisson noise. The shape of the activation function \gls{activation} depends on several parameters of the \gls{lif} neuron and the Poisson input  spike trains. \textbf{(\subref{theoreticalactivationfunctionweight})} The input current that is seen by the neuron is directly proportional to the weight $\gls{isyn} \propto w_\text{in} \nu_\text{in}$. In this way, a lower weight causes a lower input current which in turn leads to smaller incline of the output rate. As one can see a lower weight causes the maximum rate to drop slightly. The synaptic currents are not strong enough to fight the leaking dynamics of the membrane. \textbf{(\subref{theoreticalactivationfunctionbias})} Different values for \gls{thres} change the relative potential difference $\delta V$ to the resting potential which corresponds to adding a bias to the net input of the neuron. The activation function is thereby shifted in either direction along the x-axis.}
 	\label{theoreticalactivationfunction}
 \end{figure}
 
 %For zero input, i.e. $\nu_{\text{in}} = 0$ and the , apart from the injected noise, the threshold is set such that $\nu_\text{out} = \nicefrac{\nu_\text{max}}{2}$. Varying the strength of the synaptic input directly changes the shape of \gls{activation} as well (c.f. \cref{transferfunction}).
 \pagebreak
 \subsection{Temporal Coding}
-\glspl{snn} can also model more complex processes which depend on the \gls{isi} or the time relative to a reference spike. In comparison to rate coding, using the exact spike time to encode information is more exposed to noise. In turn, the response time is highly increased for temporal coding, since there is no need to establish a certain fire rate first. The use of such coding has been observed in biology multiple times and has been proven to be of high importance (\citealp{gerstner1996neuronal} and \citealp{rieke1999spikes}). Another important advantage over rate coding is the efficiency that comes with using only few spikes. As every spike costs energy, sparse temporal coding condenses the required computational power to solve a task to a minimum. 
+\glspl{snn} can also model more complex processes which depend on the \gls{isi} or the time relative to a reference spike. In comparison to rate coding, using the exact spike time to encode information is more exposed to noise. In turn, the response time is highly increased for temporal coding, since there is no need to establish a certain firing rate first. The use of such coding has been observed in biology multiple times and has been proven to be of high importance (\citealp{gerstner1996neuronal} and \citealp{rieke1999spikes}). Another important advantage over rate coding is the efficiency that comes with using only few spikes. As every spike costs energy, sparse temporal coding condenses the required computational power to solve a task to a minimum. 
 
 So far, training \glspl{snn} with hidden units has been proven to be a difficult task (\citealp{pfeiffer2018deep}). With the binary nature of spikes, the neuron's activity is non-differentiable on an individual spike level. Hence, \gls{sgd} cannot be used for temporal coding. Only recently, a promising workaround was suggested with \emph{SuperSpike}, a surrogate gradient descent implementation for \glspl{snn} (\citealp{zenke2018superspike}).
 

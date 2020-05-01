@@ -3,7 +3,9 @@
 The required knowledge to work in the field of neuromorphic computing is broad and manifold, ranging from the biological view of the human brain further to machine learning algorithms. In the next sections, the main concepts and the physical background, upon which the presented research is based on is, are introduced. Starting with deep learning and an overview of the biological neuron, the transition to neuron models, neuronal coding schemes and their training approaches will be given before introducing the neuromorphic \gls{bss2} platform. Throughout the thesis, vectors are indicated by an upright boldface $\mathbf{v}$ and matrices by capital letters $M$.
 \section{Deep Learning}
 \label{deeplearning}
-Deep learning is among the most useful and powerful tools machine learning has provided to the scientific community. Image or pattern recognition are in general hard to solve for traditional computation concepts. Deep learning abstracts such task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going down on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it is called \emph{deep learning} (\citealp{Goodfellow-et-al-2016}).
+The presented introduction to deep learning in this section is largely oriented on the well-known eponymous book from \cite{Goodfellow-et-al-2016} and indicated respectively if otherwise.
+
+Deep learning is among the most useful and powerful tools machine learning has provided to the scientific community. Image or pattern recognition are in general hard to solve for traditional computation concepts. Deep learning abstracts such task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going down on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it is called.
 
 A popular example for deep learning is the \gls{mlp}, a deep feed-forward network. As the name suggests, the information is forwarded from one layer to another (see \cref{multilayernetwork}). At each layer $l$ the input $\mathbf{x}^{(l)}$ is mapped to an output $\mathbf{y}^{(l)} = \gls{activation}(\mathbf{x}^{(l)}, \mathbf{\theta}^{(l)})$ with the activation function \gls{activation} and a set of parameters $\mathbf{\theta}^{(l)}$. The output of the layer $l$ then determines the input of the next layer, i.e. $\mathbf{y}^{(l)} = \mathbf{x}^{(l+1)}$, and so forth. The layer structure is inspired by biological neural networks and therefore they are often referred to as \gls{ann}. 
 
@@ -54,7 +56,7 @@ The same principle is then applied to all other layers to complete the forward p
 	\label{deeplearning_activation_functions}
 \end{figure}
 
-In deep learning, \emph{gradient descent} is probably the most popular algorithm to perform the \textbf{backward pass} on a network (\citealp{Goodfellow-et-al-2016}). A differentiable loss function $\loss(\mathbf{\mathbf{x}, y^*, \theta})$ for a given target $\textbf{y}^*$ is minimized. Here, a binary cross-entropy loss is chosen
+In deep learning, \emph{gradient descent} is probably the most popular algorithm to perform the \textbf{backward pass} on a network. A differentiable loss function $\loss(\mathbf{\mathbf{x}, y^*, \theta})$ for a given target $\textbf{y}^*$ is minimized. Here, a binary cross-entropy loss is chosen
 \begin{equation*}
 \mathcal{L} = - \frac{1}{N} \sum_{i=1}^N \textbf{y}^* \log(\textbf{y}_i + (1-\textbf{y}^*) \log(1 - \textbf{y}_i), 
 \end{equation*}
@@ -110,70 +112,57 @@ The backward propagation of the error is eponymous for the method's name \textit
 \frac{\partial \mathbf{y}^{(h)}}{\partial \mathbf{a}^{(h)}} \;
 \mathbf{x}^{(h),T}.
 \end{equation*}
-The only constraint to $B$ is that $\mathbf{e}^{(o)T} W^{(o)} B \mathbf{e}^{(o)} > 0$ has to be fulfilled on average, meaning that geometrically, the new feedback signal $B \mathbf{e}^{(o)}$ for the hidden layer lies within $90^{\circ}$ of the one used by backprogation, $W^{\text{(o)}T} \mathbf{e}^{(o)}$.
+The only constraint to $B$ is that $\mathbf{e}^{(o)T} W^{(o)} B \mathbf{e}^{(o)} > 0$ has to be fulfilled on average, meaning that geometrically, the new feedback signal $B \mathbf{e}^{(o)}$ for the hidden layer lies within $90^{\circ}$ of the one used by backpropagation, $W^{\text{(o)}T} \mathbf{e}^{(o)}$.
 
 %Q:Überleitung zu biologischem neuron hier?
 
 \section{The Biological Neuron}
 
-%Stopped here.
+Biological neural networks have been a great inspiration for deep learning algorithms and \glspl{ann}. It is estimated that the human brain contains around $10^{11}$ neurons of different shape, size and functions (\citealp{numberofneurons}). By the use of \emph{synapses}, \emph{presynaptic} neurons connect to \emph{postsynaptic} ones and thereby create complex network structures throughout the brain. A postsynaptic neuron has usually around $10^4$ presynaptic partners (\citealp{numberofsynapses}). The connections vary from dense clusters with nearby neurons to linking distant brain regions with each other. 
 
-BIO NEURON IS CURRENTLY UNDER RECONSTRUCTION
+Most neurons can be divided into three functional parts: \textbf{dendrites}, \emph{soma} and \emph{axon} (c.f. \cref{biologicalneuron}). At the dendrites a postsynaptic neuron receives inputs from its presynaptic partners. These inputs are converted into \glspl{psp} using charged molecules corresponding to a variable graded potential in size and shape. The \glspl{psp} are then relayed to the soma where they are integrated over. Depending on the nature of synaptic connection, the stimulation has either an excitatory or inhibitory effect on the neuron, resulting in an increased or decreased membrane potential. Over time the unbalanced ion concentration in and outside the membrane is restored by the membranes permeability and additional ion pumps. In an equilibrated state the membrane potential is referred to as the \emph{resting potential}. (\citealp{gerstner2014dynamics})
 
-Biological neural networks have been a great inspiration for deep learning algorithms and \glspl{ann}. It is estimated that the human brain contains around $10^{11}$ neurons of different shape, size and functions (\citealp{numberofneurons}). By the use of \emph{synapses}, neurons create complex network structures throughout the brain. Usually a neuron has up to $10^4$ partners. The connections vary from dense clusters with nearby neurons to linking distant brain regions with each other.
-
-Most neurons can be divided into three functional parts: \textbf{dendrites}, \emph{soma} and \emph{axon}. At the dendrites the \emph{postsynaptic} neuron receives inputs from its \emph{presynaptic} partners. These inputs are converted into graded potentials, so called \glspl{psp}, which are then relayed to the soma where the information is processed. In particular, the soma integrates the currents induced by the \glspl{psp}, which can be tracked by measuring the course of the membrane potential. Once a certain threshold potential is reached, a mechanism gets triggered that initiates a fire response, the so-called action potential or spike.
-
-
-. The stimulation increases or decreases the membrane potential of the postsynaptic neuron of the  are then forwarded to the \emph{soma} where the information is processed (c.f. \cref{biosynapse}). 
-In particular, the soma integrates the currents induced by the input spikes, which can be tracked by measuring the course of the soma's membrane potential.
- The impact of each spike corresponds to a \gls{psp}. Once a certain threshold potential is reached, a mechanism gets triggered that initiates a fire response, the so-called action potential or spike. The neuron's membrane becomes hyperpolarized and decreases even below the resting potential as shown in \cref{actionpotential}. The neuron is in a so called \emph{refractory state} and due to the ongoing hyperpolarization it is hard but not impossible to fire. The action potentials are then relayed by the axon to its connected partners and the described course of communication starts over. 
-
-
-The intercommunication is established by the use of short electrical pulses (spikes) and neurotransmitters. At most synapses, a small physical gap separates the neurons from each other, dividing them into a \emph{presynaptic} and \emph{postsynaptic} neuron. An electrical pulse of the presynaptic neuron releases various neurotransmitter to overcome this synaptic cleft. Once a transmitter has docked to a corresponding receptor on the other side, activated ion channels convert the chemical transmission back into an electrical signal. Depending on the type of neuro\-transmitters the excitation  can be excitatory or inhibitory. According to Dale's principle a presynaptic neuron releases always the same type of neurotransmitter. To that end, a neuron's output is either excitatory or inhibitory but not both. The input, on the other side, is not restricted to a single type of excitation, as various presynaptic partners can be connected.
-
+Given a continuous excitatory stimulation current, the neuron will trigger a fire mechanism once a certain threshold potential is reached. The neuron's membrane becomes hyperpolarized and decreases even below the resting potential as shown in \cref{actionpotential} entering a \emph{refractory period}. During this period it remains hard but not impossible for the neuron to fire again due to the ongoing hyperpolarization of the membrane. This mechanism releases an electrochemical pulse a so-called action potential or spike, which is then relayed by the axon to the connected partners at the end of the axon. (\citealp{gerstner2014dynamics})
 
 \begin{figure}
+	\begin{subfigure}{0.5\textwidth}
+		\centering
+		\caption{}
+		\vspace{0.75cm}
+		\includegraphics[width=\linewidth, valign=t]{figures/Neuron.pdf}
+		\vspace{1.25cm}	
+		\label{biosynapse}
+	\end{subfigure}
 	\begin{subfigure}{0.5\textwidth}
 		\centering
 		\caption{}
 		\includegraphics[width=0.8\linewidth, valign=t]{figures/action_potential.png}
 		\label{actionpotential}
 	\end{subfigure}
-	\begin{subfigure}{0.5\textwidth}
-		\centering
-		\caption{}
-		\vspace{0.5cm}
-		\includegraphics[width=\linewidth, valign=t]{figures/Neuron.pdf}
-		\vspace{1.5cm}	
-		\label{biosynapse}
-	\end{subfigure}
-	\caption[Schematics of an action potential and a biological neuron]{Schematics of a biological neuron and an action potential. \textbf{(\subref{actionpotential})} The response of neuron after exceeding the threshold is called action potential. After a phase of depolarization, the membrane repolarizes and enters the refractory state. Figure taken from \citealp{picture_actionpotential}. \textbf{(\subref{biosynapse})} Schematics of a biological neuron can be split into three main functional parts: the dendrites which are responsible to collect all inputs, the soma integrates the evoked \glspl{psp} and eventually triggers a fire response and the axon relays the fire responses to other neurons. Figure adapted from \citealp{picture_neuron}.}
+	\caption[Schematics of a biological neuron and an action potential]{Schematics of a biological neuron and an action potential. \textbf{(\subref{biosynapse})} A biological neuron can be split into three main functional parts. The dendrites collect the inputs from presynaptic partners and relay them in the form of \glsreset{psp}\glspl{psp} to the soma. The soma integrates the \glspl{psp} and eventually triggers a fire response. The axon relays this response to the connected neurons at the end of the axon. Figure adapted from \citealp{picture_neuron}. \textbf{(\subref{actionpotential})} The fire response of neuron after exceeding the threshold is called action potential or spike. After a phase of depolarization, the membrane repolarizes and enters the refractory periode during which it is hard but not impossible to fire again. Figure taken from \citealp{picture_actionpotential}.}
 	\label{biologicalneuron}
 	
 \end{figure}
 
-Over time the unbalanced ion concentration in and outside the membrane is restored by the membranes permeability and additional ion pumps. In the equilibrated state, the membrane potential is then referred to as the \emph{resting potential}. The neurotransmitters are recycled as well. Otherwise, if their resources were depleted and heavily used synapses would be quickly silenced.
+The action potential releases various neurotransmitter to overcome a small but physical gap at the synapses, the synaptic cleft. Once a transmitter has docked to a corresponding receptor on the other side, activated ion channels convert the chemical transmission back into an electrical signal resembling the \gls{psp}. Depending on the type of neuro\-transmitters the excitation can be excitatory or inhibitory (\citealp{gerstner2014dynamics}). According to Dale's principle a presynaptic neuron releases always the same type of neurotransmitter (\citealp{dale1935pharmacology}). To that end, a neuron's output is either excitatory or inhibitory but not both. The input of a neuron, on the other side, is not restricted to a single type of excitation, as various presynaptic partners can be connected. 
 
-A wide-spread assumption in the field of neuroscience is that the exact shape of a spike doesn't carry any relevant information and therefore all spikes can be modeled by a stereotypical shape. The communication between neurons is then encoded in the frequency (\emph{rate coding}) or timing (\emph{time coding}) of exciting and inhibiting spikes. A more detailed description of neural coding schemes is presented in section \ref{neuralcoding}. However, recent research has already suggested that the small variations in the action potential contain vital information (\citealp{debanne2013mechanisms}).
+A wide-spread assumption in the field of neuroscience is that the exact shape of a spike doesn't carry any relevant information and therefore all spikes can be modeled by a stereotypical shape. However, recent research has already suggested that the small variations in the action potential contain vital information (\citealp{debanne2013mechanisms}). For the prior assumption, the communication between neurons is reduced to a temporal and spatial dimension. Temporal information is encoded either in the frequency (\emph{rate coding}) or the precise timing (\emph{time coding}) of spikes whereas the spatial dimension is filled with varying populations of neurons (\citealp{gerstner2014dynamics}). A more detailed description of neural coding schemes is presented in section \ref{neuralcoding}.
 
-The brain has an ability to continuously change the topology of its synaptic wiring, to create new synapses, to alter the chemical properties of the synaptic receptors or to simply strengthen and weaken the synaptic efficacy. With these mechanisms the brain is able to learn and adapt as a reaction to stimulation or even damage.
+The brain has an ability to continuously change the topology of its synaptic wiring, to create new synapses, to alter the chemical properties of the synaptic receptors or to simply strengthen and weaken the synaptic efficacy. With these \emph{plasticity} mechanisms the brain is able to learn and adapt as a reaction to stimulation or even damage. (\citealp{gerstner14dynamics})
 
-One way of learning and forming memory is known as synaptic plasticity where the synaptic strength is changed over time. According to Hebb's theory ``neurons that fire together wire together" (\citealp{hebb1949organization}). An experimental proof of such activity-dependent plasticity was found by \citealp{bliss1973long}, where they discovered that a short but high frequency stimulation lead to a long lasting change in the synapse's efficacy. This is also referred to as \gls{ltp}. Reducing the stimulus to a low frequency, on the other hand, resulted in the opposite effect: \gls{ltd}. In combination they can carve out certain region in the brain which is related  to a stimulus and thereby create memory. 
+One way of learning and forming memory is known as synaptic plasticity where the synaptic strength is changed over time. According to Hebb's theory ``neurons that fire together wire together" (\citealp{hebb1949organization}). An experimental proof of such activity-dependent plasticity was found by \citealp{bliss1973long}, where they discovered that a short but high frequency stimulation lead to a long lasting change in the synapse's efficacy. This is also referred to as \gls{ltp}. Reducing the stimulus to a low frequency, on the other hand, resulted in the opposite effect: \gls{ltd}. In combination they can carve out certain regions in the brain which is related to a specific stimulus and thereby create memory (\citealp{nabavi2014engineering}). A better understanding of \gls{ltp} and \gls{ltd} was gained when \gls{stdp} was first observed (\citealp{markram1997regulation}, \citealp{poo98stdp}). \gls{stdp} shows in principle that presynaptic activity just before a postsynaptic response leads to an increased synaptic strength. If presynaptic activity occurs right after a postsynaptic spike, the synapses is weakened. 
 
-A better understanding of \gls{ltp} and \gls{ltd} was provided by the introduction of \gls{stdp}. \gls{stdp} shows in principle that a presynaptic activity just before a postsynaptic response leads to an increase synaptic strength. If  presynaptic activity occurs right after a postsynaptic spike, the synapses is weakened (\citealp{poo98stdp}). 
+Such plasticity mechanism are self-regulating and independent of any reward-giving structure. In analogy to the learning concepts introduced by deep learning, they are also referred to as unsupervised Hebbian learning. However, these methods fall short of successfully training the brain to master complex action-required tasks, as the outcome of a decision made by the brain is not part of the plasticity mechanism. Hence, a behavioral learning strategy requires knowledge over the outcome of taken decisions and needs to remember which decisions have lead to rewards, as the reward in real life is often delayed. (\citealp{gerstner2014dynamics})
 
-%It is worth mentioning that synaptic plasticity between two neurons can also be induced by activity of an independent pathway. 
-
-Developing biologically inspired and plausible learning algorithms is a dedicated goal in the field of modern neuroscience. In the next section a practicable neuron model is presented, which is the basis of the experimental part in this thesis.
+Developing biologically inspired and plausible supervised learning algorithms is a dedicated goal in the field of modern neuroscience. Before discussing two such candidates in more detail, a practicable model of the biological neuron is presented first. This model is implemented in the analog core of the neuromorphic platform \gls{bss2} and resembles the basis of all experimental work presented in this thesis.
 
 \section{The \acrlong{lif} Model}
 
-An early but successful description of the biological neuron dynamics was accomplished by the \glsfirst{lif} neuron, first described by \citealp{lapicque1907recherches}. Despite some strong simplifications, the main dynamics of the membrane potential are well described by the model and it thus has been a popular and portable choice for neuromorphic hardware implementations.
+An early but successful description of the biological neuron dynamics was accomplished by the \glsfirst{lif} neuron model, first described by \citealp{lapicque1907recherches}. Despite some strong simplifications, the main dynamics of the membrane potential are well described by the model and it thus has been a popular and portable choice for neuromorphic hardware implementations.
 
-In biology, the observation of similar shaped individual action potentials lead to the assumption that the shape of a spike does not transport any information. The \gls{lif} model is based upon this theory and thus every spike can be replaced by a stereotypical shape.
+In biology, the observation of similar shaped individual action potentials lead to the assumption that the shape of a spike does not transport any information. The \gls{lif} model is based upon this theory and thus every spike can be replaced by a stereotypical shape (\citealp{gerstner2014dynamics}). 
 
-Another observation in biology is that neurons vary much in their shape and size fulfilling different functions. The spatial component plays an important role for the dynamics of a neuron. For instance, the strategic positioning of certain excitatory or inhibitory inputs on the dendrites, either closer or farther away from the soma, give rise to non-linear behavior in the course of the membrane potential. However, extensive spatial dependencies are difficult and costly to implement in a model. Therefore, the \gls{lif} neuron neglects the topology of the neuron and is approximated as a point-like integrator. 
+Another observation in biology is that neurons vary much in their shape and size fulfilling different functions. The spatial component plays an important role for the dynamics of a neuron. For instance, the strategic positioning of certain excitatory or inhibitory inputs on the dendrites, either closer or farther away from the soma, give rise to non-linear behavior in the course of the membrane potential. However, extensive spatial dependencies are difficult and costly to implement in a model. Therefore, the \gls{lif} neuron neglects the topology of the neuron and is approximated as a point-like integrator. (\citealp{gerstner2014dynamics})
 
 In the model, the incoming spike train $S_j(t)$ from various presynaptic partners $j$ is described by a series of spikes $s$ at times $t_j^{(s)}$
 \begin{equation*}
@@ -186,7 +175,7 @@ Each spike of the input spike train evokes a \gls{psp}. The impact of the \glspl
 \gls{isyn}(t) = \sum_j w_j \left(\epsilon \ast S_j(t)\right),
 \label{synaptic_input}
 \end{equation}
-with an exponential kernel $\epsilon$ describing the shape of the \gls{psp}. Popular choices for the kernel are single or double-exponentials
+with the convolution of a double exponential kernel $\epsilon$ with the input spike train $\epsilon \ast S_j$ describing the shape of a single \gls{psp}. The kernel can be defined as
 \begin{align*}
 \epsilon_\text{double}(t) 	&=\frac{1}{\mathcal{N}} \left(\epsilon_\text{rise} \ast \epsilon_\text{fall}\right)(t) \\
 &=\frac{1}{\mathcal{N}}\exp \left(-\frac{t}{\tau_\text{rise}} \right)  \ast \exp \left(-\frac{t}{\tau_\text{fall}} \right), 
@@ -194,38 +183,37 @@ with an exponential kernel $\epsilon$ describing the shape of the \gls{psp}. Pop
 \end{align*}
 with a rising and falling temporal constant $\tau_\text{rise}$ and $\tau_\text{fall}$ respectively. A constant $\mathcal{N}$ norms the kernel to unity. As the rising constant goes to zero $\tau_\text{rise} \rightarrow 0$ the double exponential turns into a single exponential kernel $\epsilon_\text{single} = \epsilon_\text{fall}$.
 
-The membrane potential \gls{v_mem} changes with the continuous synaptic input causing an unbalanced ion concentration inside the membrane. Passive as well as active processes are permanently restoring the membrane potential back to its equilibrium state which is associated with the resting potential \gls{v_leak}. In the \gls{lif} model, the temporal scale of these restoring processes is defined by the membranes capacitance $C_\text{m}$ and the leakage conductance $g_\text{leak}$ yielding the membrane's time constant $\gls{tau_m} = \frac{C_\text{m}}{g_\text{leak}}$. The dynamics of the membrane are then given by a single differential equation
+The membrane potential \gls{v_mem} changes with the continuous synaptic input causing an unbalanced ion concentration inside the membrane. Passive as well as active processes are permanently restoring the membrane potential back to its equilibrium state which is associated with the resting potential \gls{v_leak}. In the \gls{lif} model, the temporal scale of these restoring processes is defined by the membranes capacitance $C_\text{m}$ and the leakage conductance $g_\text{leak}$ yielding the membrane's time constant $\gls{tau_m} = \frac{C_\text{m}}{g_\text{leak}}$. The dynamics of the membrane for a given neuron $i$ are determined by a single differential equation
 \begin{align}
 \label{lifeq}
 C_{\text{m}} \frac{d\gls{v_mem}}{dt} &= -g_{\text{leak}} (\gls{v_mem} - \gls{v_leak}) + \gls{isyn}.
 \end{align}
 
-As for a biological neuron, the postsynaptic \gls{lif} neuron $i$ triggers a spike once a certain threshold \gls{thres} is crossed following the condition
+As for a biological neuron, a postsynaptic \gls{lif} neuron triggers a spike once a certain threshold \gls{thres} is crossed following the condition
 \begin{equation*}
-V_{\text{m}, i}\left(t_i^{(s)}\right) \ge \gls{thres} \Leftrightarrow \text{neuron \textit{i} fires at time } t_i^{(s)}.
+\gls{v_mem}\big(t^{(s)}\big) = \gls{thres} \Leftrightarrow \text{neuron fires at time } t^{(s)}.
 \end{equation*}
 
 Then the membrane is set to a reset potential \gls{v_reset} where it remains unchanged for a refractory period of \gls{refrac}
 \begin{equation*}
-V_{\text{m}, i}(t) = \gls{v_reset} \quad \forall t \in \left(t_i^{(s)}, t_i^{(s)} + \gls{refrac}\right].
+\gls{v_mem}(t) = \gls{v_reset} \quad \forall t \in \left(t^{(s)}, t^{(s)} + \gls{refrac}\right].
 \end{equation*}
 Unlike for its biological counterpart, the modeled neuron cannot spike during the refractory period.
 
 \begin{figure}
 	\centering
 	\scalebox{0.93}{\input{figures/lif_adex_dynamics.pgf}}
-	\caption[Membrane dynamics of the \gls{lif} and \gls{adex} given a constant input.]{Membrane dynamics of the \gls{lif} and \gls{adex} given a constant input. \textbf{(a)} The membrane potential of the \gls{lif} model $V_\text{m}^\text{LIF}$ evolves in response to a small input current, which is not strong enough to trigger a spike. A more intense stimulation yields a repetitive and equidistant spiking pattern. \textbf{(b)} Given a small step current, the shape of the \gls{adex} neuron's potential $V_\text{m}^\text{AdEx}$ is similar to the \gls{lif} model. At higher inputs, a negative adaption inhibits a repetitive spiking pattern after the first spike. The peak resembles the positive exponential voltage feedback simulating an action potential. \textbf{(c)} The stimulation current $I_\text{stim}$ is used for both models to show the course of the membrane potential. Figure taken from \citealp{stradmann2019msc}}
+	\caption[Membrane dynamics of the \gls{lif} and \gls{adex} given a constant input.]{Membrane dynamics of the \gls{lif} and \gls{adex} given a constant input. \textbf{(a)} Evolution of the membrane potential $V_\text{m}^\text{LIF}$ according to the \gls{lif} model in response to a different stimulation currents. The first current is not strong enough to trigger an action potential. A more intense stimulation yields a repetitive and equidistant spiking pattern. \textbf{(b)} Given a small box shaped current, the evolution of the \gls{adex} neuron's potential $V_\text{m}^\text{AdEx}$ is similar to the \gls{lif} model. At higher inputs, a negative adaption suppresses a repetitive spiking pattern after the first spike. The peak resembles the positive exponential voltage feedback simulating an action potential. \textbf{(c)} A box-shaped stimulation current $I_\text{stim}$ is used for both models to show the course of the membrane potential. Figure taken from \citealp{stradmann2019msc}}
 	\label{lifvsadex}
 \end{figure}
 
 A \gls{lif} neuron doesn't keep track of any previous spikes once a spike is released, given that the time constant of the synaptic input is shorter than the one of the membrane potential, in particular if $\tau_\text{m} > \tau_\text{fall}$. These limitations make it impossible for the model to correctly describe neuronal behavior such as spike bursts (\citealp{gerstner2014dynamics}).
 
-The constraints of the \gls{lif} neuron led to a demand of a more detailed model, namely the \glsfirst{adex} model, which is an extension to the \gls{lif} model featuring an additional adaption state variable that provides post-spike memory to the membrane. Depending on the sign of the adaption, the neuron is either inhibited or engaged to fire again after having spiked at least once.
-
+The constraints of the \gls{lif} neuron led to a demand of a more detailed model, namely the \glsfirst{adex} model, which is an extension to the \gls{lif} model featuring an additional adaption state variable that provides post-spike memory to the membrane. Depending on the sign of the adaption, the neuron is either inhibited or engaged to fire again after having spiked at least once (see \cref{lifvsadex}).
 
 %Apart from the additional state variable the \gls{adex} neuron features a positive exponential voltage feedback. on the other hand, enables the neuron to have a more complex behavior in the (\gls{v_mem}, w?) phase space.
 
-For the scope of this thesis a more advanced model is not yet required. All experiments are done using the simpler \gls{lif} model. However, an \gls{adex} based implementation of similar experiments are part of a future project (see \cref{futureprojects}).
+%For the scope of this thesis a more advanced model is not yet required. All experiments are done using the simpler \gls{lif} model. However, an \gls{adex} based implementation of similar experiments are part of a future project (see \cref{futureprojects}).
 %(see \cref{lifvsadex}).
 
 \section{Spiking Neural Networks}

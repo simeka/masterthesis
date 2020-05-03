@@ -207,7 +207,7 @@ Unlike for its biological counterpart, the modeled neuron cannot spike during th
 	\label{lifvsadex}
 \end{figure}
 
-A \gls{lif} neuron doesn't keep track of any previous spikes once a spike is released, given that the time constant of the synaptic input is shorter than the one of the membrane potential, in particular if $\tau_\text{m} > \tau_\text{fall}$. These limitations make it impossible for the model to correctly describe neuronal behavior such as spike bursts (\citealp{gerstner2014dynamics}) and led to a demand of a more detailed modeling as the \glsfirst{adex} model. The \gls{adex} model resembles an extension to the \gls{lif} model featuring an additional adaption state variable that provides post-spike memory to the membrane. Depending on the sign of the adaption, the neuron is either inhibited or engaged to fire again after having spiked at least once (see \cref{lifvsadex}).
+A \gls{lif} neuron doesn't keep track of any previous spikes once a spike is released, given that the time constant of the synaptic input is shorter than the one of the membrane potential, in particular if $\gls{tau_m} > \gls{tau_syn}$. These limitations make it impossible for the model to correctly describe neuronal behavior such as spike bursts (\citealp{gerstner2014dynamics}) and led to a demand of a more detailed modeling as the \glsfirst{adex} model. The \gls{adex} model resembles an extension to the \gls{lif} model featuring an additional adaption state variable that provides post-spike memory to the membrane. Depending on the sign of the adaption, the neuron is either inhibited or engaged to fire again after having spiked at least once (see \cref{lifvsadex}).
 
 %Apart from the additional state variable the \gls{adex} neuron features a positive exponential voltage feedback. on the other hand, enables the neuron to have a more complex behavior in the (\gls{v_mem}, w?) phase space.
 For the scope of this thesis a more advanced model is not yet required. All experiments are done using the simpler \gls{lif} model. However, the use of the \gls{adex} model for a spike-based learning rule such as SuperSpike is promising when targeting real-world applications. A respective project has already been planned in the future and will be explained in more detail in \cref{futureprojects}.
@@ -271,59 +271,51 @@ In the limit $\gls{thres} - \gls{isyn} \gg \sigma$, i.e. for low input rates, th
 \end{equation}
 with the fluctuations of a single excitatory input source $\sigma$.
 
-Without external noise, the fluctuations are small, reflecting only the variations of the input spike train and thus the activation function shows a steep incline. One way to smoothen the course of the function is to increase $\sigma$, e.g. by injecting additional Poisson spikes. A continuous noise stimulation with these noise spikes leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ which is centered around the resting potential \gls{v_leak} as depicted in \cref{theoretical_vleak_w_noise}. The term \emph{free} refers to the absence of any spiking mechanisms of the membrane.
-
-\begin{figure}
+\begin{figure}[ht!]
 	\begin{center}
 		\input{figures/theoretical_free_membrane.pgf}
 	\end{center}
-	\caption[Simulation of the Gaussian free membrane potential distribution.]{Simulation of the Gaussian free membrane potential distribution. The distribution of the membrane potential $f_{\gls{v_mem}}$ centers around \gls{v_leak}. The width of the distribution correlates to the amount of injected noise spikes. The part of the distribution colored in black, exceeds the threshold potential and would lead to spikes. The post fire dynamics of spiking activity changes the shape of the distribution, as the membrane is set to a reset potential before it leaks back to the resting potential (c.f. \citealp{petrovici12phdthesis}). Short time constants for the synaptic input and the membrane as well as sufficiently high input rates, reduce this effect.}
+	\caption[Simulation of the Gaussian free membrane potential distribution.]{Simulation of the Gaussian free membrane potential distribution, i.e. the distribution of the membrane potential in absence of any spiking mechanisms. The distribution $f_{\gls{v_mem}}$ centers around \gls{v_leak}. The width of the distribution correlates to the amount and synaptic weight of injected noise spikes. The part of the distribution colored in black, exceeds the threshold potential \gls{thres} indicated by a red vertical line and would lead to spikes.}
 	\label{theoretical_vleak_w_noise}
 \end{figure}
 
-In a naive approach, the part of the free distribution that exceeds a certain threshold potential correlates to the number of fired spikes (see \cref{theoretical_vleak_w_noise}). This neglects non-vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \citealp{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of very short time constants for the synaptic input \gls{tau_syn} and the membrane \gls{tau_m}.
+Without external noise, the fluctuations are small, reflecting only the variations of the input spike train and thus the activation function shows a steep incline. One way to smoothen the course of the function is to increase $\sigma$, e.g. by injecting additional Poisson spikes. A continuous noise stimulation with these noise spikes leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ which is centered around the resting potential \gls{v_leak} as depicted in \cref{theoretical_vleak_w_noise}. The term \emph{free} refers to the absence of any spiking mechanisms of the membrane. In a naive approach, the part of the free distribution that exceeds a certain threshold potential correlates to the number of fired spikes. This neglects non-vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \citealp{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of short time constants for the synaptic input and the membrane.
 
 However, despite the strongly simplified picture, this view still offers a correct intuition of how the threshold, the leak potential and the strength of the noise effect the free membrane potential and in turn change the shape of the activation function: more noise leads to a broader distribution and thus a more gentle incline of the output rate, synaptic input moves the distribution to either a lower or a higher mean value, moving the threshold corresponds to an additional bias term. The latter has been motivated by \citealp{petrovici2016stochastic}. The bias term in the neuron's activation can be adequately replaced by adapting the relative distance $\delta V$ between the resting potential and the threshold
 \begin{equation}
 b \propto \delta V = \gls{v_leak} - \gls{thres}.
 \end{equation}
-With the approximations made above in \cref{fireratehigh} and \cref{fireratelow} as well as a suitable choice of neuron parameters, the activation function yields an sigmoidal shape (\cref{theoreticalactivationfunction}). The slope of the sigmoid can be easily adapted by changing the synaptic strength of the input spike trains. However, finding the appropriate neuron model parameters to create a well shaped sigmoid can be tricky. 
+With the approximations made in \cref{fireratehigh} and \cref{fireratelow} as well as a suitable choice of neuron parameters, the activation function yields an sigmoidal shape (\cref{theoreticalactivationfunction}). The slope of the sigmoid can be easily adapted by changing the synaptic strength of the input spike trains. And the alignment along the x-axis can be done by the bias. Finding the appropriate neuron model parameters to create a well shaped sigmoid can be tricky. The parameters in-use are listed in \cref{hardwarevssimulationtable} in the appendix.
 
-In figure \cref{theoreticalactivationfunction} the influence of a changing synaptiof the bias
-
-%
-
-TODO: create better pictures in the simulation
-
-\begin{figure}
+\begin{figure}[h!]
 	\begin{subfigure}[c]{0.5\textwidth}
 		\centering
 		\caption{}
-		\input{figures/theoretical_activation_function_variableweight.pgf}
+		\input{figures/theoretical_activation_function_variableweight_new.pgf}
 		\label{theoreticalactivationfunctionweight}
 	\end{subfigure}	
 	\begin{subfigure}[c]{0.5\textwidth}
 		\centering
 		\caption{}
-		\input{figures/theoretical_activation_function_variablebias.pgf}
+		\input{figures/theoretical_activation_function_variablebias_new.pgf}
 		\label{theoreticalactivationfunctionbias}
 	\end{subfigure}
-	\caption[Simulation of a sigmoid activation function using Poisson noise]{Simulation of a sigmoid activation function using Poisson noise. The shape of the activation function \gls{activation} depends on several parameters of the \gls{lif} neuron and the Poisson input  spike trains. \textbf{(\subref{theoreticalactivationfunctionweight})} The input current that is seen by the neuron is directly proportional to the weight $\gls{isyn} \propto w_\text{in} \nu_\text{in}$. In this way, a lower weight causes a lower input current which in turn leads to smaller incline of the output rate. As one can see a lower weight causes the maximum rate to drop slightly. The synaptic currents are not strong enough to fight the leaking dynamics of the membrane. \textbf{(\subref{theoreticalactivationfunctionbias})} Different values for \gls{thres} change the relative potential difference $\delta V$ to the resting potential which corresponds to adding a bias to the net input of the neuron. The activation function is thereby shifted in either direction along the x-axis.}
+	\caption[Simulation of a sigmoid activation function using Poisson noise]{Simulation of a sigmoid activation function using Poisson noise. The shape of the activation function \gls{activation} depends on several parameters of the \gls{lif} neuron and the Poisson input  spike trains. \textbf{(\subref{theoreticalactivationfunctionweight})} The input current that is seen by the neuron is directly proportional to the weight $\gls{isyn} \propto w_\text{in} \nu_\text{in}$. In this way, a lower weight causes a lower input current which in turn leads to smaller incline of the output rate (\emph{black}) than for a higher input weight (\emph{red} or \emph{blue}). \textbf{(\subref{theoreticalactivationfunctionbias})} The \emph{red} curve is centered at zero input which requires a small threshold offset of \SI{0.75}{\V}. A negative potential difference $\delta V$ shifts the sigmoid (\emph{black}) to the left. With a lower threshold the neuron starts to fire earlier. The potential difference of the \emph{blue} and \emph{black} curve relative to the centered sigmoid equals $\pm \SI{5}{\V}$.}
 	\label{theoreticalactivationfunction}
 \end{figure}
 
 %For zero input, i.e. $\nu_{\text{in}} = 0$ and the , apart from the injected noise, the threshold is set such that $\nu_\text{out} = \nicefrac{\nu_\text{max}}{2}$. Varying the strength of the synaptic input directly changes the shape of \gls{activation} as well (c.f. \cref{transferfunction}).
 \pagebreak
 \subsection{Temporal Coding}
-\glspl{snn} can also model more complex processes which depend on the \gls{isi} or the time relative to a reference spike. In comparison to rate coding, using the exact spike time to encode information is more exposed to noise. In turn, the response time is highly increased for temporal coding, since there is no need to establish a certain firing rate first. The use of such coding has been observed in biology multiple times and has been proven to be of high importance (\citealp{gerstner1996neuronal} and \citealp{rieke1999spikes}). Another important advantage over rate coding is the efficiency that comes with using only few spikes. As every spike costs energy, sparse temporal coding condenses the required computational power to solve a task to a minimum. 
+\label{temporalcoding}
+\glspl{snn} can also model more complex processes which depend on the \gls{isi} or a specific spike time. In comparison to rate coding, using the exact spike time to encode information is more exposed to noise. In turn, the response time of such coding is highly increased, since there is no need to establish a certain firing rate first. The use of temporal coding has been observed in biology multiple times and it has been proven to be of high importance (\citealp{gerstner1996neuronal} and \citealp{rieke1999spikes}). Another advantage over rate coding is the efficiency that comes with the use of single spikes as each spike costs energy. Sparse temporal coding condenses the necessary resources to solve a task to a minimum.
 
-So far, training \glspl{snn} with hidden units has been proven to be a difficult task (\citealp{pfeiffer2018deep}). With the binary nature of spikes, the neuron's activity is non-differentiable on an individual spike level. Hence, \gls{sgd} cannot be used for temporal coding. Only recently, a promising workaround was suggested with \emph{SuperSpike}, a surrogate gradient descent implementation for \glspl{snn} (\citealp{zenke2018superspike}).
+So far, training \glspl{snn} with hidden units has been proven to be a difficult task (\citealp{pfeiffer2018deep}). With the binary nature of spikes, the neuron's activity is non-differentiable on an individual spike level. Hence, well proven methods from conventional deep learning cannot be simply transfered to temporal coding with \gls{snn}. A promising workaround was suggested with \emph{SuperSpike}, where a supervised learning algorithm is implemented for \glspl{snn} by using a surrogate gradient (\citealp{zenke2018superspike}).
 
-\subsection{Supervised Training with Temporal Coding}
-\label{superspike}
+\subsubsection*{Supervised Training with Temporal Coding}
 %Until now, only few people have successfully trained \glspl{snn} with hidden units. The main issue arises from the non-differentiable dynamics of spikes. A promising approach, solving this issue was proposed with \emph{SuperSpike}, a surrogate gradient descent implementation for \glspl{snn} (\citealp{zenke2018superspike}).
 
-As for the rate coding approach, the term \gls{snn} is limited to a spiking feed-forward network on the basis of the \gls{lif} neuron and again, the training routine can be split up into a forward and backward pass.
+As before, only feed-forward networks on the basis of \gls{lif} neurons are considered. The training routine of SuperSpike can again be split up into a forward and backward pass.
 
 The \textbf{forward pass} changes only slightly compared to \glspl{ann}. Instead of a continuous input and output, the formalism of the \gls{lif} is used. The presynaptic activity of neuron $j$ is given by the spike train $S_j$ and the postsynaptic activity of neuron $i$ by the spike train $S_i$. Again the activation function \gls{activation} is determined by the dynamics of the \gls{lif} neuron.
 %Todo: "surrogate gradient" is not really introduced but just used -> fix this
@@ -331,73 +323,96 @@ The \textbf{forward pass} changes only slightly compared to \glspl{ann}. Instead
 %Todo: axonal delay is not considered for the application of the hardware
 %Todo: auxilary function: threshold! -> f(x) = x/(1 + |x|) and f'(x) (1 + |x|)-2 => $\sigma'(U_i) = (1+|U_i - \vartheta|)^{-2}$
 
-As stated in section \ref{supervisedtraining}, most training approaches involve the optimization of a certain loss function $\mathcal{L(\mathbf{\theta)}}$ that depends on the network's parameters $\mathbf{\theta}$. In the \textbf{backward pass} of the SuperSpike formalism the \emph{van Rossum distance} (\citealp{rossum01novel}) of a target spike train $S^*_i$ and the output spike train $S_i$ is chosen, c.f. \citealp{zenke2018superspike},
+As stated in section \ref{supervisedtraining}, most training approaches involve the optimization of a certain loss function $\mathcal{L(\mathbf{\theta)}}$ that depends on the network's parameters $\mathbf{\theta}$. In the \textbf{backward pass} of the SuperSpike formalism the loss is given by the \emph{van Rossum distance} (\citealp{rossum01novel}) of a target spike train $S^*_i$ and the actual output spike train $S_i$
 \begin{equation}
 \label{vonrossumdistance}
 \mathcal{L} = \frac{1}{2} \int^t_{-\infty}dt' \left[\left(\alpha \ast S^*_i - \alpha \ast S_i \right)(t')\right]^2,
 \end{equation}
 with a smooth double exponential kernel $\alpha$. 
 
-The computation of the gradient for \ref{vonrossumdistance} with respect to $\mathbf{\theta}$ requires the derivative of a spike train  $\nicefrac{\partial{S_i}}{\partial{w_{ij}}}$ which is undefined for the time of a spike and zero elsewhere. SuperSpike circumvents this issue by rendering the spike train with a smooth auxiliary function $\sigma(V)$ of the membrane potential $V$ and thus the ill defined gradient of the spike train can be replaced by a surrogate derivative $\sigma'(V)$
+The computation of the gradient for \ref{vonrossumdistance} with respect to $\mathbf{\theta}$ requires the derivative of a spike train $S_i$ for a neuron $i$. In particular, $\frac{\partial{S_i}}{\partial{w_{ij}}}$ which is undefined for the time of a spike and zero elsewhere. SuperSpike circumvents this issue by rendering the spike train with a smooth auxiliary function $\sigma(V_{\text{m},i})$ of the membrane potential $V_{\text{m},i}$ for a neuron $i$ and thus the ill-defined gradient of the spike train can be replaced by a surrogate derivative $\sigma'(V_{\text{m},i})$
 \begin{equation*}
-\frac{\partial S_i}{\partial w_{ij}} \quad \rightarrow \quad \sigma'(V_i)\frac{\partial V_i}{\partial w_{ij}}.
+\frac{\partial S_i}{\partial w_{ij}} \quad \rightarrow \quad \sigma'(V_{\text{m},i})\frac{\partial V_{\text{m},i}}{\partial w_{ij}}.
 \end{equation*}
 
-In SuperSpike a fast sigmoid is chosen for performance reasons, 
+In SuperSpike $\sigma(V_{\text{m},i})$ is chosen to be a fast sigmoid
 \begin{equation}
-\sigma(V_i) = \frac{\beta (V_i - \vartheta)}{1 + \beta |V_i - \vartheta|},
+\sigma(V_{\text{m},i}) = \frac{\beta (V_{\text{m},i} - \vartheta)}{1 + \beta |V_{\text{m},i} - \vartheta|},
 \label{auxilliaryfunction}
 \end{equation}
-with a slope parameter $\beta$. The surrogate partial derivative yields $\sigma'(V_i) = \frac{\beta}{(1 + \beta |V_i - \vartheta|)^2}$. Other auxiliary functions will work too. Common choices are for example piecewise linear or exponential functions.
+with a slope parameter $\beta$. The surrogate partial derivative yields $\sigma'(V_{\text{m},i}) = \frac{\beta}{(1 + \beta |V_{\text{m},i} - \vartheta|)^2}$. Other auxiliary functions will work too. Common choices are for example piecewise linear or exponential functions.
 
-At a first glance, it appears that the problem has just been shifted to computing the partial gradient of the membrane potential instead. When the potential $V_i$ is formulated as a spike response model for \gls{lif} neuron (Gerstner et al., 2014) it again depends on the output spike train $S_i$. However, under the assumption of a low output rate the gradient can be approximated by $\frac{\partial U_i}{\partial w_{ij}} \approx (\epsilon \ast S_j)$ with $\epsilon$ another double-exponential kernel corresponding to the shape of a \gls{psp}. Plugging in the approximation and the formulation of the gradient as a surrogate gradient yields
+At a first glance, it appears that the problem has just been shifted to computing the partial gradient of the membrane potential instead. When the potential $V_{\text{m},i}$ is formulated as a spike response model for \gls{lif} neurons it again depends on the output spike train $S_i$ (\citealp{gerstner2014dynamics}). However, under the assumption of a low output rate the gradient can be approximated by $\frac{\partial V_{\text{m},i}}{\partial w_{ij}} \approx (\epsilon \ast S_j)$ with $\epsilon$ another double-exponential kernel corresponding to the shape of a \gls{psp}. Plugging in the approximation and the formulation of the gradient as a surrogate gradient yields
 
 \begin{equation}
 \frac{\partial w_{ij}}{\partial t} = \eta \int_{-\infty}^{t} dt'
-\underbrace{\left(\alpha \ast (S^*_i - S_i)\right)}_{= e^{(o)}_i \; \text{(Error)}} 
+\underbrace{\left(\alpha \ast (S^*_i - S_i)\right)}_{= e_i \; \text{(Error)}} 
 \; \alpha \ast 
-\Big(\underbrace{\sigma'(V^{(o)}_{\text{m},i})}_{\text{Post}} 
-\underbrace{\left(\epsilon \ast S^{(o)}_j\right)}_{\text{Pre}}\Big)
+\Big(\underbrace{\sigma'(V_{\text{m},i})}_{\text{Post}} 
+\underbrace{\left(\epsilon \ast S_j\right)}_{\text{Pre}}\Big),
 \label{superspikeweightupdateeq}
 \end{equation}
 with the learning rate $\eta$. 
 
-The formulation for the hidden layer is similar, except for how the error is calculated (c.f. \cref{superspikeweightupdatedivided}). Inspired from the popular backpropgation method the error signal of the $i \text{-th}$ hidden unit $e^{(h)}_i$ is propagated backwards as a weighted sum over the output error signal $e^{(h)}_i = \sum_{k} w_{ik}^{(o)} e^{(o)}_k$ with the feed forward weights $w_{ik}^{(o)}$ between the hidden and the output layer. A feedback alignment oriented approach with random weights is also possible. This formalism can be easily adapted for multiple hidden layers too.
+The formulation for a hidden layer is similar, except for calculation of the hidden error. For simplicity it the network is reduced to only one hidden layer structure. The error signal of the $i \text{-th}$ unit $e^\text{hidd}_i$ in the hidden layer is given by backpropagation of the error $e_k$ from the output layer
+\begin{equation*}
+e^\text{hidd}_i = \sum_{k} w_{ik} e_k,
+\end{equation*}
+with the feed forward weights $w_{ik}$ between the hidden and output layer. As for the gradient descent, feedback alignment can also be used within the SuperSpike formalism by using a random weight matrix. Despite the formal restriction to a single hidden layer, the method can be easily adapted for multiple hidden layers.
 
 %ToDo: Literatur Book zu Deep Learning (siehe downloads UniRechner)
-%
 %Überleitung zu rate coding vs sparse coding (maybe read again SuperSpike17/19 first))
 %A \gls{snn} offers many advantages compared to a classical \gls{ann}. On of the major differences is that sparse coding allows the user to compress a lot of information into a single spike. Also not spiking at a sppecifencodes information.  This efficient way of transporting information makes \glspl{snn} a contender for any energy sensitive form of computing. More importantly it also opens up the doors to understanding spike-based computing better and thus also the way the human brain works.
 
-
-
-
-
 \section{Neuromorphic Hardware}
 
-\begin{wrapfigure}{R}{0.45\textwidth}
+The great success of deep learning in the recent years has also increased the demand for new specialized hardware that handles the huge amount of parallel computing more efficient than the conventional von Neumann architecture. Among various approaches, neuromorphic hardware is arguably the closest form of computing to the human brain. As its inspiration, it is designed to be robust to noise or malfunctioning sectors, it is highly energy efficient and remains flexible throughout the learning process. These properties are of high interest for any deep learning applications. As a consequence, several platforms\footnote{Among others, SpiNNakker and BrainScaleS by EU's Human Brain Project, Loihi by Intel and Truenorth by IBM} have been launched by big industry corporations and academia over the last years.
+ 
+\begin{figure}[hb!]
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\caption{}
+		\includegraphics[width=0.98\textwidth]{figures/temporary/cubesetuptmp.png}
+		\label{cubesetup}
+	\end{subfigure}	
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\caption{}
+		\includegraphics[width=.98\textwidth]{figures/HXcloseup.JPG}
+		\vspace{0.35in}
+		\label{hxcloseup}
+	\end{subfigure}
 	\centering
-	\includegraphics[width=0.4\textwidth]{figures/HXcloseup.JPG}
-	\caption[Close-up of the newest \gls{bss2} single chip.]{Close-up of the newest \gls{bss2} single chip. The analog core of the neuromorphic chip is bonded before a protective cover is placed over it. Picture taken by M{\"u}ller, 2020.} 
-	\label{hxcloseup}
-\end{wrapfigure}
+	\caption[The \acrshort{hx} setup.]{The \acrshort{hx} setup. \textbf{(\subref{cubesetup})} The chip is mounted on a carrier board and protected by a cover. The carrier board is then mounted on the xBoard which is  connected to the \gls{fpga} over the cube setup. \textbf{(\subref{hxcloseup})} Close-up of the newest \gls{bss2} single chip. The analog core of the neuromorphic chip is bonded before a protective cover is placed over it. Picture taken by M{\"u}ller, 2020.} 
+	\label{hxsetup}
+\end{figure}
 
-Certain tasks, such as pattern recognition, are quite difficult to solve with traditional computing methods.  Biologically inspired computing has provided a range of efficient approaches to successfully tackle these problems. In the same way, biology has also been the key inspiration for a new \emph{neuromorphic} hardware design. As its paradigm, neuromorphic hardware is designed to be robust to malfunctioning sectors, energy efficient and adaptive. 
+In the context of this thesis, the presented learning strategies from \cref{neuralcoding} are implemented on an analog neuromorphic platform called \glsfirst{bss2}. This mixed-signal accelerated emulation for \glspl{snn} is based in Heidelberg and is the result of a long term cooperation with the EU, namely the Human Brain Project (HBP).
+%
+The \gls{bss2} platform is designed to perform various plasticity algorithms on-chip. The core of the platform is based upon a complete redesign of its predecessor the \gls{hicann}. By reducing the CMOS manufacturing process from \SI{180}{\nano \m} to \SI{65}{\nano \m} several new features could be included on the new core. One of the main renewals is a general purpose unit which can be used for any on-chip computation and a specialized vector unit that efficiently provides parallel access to observables from the analog core. The features have been implemented step by step on various prototype versions. The following paragraphs will focus on the specifications of the prototypes used for the experimental implementations of the discussed deep learning methods (c.f. \cref{bss2prototypes}).
 
-The experimental implementation of the presented learning strategies in \cref{neuralcoding} is done on \glsfirst{bss2}, a mixed-signal accelerated emulation platform for spiking neural networks which is funded by the EU's Human Brain Project (HBP) and is based in Heidelberg.
+On the \gls{dls} the newly designed \gls{lif} neuron model was tested as well as the on-chip computational units. The latter are also summarized as the \gls{ppu}. The \gls{dls} was manufactured at a reduced size of $32$ neurons and $32 \times 32$ synapses to avoid unnecessary costs. The \gls{hx} is the first full-size prototype of the \gls{bss2} platform with 512 \gls{adex} neuron circuits and 256 possible synaptic connections per neuron. In addition to the \gls{ppu}, the chip features on-chip event routing and HAGEN extension, an early realization of a neuromorphic system which basically implements an on-chip analog matrix multiplication (\citealp{schemmel2020accelerated}). Another renewal are dedicated noise generators, which come in handy when working with sigmoid activation functions and rate coding (c.f. \cref{ratecoding}).
 
-The \gls{bss2} platform is based upon a complete redesign of the \gls{hicann} chip from its predecessor \acrshort{bss1}. By using a smaller manufacturing process (\SI{65}{\nano \m} instead of \SI{180}{\nano \m}) several new features could be included on the new core - the \gls{hx}. The analog mixed-signal neuromorphic chip with 512 \gls{adex} neuron circuits and 256 possible synaptic connections per neuron is especially designed to investigate various on-chip plasticity algorithms. Therefore it features two \glspl{ppu}, on-chip event routing and the HAGEN extension. The latter is an early realization of a neuromorphic system which basically implements analog matrix multiplication on-chip (\citealp{schemmel2020accelerated}).
+\begin{table}[t!]\centering\ra{1.3}
+	\begin{tabular}{@{}rccccc@{}}\toprule
+		& 					& Neuron Model	& Neurons 	& Synapses 	& DLS	\\ \midrule
+		& \acrshort{dls}	& \gls{lif}		& 32 		& $32 \times 32$	& \gls{ppu}\\
+		& \acrshort{hx}		& \gls{adex}	& 512	 	& $512 \times 256$	& \gls{ppu}, Hagen\\
+		\bottomrule
+	\end{tabular}
+	\caption[Overview of relevant \gls{bss2} prototypes.]{Overview of relevant \gls{bss2} prototypes. On \acrshort{dls} a rate-based \gls{snn} is successfully trained by a fully on-chip implementation and on \acrshort{hx} a temporal-based \gls{snn} is successfully trained with support from a host.}
+	\label{bss2prototypes}
+\end{table}
 
-The new features have been tested step by step on smaller prototype systems, e.g. on the \gls{dls} the newly designed \gls{lif} neuron was tested. To avoid unnecessary costs, the size was reduced to $32$ neurons and a corresponding $32 \times 32$ synapse array allows all to all connectivity. Besides the Hagen extension and the \gls{adex} neuron, the main features of the \gls{bss2} platform, such as the \gls{ppu}, are already available on the prototyped versions.
+%The new features have been implemented step by step on various prototype versions. On the \gls{dls} the newly designed \gls{lif} neuron model was tested in combination with a in a reduced size of only $32$ neurons and a corresponding $32 \times 32$ synapse array allows all to all connectivity. The \gls{dls} and \gls{hx} chip. The \gls{hx} is the first full-size prototype of the \gls{bss2} platform with 512 \gls{adex} neuron circuits and 256 possible synaptic connections per neuron is especially designed to investigate various on-chip plasticity algorithms. Therefore it features two \glspl{ppu}, on-chip event routing and the HAGEN extension. The latter is an early realization of a neuromorphic system which basically implements analog matrix multiplication on-chip (\citealp{schemmel2020accelerated}).
+
+%The new features have been tested step by step on smaller prototype systems, e.g. on the \gls{dls} the newly designed \gls{lif} neuron was tested. To avoid unnecessary costs, the size was reduced to $32$ neurons and a corresponding $32 \times 32$ synapse array allows all to all connectivity. Besides the Hagen extension and the \gls{adex} neuron, the main features of the \gls{bss2} platform, such as the \gls{ppu}, are already available on the prototyped versions.
 
 %The experiments conducted within this thesis are done either on the \gls{hx} or the \gls{dls}. In the following section the individual parts of the chip are discussed.
 %The manufacturing has been outsourced to the Taiwan Semiconductor Manufacturing Company (TSMC) using a standardized $65 \si{nm}$ low-power and low-leakage CMOS technology.
 
-%refs: ibm http://www.research.ibm.com/articles/brain-chip.shtml
-% coral board:
-% Loihi:
-
 \subsection{Architecture of \gls{bss2}}
+
 \begin{figure}
 	\begin{subfigure}[c]{0.5\textwidth}
 		\centering
@@ -411,14 +426,14 @@ The new features have been tested step by step on smaller prototype systems, e.g
 		\includegraphics[width=0.9\textwidth]{figures/ppu_overview.pdf}
 		\label{hxppu}
 	\end{subfigure}
-	\caption[Overview of the architecture on \gls{bss2}]{Overview of the architecture on \gls{bss2}. \textbf{(\subref{hxstructure})}: The neuromorphic platform is divided into a digital and analog core which is connected to an external host via an FPGA. Two plasticity processing units provide computational power for on-chip training.  Figure taken from \citealp{schemmel2017internal} \textbf{(\subref{hxppu})}: The plasticity processing units are divided into a general purpose part which is based on a 32-bit architecture and a vector unit, that enables efficient parallel data processing of analog parameters and observables. Figure taken from \citealp{friedmann2016hybridlearning}}
+	\caption[Overview of the \gls{bss2} architecture.]{Overview of the \gls{bss2} architecture. \textbf{(\subref{hxstructure})} The neuromorphic platform is divided into a digital and analog core which is connected to an external host via an FPGA. Two plasticity processing units provide computational power for on-chip training.  Figure taken from \citealp{schemmel2017internal} \textbf{(\subref{hxppu})} The plasticity processing units are divided into a general purpose part which is based on a 32-bit architecture and a vector unit. The latter enables efficient parallel data processing of analog parameters and observables. Figure taken from \citealp{friedmann2016hybridlearning}}
 \end{figure}
 
-The design of the \gls{hx} chip can be divided into an \emph{analogue} and \emph{digital} core (c.f. figure \ref{hxstructure}). The external communication is established by an \gls{fpga} accessing eight serial Low Voltage Differential Signaling (LVDS) links. The interface handles read/write instructions and manages spike-event data in both directions.
+The design of both prototypes can be divided into an \emph{analogue} and a \emph{digital} core (c.f. figure \ref{hxstructure}). The external communication is established by an \gls{fpga} accessing eight serial Low Voltage Differential Signaling (LVDS) links. The interface not only manages read and write instructions but handles any spike-event data in both directions.
 
-The analogue core contains the physical implementation of the \gls{lif} and the \gls{adex} neuron model respectively (c.f. \citealp{aamir2018dls2neuron} and \citealp{aamir2018mixed}). The biological time constants of neurons and synapses are usually in the order of 1 to 100 milliseconds. The \textit{in-silico} implementation of the neuron models create a temporal speed-up compared to their \textit{in-vivo} counterpart, leading to chip time constants of a few microseconds. This acceleration is possible due to the supra-threshold dynamics of CMOS transistors. 
+Depending on the chip version, the analogue core contains the physical implementation of either a \gls{lif} or an \gls{adex} neuron model (\citealp{aamir2018dls2neuron} and \citealp{aamir2018mixed}). The analog neuron model parameters can be tuned by setting respective bias currents with a \SI{10}{\bit} \gls{dac}. Each neuron can be controlled and adjusted individually (\citealp{hock13analogmemory}). 
 
-The analog neuron model parameters in both chips are tunable by setting bias currents over a \SI{10}{\bit} \gls{dac}, which allows to control and adjust each neuron individually (\citealp{hock13analogmemory}). The \SI{10}{\bit} spike counter of the \gls{dls} (one per neuron) has been replaced by an \SI{8}{\bit} counter in the \gls{hx}. 
+The biological time constants of neurons and synapses are usually in the order of 1 to 100 milliseconds. The \textit{in-silico} implementation of the neuron models cause a temporal speed-up compared to their \textit{in-vivo} counterpart, leading to chip-time constants of a few microseconds. This acceleration is possible due to the supra-threshold dynamics of CMOS transistors. 
 
 \begin{figure}
 	\centering
@@ -427,12 +442,26 @@ The analog neuron model parameters in both chips are tunable by setting bias cur
 	\label{synapseschematics}
 \end{figure}
 
-The neurons can be connected by a grid of $512 \times 256$ synapses ($32 \times 32$ on the prototypes). The activity of presynaptic neurons is injected row-wise by dedicated synapse drivers as either excitatory or inhibitory spikes. Each synapse has access to a \SI{6}{\bit} decoder address and compares it to a 6-bit label of the incoming spikes (see \cref{synapseschematics}). If they match, the spike is relayed to the corresponding neuron at the bottom of the synapse grid. The efficacy is thereby configured by a \SI{6}{\bit} weight.
+On the full-size chip, the neurons are connected by a grid of $512 \times 256$ synapses ($32 \times 32$ on the smaller one). The activity of presynaptic neurons is injected row-wise by dedicated synapse drivers as either excitatory or inhibitory spikes. Each synapse has access to a \SI{6}{\bit} decoder address and compares it to a 6-bit label of the incoming spikes (see \cref{synapseschematics}). If they match, the spike is relayed to the corresponding neuron at the bottom of the synapse grid. The efficacy is thereby configured by a \SI{6}{\bit} weight.
+
+The analog core features several observables which are relevant for the implementation of various plasticity rules. The firing rate of neuron is recorded by a \SI{10}{\bit} spike counter on the \gls{dls}, which has been replaced by a smaller \SI{8}{\bit} counter in the full-size version to save some space. In addition, every synapse features two correlation sensors (causal and anti-causal) which are designed to record \gls{stdp} traces. Other relevant observables are the traces of the synaptic input or the membrane potential. The latter is key for the implementation of temporal-based plasticity rules such as SuperSpike.
 
 
-In addition, two correlation sensors per synapse (causal and anti-causal) record \gls{stdp} traces and store them in dedicated capacitors. These analog observables can then be read out row-wise by the \gls{ppu} using a \gls{cadc} with a total of 1024 \gls{cadc} channels (one channel per correlation sensor per synapse). Unlike for previous prototypes, the \gls{hx} has access to further observables such as the membrane potential and opens up new possibilities for implementation of plasticity rules. 
+STOPPED HERE
 
-As an additional debugging and observation tool, a \gls{madc} can be accessed from the digital core to read out any available analog observables. However, the \gls{madc} readout is limited to a single observable making it not suitable for efficient parallel computing.
+- write a bit about cadc is fast and the VR processes the data
+
+- comapre to madc which is slow but accurate
+
+- picture for synapse array still missing
+
+- then done here and with background chapter
+
+The \gls{stdp} traces can be accessed row-wise by the a \gls{cadc} with a total of $2\times32$ respectively $2\times512$ \gls{cadc} channels (one channel per correlation sensor per synapses row). The parallel readout is particular
+
+
+ On the newer \gls{hx}, the \gls{cadc} is equipped with more routing possibilities, with which the membrane potential can be accessed as well. This feature  Unlike the \gls{cadc} the \gls{madc} provides only access to one observable at a time. This limitation is compensated with a better accuracy, making it a useful debugging and observation tool, that can be accessed from the digital core of the chip. By the use of the \gls{madc} the membrane potential can also be recorded on the \gls{dls}. However, with the lack of parallelization an in-experiment use is not feasible.
+
 
 When training a highly accelerated analog system, such as \gls{bss2}, a fast computation of any plasticity rule is indispensable. To provide sufficient computational power, the chip is equipped with two \glspl{ppu}, each containing a general-purpose unit that is extended with a special function unit implementing \gls{simd} operations. The special function unit has vector-wise access to the synapse array as well as to the results of the \gls{cadc} and will be further referred to as \emph{vector unit}.
 

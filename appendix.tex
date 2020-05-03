@@ -1,6 +1,25 @@
 \appendix
-\chapter*{Appendix}
-\renewcommand{\thechapter}{A}
+\chapter{Appendix}
+%\renewcommand{\thechapter}{A}
+\section{Simulation Parameters}
+\begin{table}[h!]\centering\ra{1.3}
+	\begin{tabular}{@{}rlll@{}}\toprule
+		& Parameter								& 	Simulation 			& 	Hardware 	\\ \midrule
+		& initial weights $w_{ij}^\text{init}$	& 	 $\in[-25, 25]$			&	$\in[-25, 25]$	\\
+		& initial bias $b_{i}^\text{init}$		& $\propto \frac{1}{2} \sum_j w_{ij}$ &	0		\\
+		& learning rate of bias  $\eta_\text{w}$&	$165e4$					& 	$5.5e4$			\\
+		& learning rate of bias  $\eta_\text{b}$&	$2.3e4$					& 	$0.23e4$		\\
+		& resting potential \gls{v_leak}		&	$\SI{0.54}{\V}$ 		& 	$\SI{0.54}{\V}$	\\
+		& reset potential \gls{v_reset}			&	$\SI{0.01}{\V}$			& 	$\SI{0.01}{\V}$	\\
+		& refractory period \gls{refrac}		&	$\SI{9}{\micro \s}$			& 	$\SI{0.01}{\V}$	\\
+		& range of threshold \gls{thres} 				&	\SIrange{0.45}{0.63}{\V}&	\SIrange{0.45}{0.63}{\V}\\
+		& max input frequency $\nu_{\text{in}}$	&	$2 \times \SI{500}{\kilo \Hz}$	& $11 \times \SI{111.3}{\kilo\Hz}$	\\
+		\bottomrule
+	\end{tabular}
+	\caption[Initial, hyper and neuron parameters per layer.]{Initial, hyper and neuron parameters per layer. Some parameters require a different setting for the hidden and the output layer.}
+	\label{hardwarevssimulationtable}
+\end{table}
+
 \section{Monitoring Plots}
 \label{monitoringplots}
 \begin{figure}[!htb]

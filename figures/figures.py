@@ -377,44 +377,46 @@ if __name__ == "__main__":
     # save_plot(fig, "theoretical_activation_function", (4, 3))
 
     ###### variable weight#####
+    # delta threshold = 0.75
+    sigmoid_mmnt_npz = np.load("sigmoid_mmnt_new_weight.npz")
+    freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
+    freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
+    changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
+    # print(freq_out)
+    # print(freq_in)
+    fig = plt.figure()
+    for i, p in enumerate(changing_parameter):
+        popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out[i], method='dogbox',
+                                 bounds=([0, 0., -1000], [100, 0.2, 1000.]))
+        plt.plot(freq_in, freq_out[i], '.', label="$w_\mathrm{in} = %s$" % p, color=colors[i])
+        plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[i])#, label="sigmoid fit")
 
-    # sigmoid_mmnt_npz = np.load("sigmoid_mmnt_variable_weights_longer_final.npz")
-    # freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
-    # freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
-    # changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
-    #
-    # fig = plt.figure()
-    # for i, p in enumerate(changing_parameter):
-    #     popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out[i], method='dogbox',
-    #                              bounds=([0, 0., -10000], [100, 0.1, 10000.]))
-    #     plt.plot(freq_in, freq_out[i], '.', label="$w_\mathrm{in} = %s$" % p, color=colors[i])
-    #     plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[i])#, label="sigmoid fit")
-    #
-    # plt.ylabel(label_voutput)
-    # plt.xlabel(label_vinput)
-    # plt.legend()
-    # save_plot(fig, "theoretical_activation_function_variableweight_longer", double_shape)
-    #
-    # # ###### variable biases#####
-    # sigmoid_mmnt_npz = np.load("sigmoid_mmnt_variable_bias.npz")
-    # freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
-    # freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
-    # changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
-    #
-    # # freq_out = freq_out[[1,2,3,4,5],:]
-    # # changing_parameter = changing_parameter[[1,2,3,4,5]]
-    # fig = plt.figure()
-    # for i, p in enumerate(changing_parameter):
-    #     popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out[i], method='dogbox',
-    #                              bounds=([0, 0., -10000], [100, 0.1, 10000.]))
-    #     plt.plot(freq_in, freq_out[i], '.', label="$\delta V = \SI{%s}{\V}$" % p, color=colors[i])
-    #     plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[i])#, label="sigmoid fit")
-    #
-    #
-    # plt.ylabel(label_voutput)
-    # plt.xlabel(label_vinput)
-    # plt.legend()
-    # save_plot(fig, "theoretical_activation_function_variablebias_longer_final", double_shape)
+    plt.ylabel(label_voutput)
+    plt.xlabel(label_vinput)
+    plt.legend()
+    save_plot(fig, "theoretical_activation_function_variableweight_new", double_shape)
+
+    # ###### variable biases#####
+    sigmoid_mmnt_npz = np.load("sigmoid_mmnt_new_bias.npz")
+    freq_in = sigmoid_mmnt_npz["freq_input_sequence"] / 1e3
+    freq_out = sigmoid_mmnt_npz["freq_output_sequence_storage"] / 1e3
+    changing_parameter = sigmoid_mmnt_npz["changing_parameter"]
+    # print(freq_out)
+    # print(freq_in)
+    # freq_out = freq_out[[1,2,3,4,5],:]
+    # changing_parameter = changing_parameter[[1,2,3,4,5]]
+    fig = plt.figure()
+    for i, p in enumerate(changing_parameter):
+        popt1, pcov1 = curve_fit(fsigmoid, freq_in, freq_out[i], method='dogbox',
+                                 bounds=([0, 0., -1000], [100, 0.02, 1000.]))
+        plt.plot(freq_in, freq_out[i], '.', label="$\delta V = \SI{%s}{\V}$" % (-p + 0.75), color=colors[i])
+        plt.plot(freq_in, fsigmoid(freq_in, *popt1), colors[i])#, label="sigmoid fit")
+
+
+    plt.ylabel(label_voutput)
+    plt.xlabel(label_vinput)
+    plt.legend()
+    save_plot(fig, "theoretical_activation_function_variablebias_new", double_shape)
 
     # ######### FREE MEMBRANE ###############
     # free_membrane_npz = np.load("free_membrane_mmnt_20000.npz")

@@ -252,9 +252,9 @@ x_\text{stoch}(x) =
 
 Direct access to the analog weight parameters from the general-purpose unit is time-consuming and computation intensive due to the lack of parallelizations. With feedback alignment, the need of the current weight information becomes irrelevant to the plasticity rule. Only the computed weight update needs to be applied somehow. This can be implemented by using the vector unit. The \gls{simd} instructions allow parallel access to all weights and therefore it is not only used to efficiently apply the weight updates but also to silence and reactivated the respective synapses in the double-row structure of the synapse array. The \emph{assembly} code-base for this implementation has been co-written by Sebastian Billaudelle and Benjamin Cramer.
 
-During training the weights can max out, due to their limited \SI{6}{\bit} range. The implementation of a simple weight regularization using the convenient parallel access of the vector unit solves this issue. The regularization of both, excitatory and inhibitory weights is implemented using bit shifts to minimize the implementation effort and given by
+During training the weights can max out, due to their limited \SI{6}{\bit} range. The implementation of a simple weight regularization using the convenient parallel access of the vector unit solves this issue. The regularization of both, excitatory and inhibitory weights $w_{ij}^\text{inh},\; w_{ij}^\text{exc}\equiv w_{ij} \in [0,2^6)$ is implemented using bit shifts to minimize the implementation effort and given by
 \begin{align*}
-w_{ij}^\text{inh},\; w_{ij}^\text{exc}\equiv w_{ij} \in [0,2^6) \quad  \Rightarrow \quad \text{Reg}(w_{ij}) &= w_{ij} - \left(\left(w_{ij} \ll 1\right) \gg 6\right) \nonumber \\
+\text{Reg}(w_{ij}) &= w_{ij} - \left(\left(w_{ij} \ll 1\right) \gg 6\right) \nonumber \\
 &= w_{ij} - \left\lfloor \frac{\lfloor 2 \cdot w_{ij}  \rfloor}{2^{6}} \right\rfloor.					
 %	&= w_{ij} - \left\lfloor \lfloor 2 w_{ij} \rfloor \cdot 2^{-6} \right\rfloor
 \end{align*}
@@ -268,15 +268,7 @@ However, compared to the speed of the accelerated neuromorphic core, the \acrlon
 
 The final experiment setup involves the setting of initial conditions, neuron parameters and the tuning of hyper-parameters. The latter describe a set of parameters, that is not changed during the training process but their choice often determines whether or not the training succeeds (\citealp{Goodfellow-et-al-2016}). A subset of the most relevant parameters is listed in \cref{circlesinitparameters}.
 
-At the beginning of the experiment all weights of both layers are randomly initialized using a uniform distribution ranging from $-25$ to $25$. 
-
-The initial bias of both layers is set to zero, i.e. $\gls{thres} = \gls{v_leak}$. In this setting it has been observed that a ``silent" hidden unit at the start of the training most likely remains inactive throughout the training process. As a workaround, a weight dependent term is added to the zero bias, such that $b_i^\text{init} \propto \sum_j w_{ij}$. This ensures an initial firing rate of every neuron at the beginning of the training.
-
-In the final setting, the incline of the activation function needed to be raised by a fair amount resulting in a noise frequency $\nu_\text{noise}$ of roughly \SI{1.1}{\kilo \Hz}, which corresponds only to a fraction of the available resource. The impact of the noise spikes is tuned by the synaptic weight $w_\text{noise}$ which is set to $\pm 15$ for excitatory and inhibitory spikes respectively.
-
-The input layer, on the other hand, exploits almost the maximum with firing rates ranging from \SIrange{0}{500}{\kilo \Hz}. The maximum input rate of a hidden unit is then given by the combined input of both input units. The same applies to the output layer where the output rates of the hidden units are combined to a maximum input of $11 \times \SI{111.3}{\kilo \Hz}$.
-
-\begin{table}\centering\ra{1.3}
+\begin{table}[t!]\centering\ra{1.3}
 	\begin{tabular}{@{}rlll@{}}\toprule
 		& Parameter								& 	hidden neurons 			& 	output neurons 	\\ \midrule
 		& initial weights $w_{ij}^\text{init}$	& 	 $\in[-25, 25]$			&	$\in[-25, 25]$	\\
@@ -293,6 +285,14 @@ The input layer, on the other hand, exploits almost the maximum with firing rate
 	\caption[Initial, hyper and neuron parameters per layer.]{Initial, hyper and neuron parameters per layer. Some parameters require a different setting for the hidden and the output layer.}
 	\label{circlesinitparameters}
 \end{table}
+
+At the beginning of the experiment all weights of both layers are randomly initialized using a uniform distribution ranging from $-25$ to $25$. 
+
+The initial bias of both layers is set to zero, i.e. $\gls{thres} = \gls{v_leak}$. In this setting it has been observed that a ``silent" hidden unit at the start of the training most likely remains inactive throughout the training process. As a workaround, a weight dependent term is added to the zero bias, such that $b_i^\text{init} \propto \sum_j w_{ij}$. This ensures an initial firing rate of every neuron at the beginning of the training.
+
+In the final setting, the incline of the activation function needed to be raised by a fair amount resulting in a noise frequency $\nu_\text{noise}$ of roughly \SI{1.1}{\kilo \Hz}, which corresponds only to a fraction of the available resource. The impact of the noise spikes is tuned by the synaptic weight $w_\text{noise}$ which is set to $\pm 15$ for excitatory and inhibitory spikes respectively.
+
+The input layer, on the other hand, exploits almost the maximum with firing rates ranging from \SIrange{0}{500}{\kilo \Hz}. The maximum input rate of a hidden unit is then given by the combined input of both input units. The same applies to the output layer where the output rates of the hidden units are combined to a maximum input of $11 \times \SI{111.3}{\kilo \Hz}$.
 
 The learning rates may appear unusually high, which is mainly due to the lack of normalization. The normalization was not done beforehand in order to reduce the risk of eliminating small contributions of variables in the on-chip computation of the parameter updates. Furthermore the learning rates are divided into layer and parameter, to cope with the individual magnitudes. Even without the necessity to norm resulting parameter updates, it is not unusual to tune learning rates separately (\citealp{Goodfellow-et-al-2016}). The final rates are set to provide a fair amount of activity for both layers and parameters (c.f. \cref{monitoringplots}).
 
@@ -319,10 +319,40 @@ with the error $e^{(o)}$ from \cref{circleserror} and the number of data points 
 \end{equation}
 with $n_\text{true}$ the number of correctly classified points with respect to decision boundary from \cref{circlesdb}.
 
-\begin{figure}
-	\include{learning_process_s5}
-	\caption[Initial state of the deep network.]{Initial state of the deep network. For simplicity only the hidden and output layer are displayed. The arrows connecting the hidden units with output units resemble the synaptic connections, with red being an excitatory synapse and the thickness of the arrow corresponding to the synaptic strength.}
-	\label{learning_process_s5}
+%\begin{figure}[htb!]
+%	\centering
+%	\include{learning_process_s5}
+%	\vspace{-0.3in}
+%	\caption[Initial state of the deep network.]{Initial state of the deep network. For simplicity only the hidden and output layer are displayed. The arrows connecting the hidden units with output units resemble the synaptic connections, with red being an excitatory synapse and the thickness of the arrow corresponding to the synaptic strength.}
+%	%\label{learning_process_s5}
+%\end{figure}
+
+\begin{figure}[t!]
+	\begin{subfigure}{\textwidth}
+		\caption{}
+		\vspace{-0.1in}
+		\centering
+		\include{learning_process_s5}
+		\label{learning_process_s5}
+		\vspace{-.5in}
+	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\caption{}
+		\vspace{-0.1in}
+		\centering
+		\include{learning_process_s500}
+		\label{learning_process_s500}
+		\vspace{-.5in}
+	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\caption{}
+		\vspace{-0.1in}
+		\centering
+		\include{learning_process_s2500}
+		\label{learning_process_s2500}
+	\end{subfigure}
+	\vspace{-.4in}
+	\caption[Evolution of the network during training.]{Evolution of the network during training. For simplicity only the hidden and output layer are displayed. The connecting arrows resemble the excitatory (\emph{red}) and inhibotry (\emph{blue}) synaptic connections and their thickness corresponds to the synaptic strength. \textbf{(\subref{learning_process_s5})} Initial untrained state of the network. \textbf{(\subref{learning_process_s500})} Network state after 500 iterations. With a decision boundary of roughly \SI{60}{\kilo \Hz}, the output unit starts to correctly identify the two classes. \textbf{(\subref{learning_process_s2500})} Final trained state of the network. After 2500 iterations the network has succeed to separate both classes with an accuracy of almost 100 \%.}
 \end{figure}
 
 At the beginning of the training process, each hidden unit is initialized with a linear combination of the input schemes from \cref{circlesinputs} which is then transformed into a non-linear output by the activation function. The new representations of the input layer are again linearly combined into a net input for the output unit where another non-linear transformation is applied. The initial state of the network is shown in \cref{learning_process_s5}. At this stage of the training process the output unit cannot classify the task correctly. 
@@ -337,21 +367,6 @@ The evolved network after 500 iterations is depicted in \cref{learning_process_s
 
 At 2500 iterations, see \cref{learning_process_s2500}, the network has converged. The accuracy has also stabilized at almost 100 \%. The average over the last 500 iterations yields a mean accuracy of $(98.2 \pm 2.9)\,\%$ and the average over the last 250 iterations improves to  $(99.6 \pm 0.8)\,\%$. The \gls{rmse} is also reduced to a minimum, i.e. the output neuron resembles the target well. The average output error over the last 250 iterations yields $(9.6 \pm 1.4)\,\si{\kilo \Hz}$.
 
-\begin{figure}
-	\begin{subfigure}{\textwidth}
-		\caption{}
-		\centering
-		\include{learning_process_s500}
-		\label{learning_process_s500}
-	\end{subfigure}
-	\begin{subfigure}{\textwidth}
-		\caption{}
-		\centering
-		\include{learning_process_s2500}
-		\label{learning_process_s2500}
-	\end{subfigure}
-	\caption[Evolution of the network during training.]{Evolution of the network during training. \textbf{(\subref{learning_process_s500})} Network state after 500 iterations. With a decision boundary of roughly \SI{60}{\kilo \Hz}, the output unit starts to correctly identify the two classes. \textbf{(\subref{learning_process_s2500})} Final trained state of the network. After 2500 iterations the network has succeed to separate both classes with an accuracy of almost 100 \%.}
-\end{figure}
 
 %For further monitoring purposes, the evolution of the weights and biases are tracked for the hidden and output layer (see \cref{network_monitoring}).
 %\begin{figure}

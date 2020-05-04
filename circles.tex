@@ -119,7 +119,7 @@ On the \gls{ppu} the Bernoulli process is implemented by comparing the frequency
 %\end{minted}
 
 \section{Transfer Function on Chip}
-The theoretical ground for a sigmoid activation function for a \gls{lif} neuron has been motivated in \cref{ratebasedtraining}: The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$. In \cref{vleak_w_noise} the measured membrane potential on the hardware is shown, using noise spike trains with a frequency of \SI{70}{\kilo \Hz} and a synaptic strength of $w_\text{noise}= \pm 15$.
+The theoretical ground for a sigmoid activation function for a \gls{lif} neuron has been motivated in \cref{ratecoding}: The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$. In \cref{vleak_w_noise} the measured membrane potential on the hardware is shown, using noise spike trains with a frequency of \SI{70}{\kilo \Hz} and a synaptic strength of $w_\text{noise}= \pm 15$.
 
 %The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ centered around the resting potential \gls{v_leak} as depicted in \cref{vleak_w_noise}). In a naive approach, the part of the distribution that exceeds a certain threshold potential correlates to the number of fired spikes. This neglects non vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \citealp{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of very short time constants for the synaptic input \gls{tau_syn} and the membrane \gls{tau_m}.
 %
@@ -139,7 +139,7 @@ The theoretical ground for a sigmoid activation function for a \gls{lif} neuron 
 with the free membrane distribution $f_{\gls{v_mem}} = f_{\gls{v_mem}}(V; \gls{v_leak}, \nu_\text{noise}, w_\text{noise})$. 
 The bias term $b$ in the neuron's activation is again replaced by the relative distance $\delta V$ between the resting potential and the threshold, since $b \propto \delta V = \gls{v_leak} - \gls{thres}$. 
 
-Some parameters will be kept fixed, whereas others are required to operate within a certain range such as the threshold or the input frequency. The setup is hand tuned with the support of parameter sweeps to find a suitable configuration of the fixed parameters. The final set of parameters is displayed in \cref{totable}
+Some parameters will be kept fixed, whereas others are required to operate within a certain range such as the threshold or the input frequency. The setup is hand tuned with the support of parameter sweeps to find a suitable configuration of the fixed parameters. The final set of parameters is listed in \cref{hardwarevssimulationtable}
 
 \subsubsection*{Calibration}\label{calibration}
 The manufacturing process of analog neuromorphic hardware causes systematic stochastic deviations in the neuron and synapse parameters. The thereby induced heterogeneity between neurons and synapses is referred to as \emph{fixed-pattern noise} and is constant in time. Despite the detuned parameters, it has been shown that plasticity rules can correct the intrinsic imperfections of the analog hardware to a certain degree (\citealp{wunderlich2019advantages}).

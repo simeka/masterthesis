@@ -148,7 +148,7 @@ The action potential releases various neurotransmitter to overcome a small but p
 
 A wide-spread assumption in the field of neuroscience is that the exact shape of a spike doesn't carry any relevant information and therefore all spikes can be modeled by a stereotypical shape. However, recent research has already suggested that the small variations in the action potential contain vital information (\citealp{debanne2013mechanisms}). For the prior assumption, the communication between neurons is reduced to a temporal and spatial dimension. Temporal information is encoded either in the frequency (\emph{rate coding}) or the precise timing (\emph{time coding}) of spikes whereas the spatial dimension is filled with varying populations of neurons (\citealp{gerstner2014dynamics}). A more detailed description of neural coding schemes is presented in section \ref{neuralcoding}.
 
-The brain has an ability to continuously change the topology of its synaptic wiring, to create new synapses, to alter the chemical properties of the synaptic receptors or to simply strengthen and weaken the synaptic efficacy. With these \emph{plasticity} mechanisms the brain is able to learn and adapt as a reaction to stimulation or even damage. (\citealp{gerstner14dynamics})
+The brain has an ability to continuously change the topology of its synaptic wiring, to create new synapses, to alter the chemical properties of the synaptic receptors or to simply strengthen and weaken the synaptic efficacy. With these \emph{plasticity} mechanisms the brain is able to learn and adapt as a reaction to stimulation or even damage. (\citealp{gerstner2014dynamics})
 
 One way of learning and forming memory is known as synaptic plasticity where the synaptic strength is changed over time. According to Hebb's theory ``neurons that fire together wire together" (\citealp{hebb1949organization}). An experimental proof of such activity-dependent plasticity was found by \citealp{bliss1973long}, where they discovered that a short but high frequency stimulation lead to a long lasting change in the synapse's efficacy. This is also referred to as \gls{ltp}. Reducing the stimulus to a low frequency, on the other hand, resulted in the opposite effect: \gls{ltd}. In combination they can carve out certain regions in the brain which is related to a specific stimulus and thereby create memory (\citealp{nabavi2014engineering}). A better understanding of \gls{ltp} and \gls{ltd} was gained when \gls{stdp} was first observed (\citealp{markram1997regulation}, \citealp{poo98stdp}). \gls{stdp} shows in principle that presynaptic activity just before a postsynaptic response leads to an increased synaptic strength. If presynaptic activity occurs right after a postsynaptic spike, the synapses is weakened. 
 
@@ -223,11 +223,11 @@ The communication among biological neurons can be modeled by \glspl{snn} where i
 %A neuron's primary way to exchange information with another is to send and receive spikes.
 %\Glspl{snn} take the biological inspiration for \glspl{ann} further by conveying and processing information using spikes and neuronal models such as the \gls{lif} neuron. As mentioned before, spikes are assumed to have a stereotypical shape, leaving the temporal and spatial dimension to communicate. In the context of large multilayer networks, the topology itself, i.e. the types of synapses, the synaptic strength, the pre- and postsynaptic partners, encodes information as well.
 
-In the following, the different training approaches for rate and temporal coding with a feed-forward multi-layer \glspl{snn} using \gls{lif} neurons are presented.
+In the following, the different coding schemes and supervised training approaches for a feed-forward multi-layer \glspl{snn} using \gls{lif} neurons are presented.
 
 \subsection{Rate Coding}
 \label{ratecoding}
-In an attempt to explain computational processes in the brain, the activation of an artificial neuron has been mapped onto the spike rate of a spiking neuron by \citealp{rieke1999spikes}. The exact definition and interpretation of the spike rate can vary. The most apparent approach to define a neuron's spike rate $\nu$ is to count the number of spikes $n_\text{spikes}$ fired within a period $T$
+In an attempt to explain computational processes in the brain, the activation of an artificial neuron has been mapped onto the firing rate of a spiking neuron by \citealp{rieke1999spikes}. The most apparent way to define a neuron's spike rate $\nu$ is to count the number of spikes $n_\text{spikes}$ fired within a period $T$
 \begin{equation*}
 \nu = \frac{n_\text{spikes}}{T}.
 \label{eqratecoding}
@@ -235,34 +235,39 @@ In an attempt to explain computational processes in the brain, the activation of
 
 % LATER SOMEWHERE IN THE THEORY PART 
 
-From a practical point of view, this method is time consuming and can therefore not be the basis upon which fast decisions are taken by the brain. In another approach, the period $T$ is shortened to $\Delta T$ resulting in a more inaccurate firing rate. By repeating the measurement multiple times, the average rate improves the accuracy, but the total measurement duration is prolonged again. Moreover, it is not really feasible that the exact same situation occurs multiple times in a real world problem. To solve both issues, a population average rate $\nu_\text{pop}$ can be used. The averaged firing rate of a population with $n$ neurons $\left\langle\nu \right\rangle_\text{pop}$ yields an accurate rate despite the reduced measurement time
+From a practical point of view, this method is time consuming and can therefore not be the basis upon which fast decisions are taken by the brain. The measurement time can be reduced by shortening the period $T$ to $\Delta T$, but this will yield a more inaccurate firing rate. By repeating the measurement multiple times, the average rate improves the accuracy, but the total measurement duration is prolonged again. Moreover it is not feasible that the exact same input occurs multiple times in a real world problem.
+
+To solve both issues, a population average rate $\nu_\text{pop}$ can be used. The averaged firing rate of a population with $n$ neurons $\left\langle\nu \right\rangle_\text{pop}$ yields an accurate rate despite the reduced measurement time $\Delta T$
 \begin{equation*}
-\left\langle\nu \right\rangle_\text{pop} = \frac{\sum_i n_{\text{spikes},i}}{nT}.
+\left\langle\nu \right\rangle_\text{pop} = \frac{\sum_i n_{\text{spikes},i}}{n \Delta T},
 \end{equation*}
+with the number of spikes for a neuron $i$ within the population $n_{\text{spikes}, i}$.
 %As this thesis targets neuronal networks of smaller size, the following paragraphs focus on the temporal dimension of neural coding.
 
-In the terminology of the \gls{lif} model, a presynaptic spike train $S_j$ from a source $j$ can be associated with a mean firing rate $\nu_j$. This is based on the assumption that the spikes of the input follow a Poisson process and therefore the firing rate of a neuron is well described by a Poisson distribution in most cases (\citealp{averbeck2009poisson}), which in turn legitimates the use of a mean firing rate and a certain accuracy. In this way the time average of the synaptic input for a \gls{lif} neuron can be expressed in terms of the incoming firing rates $\nu_{\text{in}, j}$ and their respective synaptic weight $w_j$
+In the terminology of the \gls{lif} model, a presynaptic spike train $S_j$ from a source $j$ can be associated with a mean firing rate $\nu_j$. This is based on the assumption that the spikes of the input follow a Poisson process and therefore the firing rate of a neuron is well described by a Poisson distribution in most cases (\citealp{averbeck2009poisson}), which in turn legitimates the use of a mean firing rate and a certain accuracy. In this way the time average of the synaptic input current for a \gls{lif} neuron can be expressed in terms of the incoming firing rates $\nu_{\text{in}, j}$ and their respective synaptic weight $w_j$
 \begin{equation*}
 \left\langle \gls{isyn} \right\rangle = \sum_j w_j \nu_{\text{in}, j}.
 \end{equation*}
 
 \subsubsection*{Training with Rate Coding}
-With a rate coding approach, \glspl{snn} obtains properties from \glspl{ann}. In particular, the activation function resembling the \gls{lif} neuron in a spiking feed-forward network associates an input rate $\nu_{\text{in}}$ with an output rate $\nu_{\text{out}}$
+With a rate coding approach, a spiking feed-forward network obtains properties from an \glspl{ann}. In particular, the activation function of a node in an \gls{snn} associates a given input rate $\nu_{\text{in}}$ with an output rate $\nu_{\text{out}}$ 
 \begin{equation*}
 	\gls{activation}(\nu_{\text{in}}) = \nu_\text{out}.
 \end{equation*}
-Unlike before, now the gradient for the activation of a node can be formulated and therefore the network can be trained using typical deep learning methods such as \glsfirst{sgd}. The choice for a sigmoid activation function in combination with a cross entropy loss has already been motivated in section \cref{supervisedtraining}. With a few adjustments the activation function of a \gls{lif} neuron is shaped into a sigmoid.
-
+Unlike for individual spikes, the gradient of the activation function can now be formulated with the use of rates.  This allows the use of typical deep learning methods such as \glsfirst{sgd} for rate-based \glspl{snn}.
+ 
 %The similarity to \glspl{ann} implies that typical training methods such as \acrfull{sgd} will work with rate-based \glspl{snn} too. In a spiking feed-forward network the output of a node is determined by the activation function \gls{activation}, which is given by the neuron model in place.
 % In case of the \gls{lif} neuron, the activation function is similar to a \gls{relu}, with a significant difference, that the rate will no keep increasing but rather saturates quickly at a maximum frequency $\nu_\text{max}$ which is limited by the refractory period $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$.
 %The choice for a sigmoid activation function in combination with a cross entropy loss have already been motivated in. With a few adjustments the activation function can be implemented for a \gls{lif} model and rate-based coding.
 
-The stimulation of a \gls{lif} neuron can be expressed by the synaptic input currents \gls{isyn} or the corresponding input firing rate $\nu_\text{in}$. In analogy to the activation of an \gls{ann} the synaptic current is split up into an input and bias term $\gls{isyn} = I_\text{in} + I_\text{bias}$. The input spike rate $\nu_\text{in}$ of the neuron scales linear with the synaptic current and therefore $\nu_\text{in} \propto I_\text{in}$. The activation function of the \gls{lif} neuron is then approximated by 
+The choice for a sigmoid activation function in combination with a cross entropy loss has already been motivated in section \cref{supervisedtraining}. In the following, the necessary adjustments to shape the response of the \gls{lif} neuron model into a sigmoidal activation function are presented.
+
+The stimulation of a \gls{lif} neuron can be expressed by the synaptic input current \gls{isyn} or the corresponding input firing rate $\nu_\text{in}$. In analogy to the activation of an \gls{ann} the synaptic current is split up into an input and bias term $\gls{isyn} = I_\text{in} + I_\text{bias}$. The input spike rate $\nu_\text{in}$ of the neuron scales linearly with the synaptic current and therefore $\nu_\text{in} \propto I_\text{in}$. The activation function of the \gls{lif} neuron is then approximated by 
 \begin{equation}
 \frac{1}{\gls{activation}(\nu_\text{in})} = \frac{1}{\nu_\text{out}} \approx \gls{refrac} + \gls{tau_m} \frac{\gls{thres} - \gls{v_reset}}{\gls{isyn}},
 \label{fireratehigh}
 \end{equation}
-given that the input rate is high and the time constants \gls{tau_m} and \gls{tau_syn} are smaller than the refractory period \gls{refrac} (c.f. \citealp{brunel2000dynamics}). The output rate saturates at a maximum rate $\nu_\text{max} \approx \nicefrac{1}{\gls{refrac}}$ for a high enough input rate.
+given that the input rate is high and the time constants of the membrane \gls{tau_m} and the synaptic input current \gls{tau_syn} are smaller than the refractory period \gls{refrac} (c.f. \citealp{brunel2000dynamics}). The output rate saturates at a maximum rate $\nu_\text{max} \approx \nicefrac{1}{\gls{refrac}}$ for a high enough input rate.
 
 In the limit $\gls{thres} - \gls{isyn} \gg \sigma$, i.e. for low input rates, the activation function yields
 \begin{equation}

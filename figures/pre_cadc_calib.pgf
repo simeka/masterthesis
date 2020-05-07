@@ -20,7 +20,7 @@
 \begingroup%
 \makeatletter%
 \begin{pgfpicture}%
-\pgfpathrectangle{\pgfpointorigin}{\pgfqpoint{3.657005in}{2.023578in}}%
+\pgfpathrectangle{\pgfpointorigin}{\pgfqpoint{3.657005in}{2.172070in}}%
 \pgfusepath{use as bounding box, clip}%
 \begin{pgfscope}%
 \pgfsetbuttcap%
@@ -32,8 +32,8 @@
 \pgfsetdash{}{0pt}%
 \pgfpathmoveto{\pgfqpoint{0.000000in}{0.000000in}}%
 \pgfpathlineto{\pgfqpoint{3.657005in}{0.000000in}}%
-\pgfpathlineto{\pgfqpoint{3.657005in}{2.023578in}}%
-\pgfpathlineto{\pgfqpoint{0.000000in}{2.023578in}}%
+\pgfpathlineto{\pgfqpoint{3.657005in}{2.172070in}}%
+\pgfpathlineto{\pgfqpoint{0.000000in}{2.172070in}}%
 \pgfpathclose%
 \pgfusepath{}%
 \end{pgfscope}%
@@ -287,7 +287,7 @@
 \definecolor{textcolor}{rgb}{0.317647,0.317647,0.317647}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=0.182189in,y=1.153578in,,bottom,rotate=90.000000]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont CADC lsb}%
+\pgftext[x=0.182189in,y=1.153578in,,bottom,rotate=90.000000]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont CADC LSB}%
 \end{pgfscope}%
 \begin{pgfscope}%
 \pgfpathrectangle{\pgfqpoint{0.438556in}{0.383578in}}{\pgfqpoint{1.409091in}{1.540000in}}%
@@ -10168,6 +10168,12 @@
 \pgfusepath{stroke}%
 \end{pgfscope}%
 \begin{pgfscope}%
+\definecolor{textcolor}{rgb}{0.000000,0.000000,0.000000}%
+\pgfsetstrokecolor{textcolor}%
+\pgfsetfillcolor{textcolor}%
+\pgftext[x=1.143101in,y=2.006911in,,base]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont top left}%
+\end{pgfscope}%
+\begin{pgfscope}%
 \pgfsetbuttcap%
 \pgfsetmiterjoin%
 \pgfsetlinewidth{0.000000pt}%
@@ -10417,7 +10423,7 @@
 \definecolor{textcolor}{rgb}{0.317647,0.317647,0.317647}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=1.873098in,y=1.153578in,,bottom,rotate=90.000000]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont CADC lsb}%
+\pgftext[x=1.873098in,y=1.153578in,,bottom,rotate=90.000000]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont CADC LSB}%
 \end{pgfscope}%
 \begin{pgfscope}%
 \pgfpathrectangle{\pgfqpoint{2.129465in}{0.383578in}}{\pgfqpoint{1.409091in}{1.540000in}}%
@@ -20296,6 +20302,12 @@
 \pgfpathmoveto{\pgfqpoint{2.129465in}{0.383578in}}%
 \pgfpathlineto{\pgfqpoint{3.538556in}{0.383578in}}%
 \pgfusepath{stroke}%
+\end{pgfscope}%
+\begin{pgfscope}%
+\definecolor{textcolor}{rgb}{0.000000,0.000000,0.000000}%
+\pgfsetstrokecolor{textcolor}%
+\pgfsetfillcolor{textcolor}%
+\pgftext[x=2.834010in,y=2.006911in,,base]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont top right}%
 \end{pgfscope}%
 \end{pgfpicture}%
 \makeatother%

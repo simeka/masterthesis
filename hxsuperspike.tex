@@ -1,12 +1,12 @@
-\chapter{Surrograte Gradient Descent on \acrshort{bss2}}
+\chapter{Surrogate Gradient Descent on \acrshort{bss2}}
 \label{superspike}
-The second experiment in this thesis is done on the most recent tape-out of the \gls{bss2} platform the \gls{hx}. In contrast to the first experiment the neural coding scheme is changed from rate based to temporal based. The prerequisites for a temporal coding on \glspl{snn} is to find a suitable plasticity rule, that copes well with the non-differential nature of individual spikes. A possible candidate, SuperSpike, was presented in \cref{superspike}. With the access to the temporal evolution of the membrane potential, it is now possible to implement the learning rule for the \gls{bss2} platform.
+The second experiment in this thesis is done on the most recent chip version of the \gls{bss2} platform, the \gls{hx}. In contrast to the first experiment the neural coding scheme is changed from rate based to temporal coding. The prerequisite for learning on a temporal coded \gls{snn} is to find an appropriate plasticity rule, that copes well with the non-differential nature of individual spikes. A possible candidate, SuperSpike, was presented in \cref{temporalcoding}. The latest version of the \gls{bss2} platform has now access to the temporal evolution of the membrane potential. This is a key element for a successful implementation of the surrogate gradient method.
 
 % überleitungssatz to the task
-To challenge the surrogate gradient approach a constructed task that is equivalent to solving the XOR operator is taken from its original publication by \cite{zenke2018superspike}.
+To challenge the new training approach a constructed task is taken from its original publication (\citealp{zenke2018superspike}) which is equivalent to solving the XOR problem.
 
 \section{Task}
-A total of 96 input units, each firing once at a fixed random spike time, is split into four overlapping collections of different size. As in the exclusive-or, the four different input patterns are assigned to two target classes which are represented as two distinct neurons in the output layer. Despite the multiple input sources, the task is by construction only two-dimensional. The first input spike train $S_1$ overlaps with all other patterns. The units involved in $S_1$ can therefore be interpreted as bias units, since they will fire regardless of the active pattern. In analogy to the XOR operator yielding $1 \veebar 0 = 0 \veebar 1 = 1$ for a single active input, the second and third spike train don't overlap except for the bias units. The union of $S_2$ and $S_3$ yields the final pattern, equaling to two active inputs $1 \veebar 1 = 0$. With respect to the XOR operator, $S_1$ and $S_4$ yield class $0$ whereas the remaining two are part of class $1$. 
+A total of 96 input units, each firing once at a fixed random spike time, is split into four overlapping collections of different size. In \cref{superspiketaskoverview} the various spike trains are visualized. As in the exclusive-or, the four different input patterns are assigned to two target classes which are represented by two distinct neurons in the output layer. Despite the multiple input sources, the task is by construction only two-dimensional. The first input pattern $p_1$ overlaps with all other patterns. The units involved in $p_1$ can therefore be interpreted as bias or reference units, since they will fire regardless of the active pattern. The second and third pattern do not overlap except for their bias units. In analogy to the XOR operator these patterns compare to $1 \veebar 0 = 0 \veebar 1 = 1$. Their combination then yields the fourth pattern resembling $1 \veebar 1 = 0$. In this way, $p_1$ and $p_4$ are associated with class $0$ and the remaining two input spike trains with class $1$. 
 
 \begin{figure}	
 	\begin{subfigure}{0.5\textwidth}
@@ -19,15 +19,15 @@ A total of 96 input units, each firing once at a fixed random spike time, is spl
 		\input{figures/superspiketask.pgf}
 		\label{superspiketaskpicture}
 	\end{subfigure}
-	\caption[XOR-related task for SuperSpike.]{XOR-related task for SuperSpike. (\subref{superspiketaskpicturesector}) A representative sector of the input data from the XOR-related task contains $2 + 4 + 4 + 6 = 16$ spikes from $2\times3$ different units and spike times. The first pattern ($S_1$) overlaps with all others and can be interpreted as a bias. The second and third pattern are disjoint apart from the  in the bias units and with the reference pattern, corresponding to $1 \veebar 0 = 0 \veebar 1 = 1$. The reference spike train is always on, equaling $1 \veebar 1 = 0$. (\subref{superspiketaskpicture}) The total number of input spikes per pattern is given by $20, 40, 40, 60$.
+	\caption[XOR-related task for SuperSpike.]{XOR-related task for SuperSpike. \textbf{(\subref{superspiketaskpicturesector})} A representative sector of the input data from the XOR-related task shows how the input patterns overlap. The first pattern (\textit{black}) contains two spikes and overlaps with all other patterns. The second (\textit{red}) and third pattern (\textit{blue}) are disjoint apart from the bias units with four spikes each. Their combination yields the fourth input pattern (\textit{green}) with a total of six spikes. (\subref{superspiketaskpicture}) The total number of spikes in an input pattern is then multiplied by ten yielding 20, 40 or 60 input spikes respectively.
 	\label{superspiketaskoverview}}
 \end{figure} 
 
-The fixed set of random times is picked from a $\SI{40}{\micro \s}$ time window, while the duration of a single measurement period is set to around $\SI{250}{\micro \s}$. In a slight modification to the derivation of SuperSpike, the error metric is changed from a single target spike $S_i^*$ to a target time window $[t^*_0, t^*_1]$. Depending on the input pattern $p_j$, the error of the output unit $i$ corresponding to the target class $i$ is given by
+A single trial spans roughly $\SI{250}{\micro \s}$ with the random input spike times being drawn from a window of $\SI{40}{\micro \s}$. In a slight modification to the derivation of SuperSpike, the error metric is changed from a single target spike $S_i^*$ for the output $i$ to a target time window $[t^*_0, t^*_1]$. Depending on the input pattern $p_j$, the error of the output unit $i$ corresponding to the target class $i$ is given by
 \begin{equation}
-e_i = \begin{cases}
-\alpha \ast \left(e_\text{outside, i} + e_\text{inside, i}\right),& \quad \quad \text{if} \quad \text{class}(p_j) == i \\
-- \alpha \ast S_i,& \quad \quad \text{else} 
+e_i(t) = \begin{cases}
+\left(\alpha \ast \big(e_\text{outside, i} + e_\text{inside, i}\big)\right)(t),& \quad \quad \text{if} \quad \text{class}(p_j) == i \\
+- (\alpha \ast S_i)(t)	,& \quad \quad \text{else} 
 \end{cases}
 \label{superspikeerror}
 \end{equation}
@@ -37,50 +37,62 @@ e_\text{outside}(t) &= - S_i(t) \cdot \left(H(t^*_0 - t) + H(t - t^*_1)\right) \
 e_\text{inside}(t) &= 
 \begin{cases}
 0 ,&\quad \quad \text{if} \quad \exists \; t^{(s)}_i \in [t^*_0, t^*_1], \\
-\epsilon \ast t^* ,& \quad \quad \text{else}.
+(\epsilon \ast t^*)(t) ,& \quad \quad \text{else}.
 \end{cases}
 \end{align*}
-Despite the technical notation, the error follows the same principles as the von Rossum distance: If the target neuron spikes within the designated time span, zero error is returned. In case there occurs no spike inside the window, a target spike at time $t^*$ will be added to the error instead. Any spikes outside the window sum with a negative sign. The error for the other output neuron is simple. Since it should remain silent, the error correlates to the negative spiking activity.
+Despite extending the target spike to a target time window, the error still follows the same principles as the von Rossum distance: If the target neuron spikes within the designated time span, a constant error of zero is returned. In case there occurs no spike inside the window, a target spike at time $t^*$ will be added to the error instead. Any spikes outside the window sum with a negative sign. Given there is spiking activity in the inactive output unit, the negative convolution of the activity with the $\alpha$ kernel is returned as a penalty.
 
 \section{Implementation on the \acrshort{bss2} Platform}
-The tape-out of the \gls{hx} came with some flaws requiring several software workarounds. To minimize the implementation effort the use of the chip is restricted to the upper half and only one \gls{ppu}. Unlike the previous experiment, SuperSpike is not implemented in an on-chip fashion. However, a key element of SuperSpike, the access to the membrane potential via the \gls{cadc} is implemented as an on-chip readout routine.
+%Unlike the previous experiment, SuperSpike is not implemented in a fully on-chip fashion. During the commissioning of the manufactured \gls{hx} some hardware bugs were discovered. With regards to the use of software workarounds. To minimize the implementation effort the use of the chip is restricted to the upper half and only one \gls{ppu}. Unlike the previous experiment, SuperSpike is not implemented in an on-chip fashion. However, a key element of SuperSpike, the access to the membrane potential via the \gls{cadc} is implemented as an on-chip readout routine.
+
+Unlike the previous experiment, SuperSpike is not implemented in a fully on-chip fashion. This is largely due to hardware bugs which have been discovered during the commissioning of the new \gls{hx}. The two most relevant issues are a reordering of the \gls{cadc} channels and inaccessible spike counters. With the symmetric design of the chip the \gls{cadc} is split into four respective quadrants, but the channels of the first and second as well as third and fourth quadrant are mingled with each other. In a scripting programming language such as Python this can be unraveled quite effortless. On the general purpose unit the programming capabilities are rather limited making it hard to develop a functioning experiment environment under these circumstances.
+
+\begin{figure}[htb!]
+	\centering
+	\includegraphics[width=\textwidth]{figures/hxsetup_img2.jpg}
+	\caption[Cube setup of \gls{hx}.]{Cube setup of \gls{hx} in the laboratory.}
+	\label{cubesetupinlab}
+\end{figure}
+
+However, the main obstacle remains the lack of on-chip knowledge over spike times. In principle there are two available sources to record the event of a spike: the digital back end which registers every spiking event precisely by the \gls{fpga} and the on-chip spike counters. The data transfer between the digital back end and the \gls{ppu} operates at a limited speed due to a known software bug that has not yet been fixed, making its use unfeasible. The spike counters on the other hand, cannot be accessed by the \gls{cadc} since they are not properly connected. With these constraints, an efficient implementation on \gls{hx} is beyond reach. Despite the handicaps, SuperSpike can still be set up as a chip-in-the-loop experiment, i.e. the weight updates are computed on the host and the forward pass is evaluated on-chip. 
 
 
-\subsection{\gls{cadc} Readout}
-With a few \gls{ppu} instructions for the general purpose part and the vector unit, the readout of the \gls{cadc} is performed. The code base for the readout has been developed as a quick workaround by Aron Leibfried, since the software stack did not support the use of the vector unit at that time.
+In the following, the details of the experiment implementation are presented. The developed software framework is based on the new software stack for the \gls{bss2} platform, which is still under continuous development. A detailed description of the software stack's architecture is provided by \cite{mueller2020bss2ll}. Furthermore, the use of the chip is restricted to the upper half and only one \gls{ppu}, to reduce the implementation effort.
 
-For the purpose of the experiment, the membrane traces are required to be sampled at high rate and to cover as much data as possible. The available memory on the \gls{ppu} limits the readout to 100 samples of 128 different neurons with a temporal resolution of roughly \SI{2.5}{\micro \s}. 
+\paragraph{\gls{cadc} Readout}
+A key element for the SuperSpike algorithm is the access to the membrane potential by the \gls{cadc}. The general purpose unit instructs the vector unit to trigger the \gls{cadc} and to transfer the resulting conversions back into the main memory of the \gls{ppu}. The code base for the readout has been developed as a quick workaround by Aron Leibfried, since at that time the software stack did not fully support the use of the vector unit.
 
-Before usable traces can be recorded with the \gls{cadc}, its characteristic needs to be calibrated. The \gls{cadc} has tunable an analog slope and offset parameter per quadrant. In addition to the per-quadrant settings, each channel has an individual offset parameter, that can be adjusted as well.
+For the purpose of the experiment, the membrane traces of 128 neurons are recorded at a high sampling rate to ensure a suitable time resolution of the accelerated dynamics. At the same time, the available memory on the \gls{ppu} restricts the maximum number of samples. Each sample uses one byte of memory and thus 100 samples of 128 neurons occupy already \SI{12.8}{\kilo \byte} of the available \SI{16}{\kilo \byte}, leaving enough space for the \gls{ppu} instructions which share the same memory. In the final configuration of the \gls{cadc} 100 samples are recorded per neuron with a temporal resolution of roughly \SI{2.5}{\micro \s}.
 
-In the \cref{cadccalibration} the final state of the characteristics is plotted two quadrants from the chip half in use. The thereby implicated conversion from \gls{dac} lsb to \si{\V} will be used for most of the data shown throughout this chapter.
-\begin{figure}
+\begin{figure}[htb!]
 	\begin{subfigure}{0.65\textwidth}
 		\caption{}
+		\vspace{-0.4cm}
 		\input{figures/pre_cadc_calib.pgf}
 		\label{precadccalib}
+		\vspace{0.4cm}
 	\end{subfigure}
 	\begin{subfigure}{0.35\textwidth}
 		\caption{}
 		\input{figures/post_cadc_calib.pgf}
 		\label{postcadccalib}
 	\end{subfigure}
-	\caption[Pre and post calibration state of the \gls{cadc}]{Pre and post calibration state of the \gls{cadc}. \textbf{(\subref{precadccalib})} The raw cadc data of a reference voltage source ranging from 0.2 to \SI{1.0}{\V}. At the minimum voltage (\SI{0.0}{\V}) and maximum voltage (\SI{1.2}{\V}) the \gls{cadc} shows a non-linear behavior is therefore limited to the depicted range. The \gls{cadc} is divided into four quadrants. Only the ones from the used chip half are measured and calibrated. \textbf{(\subref{postcadccalib})} The cadc parameters are manually adjusted, such that they cover a useful dynamic range. The offset per channel can then be easily computed and corrected. The manual method was preferred over an automated fit-routine, since the ramp and slope parameters showed a sensitive cross-dependency in certain areas.}
+	\caption[Pre and post calibration state of the \gls{cadc}.]{Pre and post calibration state of the \gls{cadc}. \textbf{(\subref{precadccalib})} The pre calibration \gls{cadc} conversions of a reference voltage ranging from \SIrange{0.2}{1.0}{\V} are not aligned. The slope and offset parameter differ per quadrant. Both quadrants from the upper chip half are shown. \textbf{(\subref{postcadccalib})} Both quadrants are calibrated such that they share the same characteristic. The thereby implicated conversion from \gls{dac} LSB to \si{\V} will be used throughout this chapter.}
 	\label{cadccalibration}
 \end{figure}
+Before the \gls{cadc} records usable traces its characteristic needs to be calibrated. This is done by recording a reference voltage ranging from \SIrange{0.2}{1.0}{\V} since at the minimum voltage (\SI{0.0}{\V}) and maximum voltage (\SI{1.2}{\V}) the \gls{cadc} shows a non-linear behavior. Per quadrant, a slope and offset parameter of the characteristic is manually adjusted such that the full range of the LSBs is used. In addition to the per-quadrant settings, each channel has an individual offset parameter, that can be adjusted as well. Unlike the offset correction per channel, the ramp and slope parameters are not trivial to tune, since they show a sensitive cross-dependency in certain areas. A manual method was thereby preferred over an automated fit-routine. In \cref{cadccalibration} the pre and post calibration state of the characteristic are shown for both quadrants from the upper chip half. The thereby implicated conversion from \gls{dac} LSB to \si{\V} will be used for most of the data shown throughout this chapter.
 
-\subsection{Calibration of \gls{lif} Neuron}
+\paragraph{Calibration of \acrshort{lif} Neuron}
 %The manufacturing process of analog neuromorphic hardware causes systematic stochastic deviations in the neuron and synapse parameters. The thereby induced heterogeneity between neurons and synapses is referred to as \emph{fixed-pattern noise} and is constant in time. Despite the detuned parameters, it has been shown that plasticity rules can correct the intrinsic imperfections of the analog hardware to a certain degree (\citealp{wunderlich2019advantages}). 
-During the calibration routine for the \gls{dls} it has already been mentioned, that analog neuromorphic hardware contains fixed-pattern noise, which in turn can be corrected up to a certain degree by the plasticity rule (\citealp{wunderlich2019advantages}). It is therefore a constant trade-off of between resources invested into the calibration and a decreasing accuracy that comes with less tuned analog setups.
+During the calibration routine for the \gls{dls} it has already been mentioned, that analog neuromorphic hardware exhibits fixed-pattern noise, which in turn can be corrected up to a certain degree by the plasticity rule in place (\citealp{wunderlich2019advantages}). It is therefore a constant trade-off of between resources invested into the calibration and a potential degrade of the learning performance by less tuned analog setups.
 
-At the time of the experiment, the development of chip-specific software for the new prototype was in an early stage. Among others, there was a lack of a calibration database and more generally, a lack of available calibrated hardware resources. This was largely due to an at the time slow and static calibration routine, that required the allocation of human and hardware resources for several hours to tune a setup.
+At the time of the experiment, the development of chip-specific software for the new prototype was in an early stage. Among others, there was a lack of a calibration database and more generally, a lack of available calibrated hardware resources. This was largely due to an at the time impractical calibration routine.
 
-The efficient parallelized readout of the \gls{cadc} presented itself to be a viable basis to put a quick alternative calibration routine into action. The main objective of the new routine is to provide a fast calibration that requires little interaction to bring a setup into a usable state with respect to the specific experiment requirements. 
+The efficient parallelized readout of the \gls{cadc} presented itself to be a viable basis to put a more practical calibration routine into action. The main objective of the new routine is to provide a fast calibration that requires little to no interaction in order to bring a setup into a usable state with respect to the specific experiment requirements. 
 
-As a trade-off, only a subset of the available parameters is tuned, namely the potentials of the \gls{lif} model \gls{v_leak}, \gls{v_reset} and \gls{thres}. By design, the potentials of the synaptic input $V_\text{syn, inh}$ and $V_\text{syn, exc}$ have a cross-dependency to the resting potential and thus need to be considered as well. The temporal constants \gls{tau_m} and \gls{tau_syn} are certainly important parameters in the \gls{lif} model. Motivated by the results from \citealp{wunderlich2019advantages} the induced error by the misalignment of the temporal constants is knowingly accepted and traded for less implementation effort.
+As a trade-off, only a subset of the available neuron parameters is tuned, namely the potentials of the \gls{lif} model \gls{v_leak}, \gls{v_reset} and \gls{thres}. By design, the potentials of the synaptic input $V_\text{syn, inh}$ and $V_\text{syn, exc}$ have an influence on the resting potential and thus need to be considered as well. The time constants \gls{tau_m} and \gls{tau_syn} are certainly important parameters in the \gls{lif} model. Motivated by the results from \cite{wunderlich2019advantages} the induced error by the misalignment of the time constants is knowingly accepted and traded for less implementation effort.
 
-Similar to the previous task, a binary search algorithm is chosen to find the proper \gls{dac} values of the analog parameters. A workaround was needed due to the cross talk between individual capacitive parameter memory cells, that arises if several cells are set to same value. By the design of the binary search algorithm, this event occurs repeatedly making the binary search a suboptimal choice for the calibration of the chip. The development of a proper gradient based calibration has already been started, but for the use case in this experiment the existing code base could be sufficiently stabilized with two minor adaptations. First, a random variation is consequently applied to all ``unused" \gls{dac}-values and second, the binary search algorithm is extended with a fall back option of the best parameter setting so far. The results of the final calibration for the \gls{lif} parameters are shown in \cref{hxprepostcalib}.
-\begin{figure}
+\begin{figure}[htb!]
 	\begin{subfigure}{0.32\textwidth}
 		\caption{}
 		\centering
@@ -94,103 +106,111 @@ Similar to the previous task, a binary search algorithm is chosen to find the pr
 		\label{hxprepostvreset}
 	\end{subfigure}
 	\begin{subfigure}{0.32\textwidth}
-	\caption{}
-	\centering
-	\input{figures/vthreshold_pre_post_calibration.pgf}
-	\label{hxprepostvthreshold}
-\end{subfigure}
-	\caption[Pre and post calibration state of the analog \gls{lif} parameters.]{Pre and post calibration state of the analog \gls{lif} parameters. (\subref{precadccalib}) The raw cadc data of an controlled voltage ranging from 0 to \SI{1.2}{\V}. (\subref{postcadccalib}) the cadc parameters are manually adjusted, such that they cover a useful dynamic range. The offset per channel can then be easily computed and corrected. The manual method was preferred over an automated fit-routine, since the ramp and slope parameters showed a sensitive cross-dependency in certain areas.}
+		\caption{}
+		\centering
+		\input{figures/vthreshold_pre_post_calibration.pgf}
+		\label{hxprepostvthreshold}
+	\end{subfigure}
+	\caption[Pre and post calibration state of the analog \gls{lif} parameters.]{Pre and post calibration state of the analog \gls{lif} parameters. \textbf{(\subref{hxprepostvleak})} Before the resting potential \gls{v_leak} is calibrated to \SI{0.5}{\V} it shows a spread over almost \SI{0.3}{\V} (\textit{gray}). \textbf{(\subref{hxprepostvreset})} The reset potential \gls{v_reset} is calibrated to \SI{0.4}{\V} (\textit{red}). \textbf{(\subref{hxprepostvthreshold})} The spread of the uncalibrated thresholds \gls{thres} is smaller than for the leak potential (\textit{gray} and \textit{blue}). The potential is calibrated to \SI{0.75}{\V} (\textit{red}) and \SI{0.8}{\V} (\textit{green}).}
 	\label{hxprepostcalib}
 \end{figure}
+Similar to the previous task, a binary search algorithm is adopted to find the proper \gls{dac} values of the analog parameters. The cross talk between individual capacitive parameter memory (capmem) cells, that arises if several cells are set to same value, requires a workaround. By the design of the binary search algorithm, this event occurs repeatedly making the binary search a suboptimal choice for the calibration of the chip. The development of a proper gradient based calibration has already been started, but for the use case in this experiment the existing code base could be sufficiently stabilized with two minor adaptations. First, a random variation is consequently applied to all ``unused" \gls{dac}-channels and second, the binary search algorithm is extended with a fall back option to the best parameter setting so far. The results of the final calibration for the \gls{lif} parameters are shown in \cref{hxprepostcalib}.
 
 
 \subsection{Experimental Setup}
-The experiment is mainly controlled by a Python class called \texttt{HXBlackbox} implementing a set of tools that puts the \gls{hx} into operation. The code has been co-written by Sebastian Billaudelle and Benjamin Cramer. These tools are in turn based on a new software stack for the \gls{bss2} platform, which is still under continuous development. A detailed description of the software layers' architecture is provided by \citealp{mueller2020bss2ll}.
+The \gls{hx} is mainly controlled by a Python class called \texttt{HXBlackbox} which implements a set of convenient tools that put the chip into operation. The code has been co-written by Sebastian Billaudelle and Benjamin Cramer and is based on the new software stack for the \gls{bss2} platform (\citealp{mueller2020bss2ll}). 
 
-The execution of the experiment is embedded in an existing Python-based simulation frame that is oriented on the implementation of SuperSpike in \citealp{zenke2018superspike}. The forward pass is then replaced by measuring the analog traces and spike times on the \gls{hx} before the respective updates of the network parameters are computed in the backward pass on the host. In the following a network with a single hidden layer containing 30 units, 96 input sources and two output neurons which serve as target classes is configured using the \texttt{HXBlackbox}.
+In a preliminary step, a Python-based simulation frame has been developed which is oriented on the original implementation of SuperSpike by \cite{zenke2018superspike}. The chip-in-the-loop experiment is embedded in a new class \texttt{HXSuperSpike} combining the SuperSpike simulation with an adapted version of \texttt{HXBlackbox}. The forward pass of the simulation is then replaced by measuring the analog traces and spike times on the \gls{hx} before the respective updates of the network parameters are computed in the backward pass on the host. In the following a network with a single hidden layer containing 30 units, 96 input sources and two output neurons which serve as target classes is set up.
 
-\subsubsection{Chip based Forward Pass}
-The implementation of the experiment using the  is straight forward. The setup of the multilayer network structure is implemented by the event router and the synapse array using corresponding weights and addresses to discriminate between input and recurrent connections. The issue that arises with alternating weights for a single synapse is solved by the same double-row approach from the previous experiment implementation (\cref{circlesimplementation}). However, in this case the workaround is already implemented within the \texttt{HXBlackbox} and the user only needs to properly fill a logical weight matrix that is divided into input and recurrent connections as shown in \cref{hxnetworksetup}.
-\begin{figure}
-\[
-\sbox0{$\begin{matrix}1&2&3\\0&1&1\\0&0&1\\0&0&1\end{matrix}$}
-\sbox1{$\begin{matrix}1&2&3\\0&1&1\\0&0&1\end{matrix}$}
-\sbox2{$\begin{matrix}1&2\\0&1\end{matrix}$}
-%
-W_\text{logical}=\left(
-\begin{array}{c c c}
-\vphantom{\usebox{0}}\underbrace{\Bigg(\makebox[\wd0]{\large$I \rightarrow H$}\Bigg)}_{n_\text{h}}\Bigg\}\scriptstyle{n_\text{in}}&
-\makebox[\wd0]{\Large0\quad} & 
-\makebox[0.5\wd0]{\Large0}\\
-%\hdashline[0.3pt/5pt]
-\vphantom{\usebox{1}}	\makebox[\wd1]{\Large0\quad}&
-\underbrace{\Big(\makebox[1.3\wd0]{\large$H \rightarrow O$}\Big)}_{n_\text{out}}\Big\}\scriptstyle{n_\text{h}} &
-\makebox[0.5\wd1]{\Large0}\\
+%The execution of the experiment is embedded in an Python-based simulation frame that is oriented on the implementation of SuperSpike in \citealp{zenke2018superspike}. The forward pass is then replaced by measuring the analog traces and spike times on the \gls{hx} before the respective updates of the network parameters are computed in the backward pass on the host. In the following a network with a single hidden layer containing 30 units, 96 input sources and two output neurons which serve as target classes is configured using the \texttt{HXBlackbox}.
 
-\vphantom{\usebox{2}}	\makebox[\wd2]{\Large0\quad}&
-\makebox[\wd2]{\Large0\quad}&
-\makebox[0.5\wd2]{\Large0}
+\paragraph{Chip-based Forward Pass}
+The implementation of the experiment on the basis of the \texttt{HXSuperSpike} class is straight forward. The setup of the multilayer network structure is implemented by the event router and the synapse array using corresponding weights and addresses to discriminate between input and recurrent connections. The issue that arises with alternating weights for a single synapse is solved by the same double-row approach from the previous experiment implementation (\cref{circlesimplementation}). However, in this case the workaround is already implemented within the \texttt{HXBlackbox} and the user only needs to fill a logical weight matrix $W_\text{logical}$ accordingly.
 
-\end{array}
-\right)
-=
-\left(
-\begin{array}{c c c}
-\vphantom{\usebox{2}}\makebox[\wd2]{\Large$W^{(h)}$}&
-\makebox[\wd2]{\Large0\quad} & 
-\makebox[0.5\wd2]{\Large0}\\
-%\hdashline[0.3pt/5pt]
-\vphantom{\usebox{2}}	\makebox[\wd2]{\Large0\quad}&
-\makebox[\wd2]{\Large$W^{(o)}$} &
-\makebox[0.5\wd2]{\Large0}\\
-\vphantom{\usebox{2}}	\makebox[\wd2]{\Large0\quad}&
-\makebox[\wd2]{\Large0\quad} &
-\makebox[0.5\wd2]{\Large0}
+\begin{equation*}
+W_\text{logical} = 
+\begin{tikzpicture}[baseline=0cm,
+node distance = 0mm,
+every matrix/.style = {matrix of math nodes,
+	nodes={minimum width=2em},
+	left  delimiter={(},
+	right delimiter={)},
+},
+B/.style = {decorate,
+	decoration={brace, amplitude=2pt,
+		pre=moveto,pre length=4pt,post=moveto,post length=4pt,
+		raise=0mm,
+	},
+},  
+]
+\matrix (m)
+{
+	\Bigg(I \rightarrow H\Bigg) &   0   &   0   \\
+	0   						&   \Big( H \rightarrow O\Big)   &   0   \\
+	0   &   0   &   0   \\
+};
 
-\end{array}
-\right)
-	\]
-\caption[Structure of the logical weight matrix on \gls{hx}]{Structure of the logical weight matrix on \gls{hx}. The first $n_\text{in}$ rows are reserved for the inputs and connected to the $n_\text{h}$ hidden units ($I\rightarrow H$) and are set by the weight matrix $W^{(h)}$. The recurrent connections  $H\rightarrow O $ are managed the remaining rows ... Todo sort out where exactly (0,0) is...probably on the bottom left coroner}
-\label{hxnetworksetup}
-\end{figure}
+\draw[B]    (m-1-1.north east) -- node[right=0mm] {$n_\text{h}$} (m-1-1.south east);
+\draw[B]    (m-1-1.north west) -- node[above=0mm] {$n_\text{in}$} (m-1-1.north east);
+\draw[B]    (m-2-2.north west) -- node[above=0mm] {$n_\text{h}$} (m-2-2.north east);
+\draw[B]    (m-2-2.south west) -- node[left=0mm] {$n_\text{out}$} (m-2-2.north west);
+%\draw[B] (m-1-1.south west) -- node[below=2mm] {label3} (m-2-1.south east);
+\end{tikzpicture}=\begin{tikzpicture}[baseline=0cm,
+node distance = 0mm,
+inner sep=1pt,
+row sep=0.5em,
+every matrix/.style = {matrix of math nodes,
+	nodes={minimum width=0em},
+	left  delimiter={(},
+	right delimiter={)},
+},]
+\matrix (m)
+{
+	W^{(h)} &   0\;   &   \;0   \\
+	0\;   	&   W^{(o)}&   \;0   \\
+	0\; 	&   0\;   &   \;0   \\
+};
+\end{tikzpicture}%\label{hxlogicalweights}
+\end{equation*}
+
+The $n_\text{in}$ input rows are connected to the $n_\text{h}$ units of the hidden layer ($I \rightarrow H$) by the weight matrix $W^{(h)}$. The feedforward connections of the hidden layer are mapped to $n_\text{out}$ units of the output layer ($H \rightarrow O$) by the matrix $W^{(o)}$.
 
 The input pattern is formulated as an array containing tuples of target neuron and spike time. The forward pass is then evaluated by a designated \texttt{stimulate} function, which returns all recorded spikes at the end of the measurement. The membrane potential traces are measured by triggering the on-chip \gls{cadc} readout program on the \gls{ppu} as soon as the input pattern is injected by the host. 
 
-\subsubsection*{Host based Backward Pass}
-Within the simulation framework of SuperSpike experimental data of the membrane traces and the spike events is gathered and processed to determine the updates of the weight matrices as derived in \cref{superspike}. In a practical approach, the integration of \cref{superspikeweightupdateeq} is done in finite temporal intervals which correspond to the length of the \gls{cadc} readout period.
-\begin{equation}
-\Delta w^k_{ij} = \eta \int_{t_k}^{t_{k+1}} dt'
-e^{(o)}_k \; 
-\; \alpha \ast 
-\left( \sigma'(V^{(o)}_{\text{m},i}) \left(\epsilon \ast S^{(o)}_j\right) \right).
+\paragraph{Host-based Backward Pass}
+Within \texttt{HXSuperSpike} the analog membrane traces and recorded spike events are gathered and processed to determine the updates of the weight matrices as derived in \cref{superspike}. In a practical approach, the integration of \cref{superspikeweightupdateeq} is done in finite temporal intervals which correspond to the length of a full \gls{cadc} readout period $T$ of roughly \SI{252}{\micro \s}. Moreover, the finite resolution of the \gls{cadc} turns the integral into a sum over the time steps $dt'  \approx \delta t = \SI{2.5}{\micro \s}$.
+\begin{align}
+\Delta w^k_{ij} &= \eta \int_{t_k}^{t_{k+1}} dt'
+e^{(o)}_k \; \; \alpha \ast 
+\left( \sigma'(V^{(o)}_{\text{m},i}) \left(\epsilon \ast S^{(o)}_j\right) \right) \nonumber \\
+&\approx \eta \sum_{t'=0}^{T} \delta t e^{(o)}_k(t') \; \; \alpha \ast 
+\left( \sigma'\big(V^{(o)}_{\text{m},i}\big) \left(\epsilon \ast S^{(o)}_j\right)\right)(t')
 \label{superspikeweightupdatedivided}
-\end{equation}
+\end{align}
 
 \begin{wrapfigure}{R}{0.45\textwidth}
 	\centering
+	\vspace{-.75cm}
 	\input{figures/cadcppuoffset.pgf}
+	\vspace{-.15cm}
 	\caption[Offset measurement between \acrshort{cadc} traces and digital back end.]{Offset measurement between \acrshort{cadc} traces and digital back end. The time delta between peaks in the \acrshort{cadc} traces and the recorded spike times needs to be corrected.} 
 	\label{cadcppuoffset}
+	\vspace{-.75cm}
 \end{wrapfigure}
 
-Before the updates can be computed, it is vital that both the measured \acrshort{cadc} traces and the recorded spike times by the digital back end are synchronized. In a respective offset measurement, the neurons are stimulated with a continuous input current such that they spike repetitively but with a low frequency. The located peaks in the resulting membrane traces are then compared to the digitally recorded spike times, yielding an offset $\Delta T$ of $(2.7 \pm 1.1)\; \si{\milli \s}$, see \cref{cadcppuoffset}. In the \gls{cadc} traces, the membrane potential maxes always before or exactly at the actual spike time, which results in a systematic error of the evaluated peak time. The offset has therefore been corrected to $\Delta T_\text{corr} = (2.1 \pm 1.1)\; \si{\milli \s}$. 
+Before the updates can be computed, it is vital that both the measured \acrshort{cadc} traces and the recorded spike times by the digital back end are synchronized. In a respective offset measurement, the neurons are stimulated with a continuous stream of input spikes such that they fire repetitively but with a low frequency. The located peaks in the resulting membrane traces are then compared to the digitally recorded spike times, yielding an offset $\Delta T$ of $(2.7 \pm 1.1)\; \si{\micro\s}$, see \cref{cadcppuoffset}. In the \gls{cadc} traces, the membrane potential peaks always before or exactly at the actual spike time, as the reset mechanism is triggered as soon as the threshold potential is crossed. This causes a systematic error of the evaluated peak time. A linear increase of the membrane potential would add a systematic error of half a bin width, but since the membrane potential follows rather the shape of a double exponential the systematic error is estimated to be only a quarter of a bin width. The offset is thereby corrected to $\Delta T_\text{corr} = (2.1 \pm 1.1)\; \si{\micro\s}$.
 
-In an attempt to optimize the performance of the Python based simulation environment, Python bindings are used to speed up time consuming code in C++. In particular, the stored bits of the analog \gls{cadc} traces are inverted due to a hardware bug and need to be reverted before further use. Another task where C++ improves the performance is the injection of input spike trains during the forward pass. In the final setup, the overall runtime has been improved by about 25 percent. 
+In an attempt to optimize the performance of the Python-based simulation environment, Python bindings are used to speed up time consuming or repetitive code in C++. In particular, the stored bits of the analog \gls{cadc} traces are inverted due to a hardware bug and need to be reverted before further use. Another task where C++ improves the performance is the construction of input spike trains during the forward pass. In the final setup, the overall runtime has been improved by about 25 percent. 
 
-\subsubsection*{Initial Conditions and Neuron Parameters}
+\paragraph{Initial Conditions and Neuron Parameters}
 
-The chosen initial conditions and neuron parameters for this experiment are inspired by the configuration used in \citealp{zenke2018superspike}. However, some adaptations and a respective time-scaling have to be made, to cope with the analog hardware's acceleration factor of $10^3$. 
+The chosen initial conditions and neuron parameters for this experiment are inspired by the configuration used in \cite{zenke2018superspike}. However, some adaptations and a respective time-scaling have to be made, to cope with the analog hardware's acceleration factor of $10^3$. 
 
-The temporal constants used in the backward pass are shown in the \cref{temporalconstants} and resemble an estimate of the detuned hardware time constants. .... 
+The time constants used in the backward pass are shown in the \cref{temporalconstants} and resemble an average estimate of the detuned hardware time constants the recorded membrane traces.
 
-
-The \gls{lif} neuron can be fully described by a set of temporal and potential parameters. The potential parameters have been calibrated are set as indicated in \cref{initparameters}. It is important the distance between the resting potential and the threshold is not big, since the synaptic strength is limited on the chip. Yet, a greater gap between these potentials provides a better accuracy for the computation of the backward pass. The final setting is a compromise of both assuring that the 6-bit weights are not exceeding their maximum during training, despite the lack of weight regularization.
-
-In addition to a proper choice of the neuron parameters, the performance of the training strongly depends on the initialized weights and the chosen learning rate (ref to citations for init stuff). In analogy to the simulation of SuperSpike\footnote{\label{fnote}\citealp{zenke2018superspike}} the weights are drawn from a normal distribution which is centered around zero. The learning rates are set, such that both layers show activity but at the same time do not cause rapid weight updates that would in turn required a regularize to keep the weights within their limited range.
-
-\begin{table}[t!]\centering\ra{1.3}
+\begin{table}[h!]\centering\ra{1.3}
 	\begin{tabular}{@{}rlll@{}}\toprule
-		& Parameter		& 	\gls{hx} & 	$\text{SuperSpike}^1$ \\ \midrule
+		& Parameter		& 	\gls{hx} & 	SuperSpike\tablefootnote{Simulation parameters for SuperSpike can be found in \cite{zenke2018superspike}} \\ \midrule
 		& membrane constant \gls{tau_m}		& 	$\SI{8}{\micro \s}$ & 	$\SI{10}{\milli \s}$\\
 		& synaptic constant \gls{tau_syn}	&	$\SI{5}{\micro \s}$ & 	$\SI{5}{\milli \s}$\\
 		& refractory period \gls{refrac}	&	$\SI{30}{\micro \s}$ & 	$\SI{5}{\milli \s}$\\
@@ -198,15 +218,15 @@ In addition to a proper choice of the neuron parameters, the performance of the 
 		& $\epsilon$ kernel constant $\tau_\epsilon$ 	&	$\SI{12}{\micro \s}$& 	$\SI{10}{\milli \s}$\\
 		\bottomrule
 	\end{tabular}
-	\caption[Temporal parameters for SuperSpike.]{Temporal parameters for SuperSpike.}
+	\caption[Temporal parameters for SuperSpike.]{Temporal parameters for SuperSpike. A comparison between the tuned hardware parameters used in this thesis and the original simulation.}
 	\label{temporalconstants}
 \end{table}
 
-Another tunable parameter in the SuperSpike plasticity rule is the slope of the auxiliary function $\beta$, which is defined in \cref{auxilliaryfunction}. This parameter is chosen with respect to the distance between the resting potential and the threshold. The surrogate gradient increases, the closer the membrane is about the cross the threshold. At rest, the surrogate gradient provides little to no contribution. 
+The \gls{lif} neuron is fully described by a set of time constants and neuron potentials. The potentials are set as indicated in \cref{initparameters}. It is important the distance between the resting potential and the threshold is not big, since the synaptic strength is limited on the chip. Yet, a greater gap between these potentials provides a better accuracy for the computation of the backward pass. The final setting is a compromise of both assuring that the 6-bit weights are not exceeding their maximum during training, despite the lack of weight regularization.
 
-\begin{table}\centering\ra{1.3}
+\begin{table}[htb!]\centering\ra{1.3}
 	\begin{tabular}{@{}rlll@{}}\toprule
-		& Parameter								& 	hidden neurons 			& 	output neurons \\ \midrule
+		& Parameter								& 	hidden layer 			& 	output layer \\ \midrule
 		& initial weights $w_{ij}^\text{init}$	& 	$\in \mathcal{N}(0,13)$ & 	$\in \mathcal{N}(0,18)$\\
 		& resting potential \gls{v_leak}		&	$\SI{0.5}{\V}$ 			& 	$\SI{0.5}{\V}$\\
 		& reset potential \gls{v_reset}			&	$\SI{0.4}{\V}$			& 	$\SI{0.4}{\V}$\\
@@ -219,9 +239,17 @@ Another tunable parameter in the SuperSpike plasticity rule is the slope of the 
 	\label{initparameters}
 \end{table}
 
+In addition to a proper choice of the neuron parameters, the performance of the training strongly depends on the initialized weights and the chosen learning rate (ref to citations for init stuff). In analogy to the simulation of SuperSpike the weights are drawn from a normal distribution which is centered around zero (\citealp{zenke2018superspike}). The learning rates are set, such that both layers show activity but at the same time do not cause rapid weight updates that would in turn required a regularize to keep the weights within their limited range.
+
+
+
+Another tunable parameter in the SuperSpike plasticity rule is the slope of the auxiliary function $\beta$, which is defined in \cref{auxilliaryfunction}. This parameter is chosen with respect to the distance between the resting potential and the threshold. The surrogate gradient increases, the closer the membrane is about the cross the threshold. At rest, the surrogate gradient provides little to no contribution. 
+
+
+
 Unlike the previous rate based plasticity rule from \cref{ratecoding} SuperSpike does not contain a bias term. Instead, the bias is implicitly included into the input by dedicated input spikes that occur in all patterns. These ``bias spikes" can then excite or inhibit the membrane and thus establish a certain base level upon which further dynamics is induced by the remaining pattern-specific input spikes.
 
-\begin{figure}
+\begin{figure}[htb!]
 	\centering
 	\input{figures/debug_plot_0_100.pgf}
 	\caption[Monitoring of the analog traces measured on the \gls{hx}.]{Monitoring of the analog traces measured on the \gls{hx}. Each column represents an important observable for the backward pass. The hidden and output layer are discriminated row-wise. The first column, contains the information of the presynaptic spike train spike train $S_j^{(l)}$, the second column shows the evolution of the membrane potential \gls{v_mem} with respect to the total synaptic input generated by the incoming spikes and in the third column the adapted van Rossum error $e^{(l)}$ is displayed.}
@@ -231,7 +259,7 @@ Unlike the previous rate based plasticity rule from \cref{ratecoding} SuperSpike
 The final traces of a forward and backward pass are depicted in \cref{debugplot}. In the first column the input spikes from the various sources are marked. Their contribution to the membrane potential depends on the type and strength of the respective synapse. Despite the calibration of the membrane potential, the fixed-pattern noise of the chip is still clearly visible. As soon as the membrane reaches the threshold, the reset mechanism is triggered. The thereby generated spikes are indicated in the second row of the first column, where they start to rise the membrane potential of the hidden neurons, which in turn can lead to spikes in the output layer.
 
 The third column needs to be read starting from the second row. The error, as given in \cref{superspikeerror}, is defined by a temporal window within which the output unit needs to spike.
-The interval is set in accordance with the duration of the input pattern and the temporal constants from \SI{0}{\micro \s} to \SI{80}{\micro \s}. In the example given in \cref{debugplot}, the output unit 1 is required to fire but the membrane potential falls just short to doing so. In this case, a target spike $t^*$ indicates where the silent output unit should have fired. The time is chosen to be near the end of input pattern at \SI{33}{\micro \s}. Depending on the preferred propagation method, the error of the output unit is then relayed backwards to the hidden unit either by transpose of the weight matrix (backpropagation) or by a random matrix (feedback alignment).
+The interval is set in accordance with the duration of the input pattern and the time constants from \SI{0}{\micro \s} to \SI{80}{\micro \s}. In the example given in \cref{debugplot}, the output unit 1 is required to fire but the membrane potential falls just short to doing so. In this case, a target spike $t^*$ indicates where the silent output unit should have fired. The time is chosen to be near the end of input pattern at \SI{33}{\micro \s}. Depending on the preferred propagation method, the error of the output unit is then relayed backwards to the hidden unit either by transpose of the weight matrix (backpropagation) or by a random matrix (feedback alignment).
 
 \begin{figure}
 	\centering
@@ -269,29 +297,29 @@ As in the previous experiment the accuracy of the validation or training batch i
 \end{equation}
 The overall accuracy is then averaged over the trials and the error is determined by a 95 \% confidence interval, which uses a t-score (c.f. \citealp{Smithson2011}). The final plot data is then resampled from 2000 to 500 samples using a polyphase method for better displaying (c.f. \citealp{scipypolyresample}).
 
-\subsubsection*{Backpropagation vs. Feedback Alignment}
+\paragraph{Backpropagation vs. Feedback Alignment}
 First, the standard backpropagation method is compared to feedback alignment, where instead of the transpose of the connecting weight matrix a random matrix is taken to propagate the error from the output to the hidden layer (c.f. \cref{superspike}). The random matrix is drawn from either a uniform distribution ranging from -25 to 25 or from a centered normal distribution $\mathcal{N}(0, 20)$.
 
 \begin{figure}
 	\begin{subfigure}[c]{0.5\textwidth}
 		\centering
-%		\caption{}
+		\caption{}
 		\input{figures/accuracy_train_73_BP_FA_small.pgf}
 		\label{bptrain73}
 	\end{subfigure}	
 	\begin{subfigure}[c]{0.5\textwidth}
 		\centering
-%		\caption{}
+		\caption{}
 		\input{figures/accuracy_test_73_BP_FA_small.pgf}
 		\label{bptest73}
 	\end{subfigure}
-	\caption[Train and test accuracy of SuperSpike using backpropagation and feedback alignment.]{Train and test accuracy of SuperSpike using backpropagation and feedback alignment. The training accuracy (left) does not differ much from the validation accuracy (right). As expected, the backpropagation method (BP) outperforms feedback alignment (FA). Despite the quick success of BP, the noise sources on the chip can be clearly seen in the course of the accuracy.}
+	\caption[Train and test accuracy of SuperSpike using backpropagation and feedback alignment.]{Train and test accuracy of SuperSpike using backpropagation and feedback alignment. \textbf{(\subref{bptrain73})} The training accuracy is shown for various training methods. As expected, backpropagation (\textit{black}) outperforms feedback alignment (\textit{red} and \textit{blue}). The underlying distribution of the randomly drawn feedback weights for feedback alignment does not effect the convergence. \textbf{(\subref{bptest73})} The test accuracy does not differ much from the training accuracy.}
 	\label{BPvsFA73}
 \end{figure}
 
-The accuracy of the training aligns well with the validation (see \cref{BPvsFA73}). The backprogagation method outperforms the use of a random feedback matrix clearly. Interestingly the choice of the underlying distribution of the random matrix has not a great impact on the performance of the training. Both distributions converge at the same velocity, despite an observed sensitivity on the range of the distributions during the parameter tuning.
+The accuracy of the training aligns well with the validation (see \cref{BPvsFA73}). The backpropagation method outperforms the use of a random feedback matrix clearly. Interestingly the choice of the underlying distribution of the random matrix has not a great impact on the performance of the training. Both distributions converge at the same velocity, despite an observed sensitivity on the range of the distributions during the parameter tuning.
 
-\subsubsection*{Hidden Learning}
+\paragraph{Hidden Learning}
 As a sanity check, the learning rate of the hidden layer is set to zero. This validates, that the initial state of the hidden layer is not yet solving the task and thus hidden learning is not even required by the setup.
 
 In a more drastic approach the whole hidden layer is removed. According to the theory, the network should not be able to perform under these circumstances as the XOR-related classification task specifically requires a hidden layer structure with a non-linear activation function (c.f. \citealp{Goodfellow-et-al-2016}).
@@ -306,7 +334,7 @@ All in all, this confirms that the presented experimental implementation of Supe
 	\label{hiddenlearning}
 \end{figure}
 
-\subsubsection*{Transferability between Chips}
+\paragraph{Transferability between Chips}
 Throughout the development process of the experimental setup for SuperSpike several \gls{hx} setups have been in use. During this phase, the differences between the individual chips could be noticed to some extent, especially when hand tuned calibration routines had to be redone for a new setup.
 \begin{figure}[b!]
 	\begin{subfigure}{0.5\textwidth}
@@ -349,29 +377,33 @@ The performance of a random propagation matrix based on a normal distribution (`
 All in all, the transferability between setups can not only be subjectively observed, but actually works without causing too much issues. One should keep in mind, that the calibration routine in use is heavily exposed to the cross-talk problematic, which can differ from setup to setup. Furthermore, the reduction of the fixed-pattern noise is limited to the neuron potentials. With the use of a more extensive and robust calibration routines, the performance and transferability will most certainly be increased. 
 
 \begin{figure}[htb!]
-	\begin{subfigure}{0.24\textwidth}
-%		\caption{}
+	\begin{subfigure}{0.245\textwidth}
+		\caption{}
+		\vspace{-0.3cm}
 		\centering
 		\input{figures/accuracy_63VS73_BP_small.pgf}
-%		\label{hx63vs73bp}
+		\label{hx63vs73bp}
 	\end{subfigure}
-	\begin{subfigure}{0.24\textwidth}
-%		\caption{}
+	\begin{subfigure}{0.245\textwidth}
+		\caption{}
+		\vspace{-0.3cm}
 		\centering
 		\input{figures/accuracy_63VS73_FAnormal_small.pgf}
-%		\label{hx63vs73bp}
+		\label{hx63vs73fanormal}
 	\end{subfigure}
-	\begin{subfigure}{0.24\textwidth}
-%		\caption{}
+	\begin{subfigure}{0.245\textwidth}
+		\caption{}
+		\vspace{-0.3cm}
 		\centering
 		\input{figures/accuracy_63VS73_FAuniform_small.pgf}
-%		\label{hx63vs73bp}
+		\label{hx63vs73fauniform}
 	\end{subfigure}
-	\begin{subfigure}{0.24\textwidth}
-%		\caption{}
+	\begin{subfigure}{0.245\textwidth}
+		\caption{}
+		\vspace{-0.3cm}
 		\centering
 		\input{figures/accuracy_63VS73_nohiddenlearning_small.pgf}
-%		\label{hx63vs73}
+		\label{hx63vs73nohidden}
 	\end{subfigure}
 	\caption[Setup transferability for SuperSpike.]{Setup transferability for SuperSpike. The \gls{hx} setups ``63" and ``73" are compared to each other. The performances of backpropagation, feedback alignment with a normal and uniform distribution and the no hidden learning are shown.}
 	\label{hxsetuptransferability}

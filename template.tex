@@ -30,7 +30,8 @@
 \usepackage{titlesec, blindtext, color}
 \usepackage{numname}
 \usepackage{refcount}
-\usepackage[bottom]{footmisc}
+\usepackage[bottom, hang]{footmisc}
+\usepackage{tablefootnote}
 \definecolor{gray75}{gray}{0.75}
 \newcommand{\hsp}{\hspace{20pt}}
 \usepackage{amsmath,amsfonts,amssymb}
@@ -40,8 +41,9 @@
 \usepackage{nicefrac}
 \usepackage[export]{adjustbox}
 \usepackage{wrapfig}
-\usepackage{minted}
+%\usepackage{minted}
 \usepackage{import}
+%\makesavenoteenv{tabular}
 
 \titleformat{\chapter}{\vspace{-20mm}\Huge\bfseries}{\thechapter\hsp\textcolor{gray75}{}\hsp}{0pt}{\Huge\bfseries}
 
@@ -111,6 +113,7 @@
 \usetikzlibrary{positioning}
 \usetikzlibrary{shapes.misc,shapes}
 \usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{matrix}
 
 \definecolor{blue}{RGB}{0,91,130}% Diagram color blue % 100%
 \definecolor{lightblue}{RGB}{110,159,189}% Diagram color blue % 50%
@@ -138,10 +141,10 @@
 	\include{titlepage}
 	\cleardoublepage
 	% Settings for printing
-	\newgeometry{top=0.8in,bottom=0.9in,right=0.9in,left=1.30in}
+	%\newgeometry{top=0.8in,bottom=1.2in,right=0.9in,left=1.30in}
 	
 	% Settings for screen
-	%    \newgeometry{top=0.8in,bottom=0.9in,right=0.95in,left=1.25in}
+	\newgeometry{top=0.8in,bottom=1.2in,right=0.95in,left=1.25in}
 	
 	% Roman pagenumbers for table of contents and abstract
 	\pagestyle{plain}
@@ -161,6 +164,7 @@
 	\input{circles}
 	\include{hxsuperspike}
 	\input{outlook}
+	\newpage
 	% Roman page numbers for appendix
 	\pagebreak
 	\pagenumbering{roman}

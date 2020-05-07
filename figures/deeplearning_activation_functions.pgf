@@ -412,7 +412,7 @@
 \definecolor{textcolor}{rgb}{0.317647,0.317647,0.317647}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=0.197222in,y=1.331045in,,bottom,rotate=90.000000]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont transfer function \(\displaystyle \Phi(x)\)}%
+\pgftext[x=0.197222in,y=1.331045in,,bottom,rotate=90.000000]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont \(\displaystyle \Phi(x)\)}%
 \end{pgfscope}%
 \begin{pgfscope}%
 \pgfpathrectangle{\pgfqpoint{0.518018in}{0.368545in}}{\pgfqpoint{2.325000in}{1.925000in}}%

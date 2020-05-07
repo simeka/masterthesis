@@ -287,7 +287,7 @@
 \definecolor{textcolor}{rgb}{0.317647,0.317647,0.317647}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=0.182189in,y=1.153578in,,bottom,rotate=90.000000]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont CADC lsb}%
+\pgftext[x=0.182189in,y=1.153578in,,bottom,rotate=90.000000]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont CADC LSB}%
 \end{pgfscope}%
 \begin{pgfscope}%
 \pgfpathrectangle{\pgfqpoint{0.438556in}{0.383578in}}{\pgfqpoint{1.550000in}{1.540000in}}%
@@ -20448,7 +20448,7 @@
 \definecolor{textcolor}{rgb}{0.000000,0.000000,0.000000}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=0.586645in,y=1.830652in,left,base]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont linear fit q0 }%
+\pgftext[x=0.586645in,y=1.830652in,left,base]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont linear fit top left }%
 \end{pgfscope}%
 \begin{pgfscope}%
 \pgfsetrectcap%
@@ -20465,7 +20465,7 @@
 \definecolor{textcolor}{rgb}{0.000000,0.000000,0.000000}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=0.586645in,y=1.710516in,left,base]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont linear fit q1 }%
+\pgftext[x=0.586645in,y=1.710516in,left,base]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont linear fit top right }%
 \end{pgfscope}%
 \end{pgfpicture}%
 \makeatother%

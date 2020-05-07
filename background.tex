@@ -120,7 +120,7 @@ The only constraint to $B$ is that $\mathbf{e}^{(o)T} W^{(o)} B \mathbf{e}^{(o)}
 
 Biological neural networks have been a great inspiration for deep learning algorithms and \glspl{ann}. It is estimated that the human brain contains around $10^{11}$ neurons of different shape, size and functions (\citealp{numberofneurons}). By the use of \emph{synapses}, \emph{presynaptic} neurons connect to \emph{postsynaptic} ones and thereby create complex network structures throughout the brain. A postsynaptic neuron has usually around $10^4$ presynaptic partners (\citealp{numberofsynapses}). The connections vary from dense clusters with nearby neurons to linking distant brain regions with each other. 
 
-Most neurons can be divided into three functional parts: \textbf{dendrites}, \emph{soma} and \emph{axon} (c.f. \cref{biologicalneuron}). At the dendrites a postsynaptic neuron receives inputs from its presynaptic partners. These inputs are converted into \glspl{psp} using charged molecules corresponding to a variable graded potential in size and shape. The \glspl{psp} are then relayed to the soma where they are integrated over. Depending on the nature of synaptic connection, the stimulation has either an excitatory or inhibitory effect on the neuron, resulting in an increased or decreased membrane potential. Over time the unbalanced ion concentration in and outside the membrane is restored by the membranes permeability and additional ion pumps. In an equilibrated state the membrane potential is referred to as the \emph{resting potential}. (\citealp{gerstner2014dynamics})
+Most neurons can be divided into three functional parts: \emph{dendrites}, \emph{soma} and \emph{axon} (c.f. \cref{biologicalneuron}). At the dendrites a postsynaptic neuron receives inputs from its presynaptic partners. These inputs are converted into \glspl{psp} using charged molecules corresponding to a variable graded potential in size and shape. The \glspl{psp} are then relayed to the soma where they are integrated over. Depending on the nature of synaptic connection, the stimulation has either an excitatory or inhibitory effect on the neuron, resulting in an increased or decreased membrane potential. Over time the unbalanced ion concentration in and outside the membrane is restored by the membranes permeability and additional ion pumps. In an equilibrated state the membrane potential is referred to as the \emph{resting potential}. (\citealp{gerstner2014dynamics})
 
 Given a continuous excitatory stimulation current, the neuron will trigger a fire mechanism once a certain threshold potential is reached. The neuron's membrane becomes hyperpolarized and decreases even below the resting potential as shown in \cref{actionpotential} entering a \emph{refractory period}. During this period it remains hard but not impossible for the neuron to fire again due to the ongoing hyperpolarization of the membrane. This mechanism releases an electrochemical pulse a so-called action potential or spike, which is then relayed by the axon to the connected partners at the end of the axon. (\citealp{gerstner2014dynamics})
 
@@ -158,7 +158,7 @@ Developing biologically inspired and plausible supervised learning algorithms is
 
 \section{The \acrlong{lif} Model}
 
-An early but successful description of the biological neuron dynamics was accomplished by the \glsfirst{lif} neuron model, first described by \citealp{lapicque1907recherches}. Despite some strong simplifications, the main dynamics of the membrane potential are well described by the model and it thus has been a popular and portable choice for neuromorphic hardware implementations.
+An early but successful description of the biological neuron dynamics was accomplished by the \glsfirst{lif} neuron model, first described by \cite{lapicque1907recherches}. Despite some strong simplifications, the main dynamics of the membrane potential are well described by the model and it thus has been a popular and portable choice for neuromorphic hardware implementations.
 
 In biology, the observation of similar shaped individual action potentials lead to the assumption that the shape of a spike does not transport any information. The \gls{lif} model is based upon this theory and thus every spike can be replaced by a stereotypical shape (\citealp{gerstner2014dynamics}). 
 
@@ -181,7 +181,7 @@ with the convolution of a double exponential kernel $\epsilon$ with the input sp
 &=\frac{1}{\mathcal{N}}\exp \left(-\frac{t}{\tau_\text{rise}} \right)  \ast \exp \left(-\frac{t}{\tau_\text{fall}} \right), 
 %\label{exponentialkernels)}
 \end{align*}
-with a rising and falling temporal constant $\tau_\text{rise}$ and $\tau_\text{fall}$ respectively. A constant $\mathcal{N}$ norms the kernel to unity. As the rising constant goes to zero $\tau_\text{rise} \rightarrow 0$ the double exponential turns into a single exponential kernel $\epsilon_\text{single} = \epsilon_\text{fall}$.
+with a rising and falling time constant $\tau_\text{rise}$ and $\tau_\text{fall}$ respectively. A constant $\mathcal{N}$ norms the kernel to unity. As the rising constant goes to zero $\tau_\text{rise} \rightarrow 0$ the double exponential turns into a single exponential kernel $\epsilon_\text{single} = \epsilon_\text{fall}$.
 
 The membrane potential \gls{v_mem} changes with the continuous synaptic input causing an unbalanced ion concentration inside the membrane. Passive as well as active processes are permanently restoring the membrane potential back to its equilibrium state which is associated with the resting potential \gls{v_leak}. In the \gls{lif} model, the temporal scale of these restoring processes is defined by the membranes capacitance $C_\text{m}$ and the leakage conductance $g_\text{leak}$ yielding the membrane's time constant $\gls{tau_m} = \frac{C_\text{m}}{g_\text{leak}}$. The dynamics of the membrane are then given by a single differential equation
 \begin{align}
@@ -210,7 +210,7 @@ Unlike for its biological counterpart, the modeled neuron cannot spike during th
 A \gls{lif} neuron doesn't keep track of any previous spikes once a spike is released, given that the time constant of the synaptic input is shorter than the one of the membrane potential, in particular if $\gls{tau_m} > \gls{tau_syn}$. These limitations make it impossible for the model to correctly describe neuronal behavior such as spike bursts (\citealp{gerstner2014dynamics}) and led to a demand of a more detailed modeling as the \glsfirst{adex} model. The \gls{adex} model resembles an extension to the \gls{lif} model featuring an additional adaption state variable that provides post-spike memory to the membrane. Depending on the sign of the adaption, the neuron is either inhibited or engaged to fire again after having spiked at least once (see \cref{lifvsadex}).
 
 %Apart from the additional state variable the \gls{adex} neuron features a positive exponential voltage feedback. on the other hand, enables the neuron to have a more complex behavior in the (\gls{v_mem}, w?) phase space.
-For the scope of this thesis a more advanced model is not yet required. All experiments are done using the simpler \gls{lif} model. However, the use of the \gls{adex} model for a spike-based learning rule such as SuperSpike is promising when targeting real-world applications. A respective project has already been planned in the future and will be explained in more detail in \cref{futureprojects}.
+For the scope of this thesis a more advanced model is not yet required. All experiments are done using the simpler \gls{lif} model. However, the use of the \gls{adex} model for a spike-based learning rule such as SuperSpike is promising when targeting real-world applications. A respective project has already been planned in the future and will be explained in more detail in \cref{discussionandoutlook}.
 
 A supervised learning algorithm based on a single \gls{lif} neuron will not be able to solve any difficult task yet. In the human brain millions of such neurons are split up into various areas which are each responsible to perform a certain type of work such as smell, speak or motor control. In the next section different ways of how neurons can communicate with each other in order to perform a certain task are discussed.
 
@@ -227,7 +227,7 @@ In the following, the different coding schemes and supervised training approache
 
 \subsection{Rate Coding}
 \label{ratecoding}
-In an attempt to explain computational processes in the brain, the activation of an artificial neuron has been mapped onto the firing rate of a spiking neuron by \citealp{rieke1999spikes}. The most apparent way to define a neuron's spike rate $\nu$ is to count the number of spikes $n_\text{spikes}$ fired within a period $T$
+In an attempt to explain computational processes in the brain, the activation of an artificial neuron has been mapped onto the firing rate of a spiking neuron by \cite{rieke1999spikes}. The most apparent way to define a neuron's spike rate $\nu$ is to count the number of spikes $n_\text{spikes}$ fired within a period $T$
 \begin{equation*}
 \nu = \frac{n_\text{spikes}}{T}.
 \label{eqratecoding}
@@ -284,9 +284,9 @@ with the fluctuations of a single excitatory input source $\sigma$.
 	\label{theoretical_vleak_w_noise}
 \end{figure}
 
-Without external noise, the fluctuations are small, reflecting only the variations of the input spike train and thus the activation function shows a steep incline. One way to smoothen the course of the function is to increase $\sigma$, e.g. by injecting additional Poisson spikes. A continuous noise stimulation with these noise spikes leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ which is centered around the resting potential \gls{v_leak} as depicted in \cref{theoretical_vleak_w_noise}. The term \emph{free} refers to the absence of any spiking mechanisms of the membrane. In a naive approach, the part of the free distribution that exceeds a certain threshold potential correlates to the number of fired spikes. This neglects non-vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \citealp{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of short time constants for the synaptic input and the membrane.
+Without external noise, the fluctuations are small, reflecting only the variations of the input spike train and thus the activation function shows a steep incline. One way to smoothen the course of the function is to increase $\sigma$, e.g. by injecting additional Poisson spikes. A continuous noise stimulation with these noise spikes leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ which is centered around the resting potential \gls{v_leak} as depicted in \cref{theoretical_vleak_w_noise}. The term \emph{free} refers to the absence of any spiking mechanisms of the membrane. In a naive approach, the part of the free distribution that exceeds a certain threshold potential correlates to the number of fired spikes. This neglects non-vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \cite{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of short time constants for the synaptic input and the membrane.
 
-However, despite the strongly simplified picture, this view still offers a correct intuition of how the threshold, the leak potential and the strength of the noise effect the free membrane potential and in turn change the shape of the activation function: more noise leads to a broader distribution and thus a more gentle incline of the output rate, synaptic input moves the distribution to either a lower or a higher mean value, moving the threshold corresponds to an additional bias term. The latter has been motivated by \citealp{petrovici2016stochastic}. The bias term in the neuron's activation can be adequately replaced by adapting the relative distance $\delta V$ between the resting potential and the threshold
+However, despite the strongly simplified picture, this view still offers a correct intuition of how the threshold, the leak potential and the strength of the noise effect the free membrane potential and in turn change the shape of the activation function: more noise leads to a broader distribution and thus a more gentle incline of the output rate, synaptic input moves the distribution to either a lower or a higher mean value, moving the threshold corresponds to an additional bias term. The latter has been motivated by \cite{petrovici2016stochastic}. The bias term in the neuron's activation can be adequately replaced by adapting the relative distance $\delta V$ between the resting potential and the threshold
 \begin{equation}
 b \propto \delta V = \gls{v_leak} - \gls{thres}.
 \end{equation}
@@ -377,18 +377,17 @@ The great success of deep learning in the recent years has also increased the de
 	\begin{subfigure}{0.49\textwidth}
 		\centering
 		\caption{}
-		\includegraphics[width=0.98\textwidth]{figures/temporary/cubesetuptmp.png}
+		\includegraphics[width=0.98\textwidth]{figures/hxsetup_img_close_edited2.pdf}
 		\label{cubesetup}
 	\end{subfigure}	
 	\begin{subfigure}{0.49\textwidth}
 		\centering
 		\caption{}
 		\includegraphics[width=.98\textwidth]{figures/HXcloseup.JPG}
-		\vspace{0.35in}
 		\label{hxcloseup}
 	\end{subfigure}
 	\centering
-	\caption[The \acrshort{hx} setup.]{The \acrshort{hx} setup. \textbf{(\subref{cubesetup})} The chip is mounted on a carrier board and protected by a cover. The carrier board is then mounted on the xBoard which is  connected to the \gls{fpga} over the cube setup. \textbf{(\subref{hxcloseup})} Close-up of the newest \gls{bss2} single chip. The analog core of the neuromorphic chip is bonded before a protective cover is placed over it. Picture taken by M{\"u}ller, 2020.} 
+	\caption[The \acrshort{hx} setup.]{The \acrshort{hx} setup. \textbf{(\subref{cubesetup})} The chip (\textit{blue}) is mounted on a carrier board and protected by a cover. The carrier board (\textit{red}) is then mounted on the xBoard (\textit{gray}) which is connected to the \acrshort{fpga} over the cube setup (\textit{yellow}). \textbf{(\subref{hxcloseup})} Close-up of the newest \gls{bss2} single chip. The analog core of the neuromorphic chip is bonded before a protective cover is placed over it. Picture taken by M{\"u}ller, 2020.} 
 	\label{hxsetup}
 \end{figure}
 
@@ -431,7 +430,7 @@ On the \gls{dls} the newly designed \gls{lif} neuron model was tested as well as
 		\includegraphics[width=0.9\textwidth]{figures/ppu_overview.pdf}
 		\label{hxppu}
 	\end{subfigure}
-	\caption[Overview of the \gls{bss2} architecture.]{Overview of the \gls{bss2} architecture. \textbf{(\subref{hxstructure})} The neuromorphic platform is divided into a digital and analog core which is connected to an external host via an FPGA. Two plasticity processing units provide computational power for on-chip training.  Figure taken from \citealp{schemmel2017internal} \textbf{(\subref{hxppu})} The plasticity processing units are divided into a general purpose part which is based on a 32-bit architecture and a vector unit. The latter enables efficient parallel data processing of analog parameters and observables. Figure taken from \citealp{friedmann2016hybridlearning}}
+	\caption[Overview of the \gls{bss2} architecture.]{Overview of the \gls{bss2} architecture. \textbf{(\subref{hxstructure})} The neuromorphic platform is divided into a digital and analog core which is connected to an external host via an FPGA. Two plasticity processing units provide computational power for on-chip training.  Figure taken from \citealp{schemmel2017internal} \textbf{(\subref{hxppu})} The plasticity processing units are divided into a general purpose part which is based on a 32-bit architecture and a vector unit. The latter enables efficient parallel data processing of analog parameters and observables. Figure taken from \cite{friedmann2016hybridlearning}}
 \end{figure}
 
 The design of both prototypes can be divided into an \emph{analogue} and a \emph{digital} core (c.f. figure \ref{hxstructure}). The external communication is established by an \gls{fpga} accessing eight serial Low Voltage Differential Signaling (LVDS) links. The interface not only manages read and write instructions but handles any spike-event data in both directions.
@@ -443,7 +442,7 @@ The biological time constants of neurons and synapses are usually in the order o
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{figures/synapse.png}
-	\caption[Synapse circuit overview on \gls{dls}]{Synapse circuit overview on \gls{dls}. Synapse drivers inject the presynaptic activity row-wise as either inhibitory or excitatory spikes. The 6-bit addresses of the presynaptic neuron is compared at each synapse with a local \SI{6}{\bit} address. If the addresses match, the spike is relayed to the corresponding neuron at the bottom of the synapse grid. The synaptic strength can be configured by a \SI{6}{\bit} weight. The two correlation sensors (causal and anti-causal) record \gls{stdp} traces. Figure from \citealp{friedmann2016hybridlearning}.}
+	\caption[Synapse circuit overview on \gls{dls}]{Synapse circuit overview on \gls{dls}. Synapse drivers inject the presynaptic activity row-wise as either inhibitory or excitatory spikes. The 6-bit addresses of the presynaptic neuron is compared at each synapse with a local \SI{6}{\bit} address. If the addresses match, the spike is relayed to the corresponding neuron at the bottom of the synapse grid. The synaptic strength can be configured by a \SI{6}{\bit} weight. The two correlation sensors (causal and anti-causal) record \gls{stdp} traces. Figure from \cite{friedmann2016hybridlearning}.}
 	\label{synapseschematics}
 \end{figure}
 

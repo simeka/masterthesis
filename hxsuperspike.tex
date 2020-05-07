@@ -206,7 +206,7 @@ In an attempt to optimize the performance of the Python-based simulation environ
 
 The chosen initial conditions and neuron parameters for this experiment are inspired by the configuration used in \cite{zenke2018superspike}. However, some adaptations and a respective time-scaling have to be made, to cope with the analog hardware's acceleration factor of $10^3$. 
 
-The time constants used in the backward pass are shown in the \cref{temporalconstants} and resemble an average estimate of the detuned hardware time constants the recorded membrane traces.
+A \gls{lif} neuron is fully described by a set of time constants and neuron potentials. Their initialization has a significant impact on the training performance. If for instance the time constants are chosen to short, the individual parts of the learning rule in \cref{superspikeweightupdatedivided} do not overlap anymore and will yield a vanishing weight update, despite an incorrect spiking behavior of the network. On the other hand, longer time constants will blur the network's temporal perception of timed spikes. The time constants used in the backward pass are shown in the \cref{temporalconstants} and resemble an average estimate of the detuned hardware time constants the recorded membrane traces.
 
 \begin{table}[h!]\centering\ra{1.3}
 	\begin{tabular}{@{}rlll@{}}\toprule
@@ -222,7 +222,9 @@ The time constants used in the backward pass are shown in the \cref{temporalcons
 	\label{temporalconstants}
 \end{table}
 
-The \gls{lif} neuron is fully described by a set of time constants and neuron potentials. The potentials are set as indicated in \cref{initparameters}. It is important the distance between the resting potential and the threshold is not big, since the synaptic strength is limited on the chip. Yet, a greater gap between these potentials provides a better accuracy for the computation of the backward pass. The final setting is a compromise of both assuring that the 6-bit weights are not exceeding their maximum during training, despite the lack of weight regularization.
+The distance between the resting potential and the threshold defines the dynamic range of a non-spiking membrane. The choice of the distance follows two main motivations. A larger gap increases the dynamic range and therefore improves the \gls{snr} of the \gls{cadc} traces. At the same time, a greater potential difference between threshold and resting potential requires a stronger synaptic input current to trigger a fire response. A single input spike with a maximum excitatory weight and the time constants from above increases the membrane potential by approximately \SI{0.3}{\V}. The final setting is a compromise of both assuring that the \SI{6}{\bit} weights are not exceeding their maximum during training and setting the potentials as far apart as possible. Since the overall input activity of the output layer is reduced compared to the hidden layer, the threshold of the output unit is further lowered by \SI{0.5}{\V}.
+
+In the given task, the neurons are not required to fire multiple times. The refractory period has therefore been increased to suppresses repetitive fire patterns. Another way of avoiding repetitive fire patterns is to set the reset potential far below the equilibrium state. The final choise of the neuron potentials is listed in \cref{initparameters}.
 
 \begin{table}[htb!]\centering\ra{1.3}
 	\begin{tabular}{@{}rlll@{}}\toprule
@@ -241,9 +243,9 @@ The \gls{lif} neuron is fully described by a set of time constants and neuron po
 
 In addition to a proper choice of the neuron parameters, the performance of the training strongly depends on the initialized weights and the chosen learning rate (\citealp{Goodfellow-et-al-2016}). In analogy to the simulation of SuperSpike the weights are drawn from a normal distribution which is centered around zero (\citealp{zenke2018superspike}). The learning rates are set, such that both layers show activity but at the same time do not cause rapid weight updates that would in turn required a regularize to keep the weights within their limited range.
 
-Another tunable parameter in the SuperSpike plasticity rule is the slope of the auxiliary function $\beta$, which is defined in \cref{auxilliaryfunction}. This parameter is chosen with respect to the distance between the resting potential and the threshold. The surrogate gradient increases, the closer the membrane is about the cross the threshold. At rest, the surrogate gradient provides little to no contribution. 
+Another tunable parameter in the SuperSpike plasticity rule is the slope of the auxiliary function $\sigma(V)$, which is defined in \cref{auxilliaryfunction}. The parameter depends on the distance between the threshold and the resting potential. The slope is chosen such that at rest the surrogate gradient $\sigma'(V)$ provides little to no contribution and reaches its maximum when the membrane is about to cross the threshold.
 
-Unlike the previous rate based plasticity rule from \cref{ratecoding} SuperSpike does not contain a bias term. Instead, the bias is implicitly included into the input by dedicated input spikes that occur in all patterns. These ``bias spikes" can then excite or inhibit the membrane and thus establish a certain base level upon which further dynamics is induced by the remaining pattern-specific input spikes.
+Unlike the previous rate based plasticity rule from \cref{ratecoding}, SuperSpike does not contain a bias term. Instead, the bias is implicitly included into the input by dedicated input spikes that occur in all patterns. These ``bias spikes" can then excite or inhibit the membrane and thus establish a certain base level upon which further dynamics is induced by the remaining pattern-specific input spikes.
 
 \begin{figure}[htb!]
 	\centering
@@ -251,6 +253,8 @@ Unlike the previous rate based plasticity rule from \cref{ratecoding} SuperSpike
 	\caption[Monitoring of the analog traces measured on the \gls{hx}.]{Monitoring of the analog traces measured on the \gls{hx}. Each column represents an important observable for the backward pass. The hidden and output layer are discriminated row-wise. The first column, contains the information of the presynaptic spike train spike train $S_j^{(l)}$, the second column shows the evolution of the membrane potential \gls{v_mem} with respect to the total synaptic input generated by the incoming spikes and in the third column the adapted van Rossum error $e^{(l)}$ is displayed.}
 	\label{debugplot}
 \end{figure}
+
+\textbf{STOPPED HERE}
 
 The final traces of a forward and backward pass are depicted in \cref{debugplot}. In the first column the input spikes from the various sources are marked. Their contribution to the membrane potential depends on the type and strength of the respective synapse. Despite the calibration of the membrane potential, the fixed-pattern noise of the chip is still clearly visible. As soon as the membrane reaches the threshold, the reset mechanism is triggered. The thereby generated spikes are indicated in the second row of the first column, where they start to rise the membrane potential of the hidden neurons, which in turn can lead to spikes in the output layer.
 

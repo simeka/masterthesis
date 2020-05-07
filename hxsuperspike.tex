@@ -239,13 +239,9 @@ The \gls{lif} neuron is fully described by a set of time constants and neuron po
 	\label{initparameters}
 \end{table}
 
-In addition to a proper choice of the neuron parameters, the performance of the training strongly depends on the initialized weights and the chosen learning rate (ref to citations for init stuff). In analogy to the simulation of SuperSpike the weights are drawn from a normal distribution which is centered around zero (\citealp{zenke2018superspike}). The learning rates are set, such that both layers show activity but at the same time do not cause rapid weight updates that would in turn required a regularize to keep the weights within their limited range.
-
-
+In addition to a proper choice of the neuron parameters, the performance of the training strongly depends on the initialized weights and the chosen learning rate (\citealp{Goodfellow-et-al-2016}). In analogy to the simulation of SuperSpike the weights are drawn from a normal distribution which is centered around zero (\citealp{zenke2018superspike}). The learning rates are set, such that both layers show activity but at the same time do not cause rapid weight updates that would in turn required a regularize to keep the weights within their limited range.
 
 Another tunable parameter in the SuperSpike plasticity rule is the slope of the auxiliary function $\beta$, which is defined in \cref{auxilliaryfunction}. This parameter is chosen with respect to the distance between the resting potential and the threshold. The surrogate gradient increases, the closer the membrane is about the cross the threshold. At rest, the surrogate gradient provides little to no contribution. 
-
-
 
 Unlike the previous rate based plasticity rule from \cref{ratecoding} SuperSpike does not contain a bias term. Instead, the bias is implicitly included into the input by dedicated input spikes that occur in all patterns. These ``bias spikes" can then excite or inhibit the membrane and thus establish a certain base level upon which further dynamics is induced by the remaining pattern-specific input spikes.
 

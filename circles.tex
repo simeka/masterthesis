@@ -1,18 +1,29 @@
 \chapter{Classification of the Circles Data Set on \acrshort{bss2}}
 \label{circles}
-At the beginnings of the machine learing era, \cite{perceptron} have shown that a simplified single-layer neuronal network, the perceptron, cannot solve the XOR problem or ``exclusive or". The XOR operator represents a class of problems, that are non-linear and thus require a multi-layer network structure with a non-linear activation function to be solved (\citealp{Goodfellow-et-al-2016}). In modern machine learning solving the XOR problem has therefore become a very first benchmark to test the functionality of novel network designs and algorithms.
+In the first of two deep learning experiments which are implemented on the \gls{bss2} platform, a spiking feedforward network is emulated as an \gls{ann} using rate coding. As derived in \cref{ratecoding} the \gls{snn} can be then trained with conventional backpropagation. In addition the experiment focuses on a fully on-chip implementation. %, i.e. the training of the network is executed using only on-chip available resources, such as the dedicated \acrlong{ppu}.
+Only for monitoring purposes of the training progress the \gls{ppu}'s memory is continuously read out through the \gls{fpga} interface.
 
-\begin{wrapfigure}{R}{0.33\textwidth}
-	\centering
-	\vspace{-0.6cm}
-	\input{figures/circles_task.pgf}
-	\caption[Circles data set.]{Circles data set. Two circles are separated by a decision boundary (DB)} 
-	\label{circlestasksketch}
-	\vspace{-0.0cm}
-\end{wrapfigure}
-The classification of the \emph{Circles} data set is the first of two deep learning experiments implemented on the \gls{bss2} platform and focuses on a rate coding approach which has been motivated in \cref{ratecoding}. After successfully testing an on-chip \acrlong{sgd} implementation on the prototype \gls{dls} with an XOR problem, the difficulty of the task has been increased with the Circles data set. The task is implemented again as an on-chip experiment, i.e. the training of the network is executed using only on-chip available resources, such as the dedicated \acrlong{ppu}. Only for monitoring purposes of the training progress the chip's memory is continuously read out through the FPGA interface.
+\begin{table}[htb!]\centering\ra{1.3}
+	\begin{tabular}{@{}rccc@{}}\toprule
+		& Input A								& Input B 			& Output A $\veebar$ B	\\ \midrule
+		& 0	& 	0	&	0	\\
+		& 0	& 	1 	&	1	\\
+		& 1 &	0	& 	1\\
+		& 1&	1	& 	0\\
+		\bottomrule
+	\end{tabular}
+	\caption[XOR classification.]{The XOR classification follows the prediction given in the table: if the binary inputs are not equal the XOR operator returns true and false otherwise.} 
+	\label{xortruthtable}
+\end{table}
+
+In deep learning solving the XOR or ``exclusive or" problem (c.f. \cref{xortruthtable}) has become a very first benchmark to test the functionality of novel network designs and algorithms, since it requires a multi-layer network structure with a non-linear activation function to be solved (\citealp{Goodfellow-et-al-2016}). As part of a preliminary work, an on-chip implementation of \glsfirst{sgd} on the prototype \gls{dls} has been successfully tested with the XOR problem.
+
+In a next step, the difficulty of the task has been increased with the classification of the \emph{Circles} data set. The data set consists of two classes representing an inner and outer circle as shown in \cref{circlestasksketch}. A deep network then tries to place a decision boundary in between the two circles. Before discussing the details of the training process, the rate coding of the task and the implementation of the network's training method \gls{sgd} are presented in the following sections. 
+
+%At the beginnings of the machine learing era, \cite{perceptron} have shown that a simplified single-layer neuronal network, the perceptron, cannot solve the XOR problem or ``exclusive or". The XOR operator represents a class of problems, that are non-linear and thus require a multi-layer network structure with a non-linear activation function to be solved (\citealp{Goodfellow-et-al-2016}). In modern machine learning solving the XOR problem has therefore become a very first benchmark to test the functionality of novel network designs and algorithms.
 
 
+%The classification of the \emph{Circles} data set is the first of two deep learning experiments implemented on the \gls{bss2} platform and focuses on a rate coding approach which has been motivated in \cref{ratecoding}. After successfully testing an on-chip \acrlong{sgd} implementation on the prototype \gls{dls} with an XOR problem, the difficulty of the task has been increased with the Circles data set. The task is implemented again as an on-chip experiment, i.e. the training of the network is executed using only on-chip available resources, such as the dedicated \acrlong{ppu}. Only for monitoring purposes of the training progress the chip's memory is continuously read out through the FPGA interface.
 %A detailed description of the \textit{on-chip} implementation is presented in the next paragraphs.
 
 %- single hidden layer network with 11 neurons (2 synapse lines necessary for each neuron -> 22)
@@ -23,8 +34,15 @@ The classification of the \emph{Circles} data set is the first of two deep learn
 
 \section{Circles Task}
 \label{circlestask}
-
-The Circles data set from \cref{circlestasksketch} describes in principle a set of points $p = p(x,y)$ in a two-dimensional plane, which are in either of two disjunct annuli, each representing a class
+\begin{wrapfigure}{R}{0.33\textwidth}
+	\centering
+	\vspace{-0.6cm}
+	\input{figures/circles_task.pgf}
+	\caption[Circles data set.]{The Circles data set has two classes (\textit{red} and \textit{black}) which can be separated by a decision boundary (\textit{blue}).} 
+	\label{circlestasksketch}
+	\vspace{-1cm}
+\end{wrapfigure}
+The Circles data set describes a set of points $p = p(x,y)$ in a two-dimensional plane, which are in either of two disjunct rings, each representing a class
 \begin{align}
 \text{class}(p) =
 \begin{cases}
@@ -32,20 +50,11 @@ The Circles data set from \cref{circlestasksketch} describes in principle a set 
 1 ,&\quad \quad R_{\text{inner}}^2 < x^2 + y^2 < R_{\text{outer}}^2,
 \end{cases}
 \end{align}
-with the confining inner and outer radiuses of the first and second annulus $r_{\text{inner}}$, $r_{\text{outer}}$ and  $R_{\text{inner}}$, $R_{\text{outer}}$ respectively. The goal of the task is to find a decision boundary that successfully separates the both annuli.
+with the confining inner and outer radii of the first and second ring $r_{\text{inner}}$, $r_{\text{outer}}$ and  $R_{\text{inner}}$, $R_{\text{outer}}$ respectively. The goal of the task is to find a decision boundary that successfully separates the both rings as shown in \cref{circlestasksketch}.
 
-For a rate-based task, the data points need to be translated into firing rates. A point $p$ is represented by two signed \SI{8}{\bit} integers resembling its coordinates $x$ and $y$ which fall in the range $x, y \in [-128,127]$. Each point is then mapped onto a frequency depending on either of the coordinates. The rate dependency of a coordinate $c \in \{x,y\}$ is given by
-\begin{equation}\label{inputfrequency}
-\nu_{\text{input, c}}(c) = \nu_\text{max} \cdot \frac{c + 128}{255},
-\end{equation}
-with the maximum firing rate $\nu_\text{max}$ that is given by a Poisson spike train source. 
+The Circles task is slightly modified to reduce the implementation effort on the \gls{ppu} and to make it easier to find a decision boundary. The class $0$ is reduced to one confining circle by setting the inner radius to zero. The outer radius of the second class is replaced by the \SI{8}{\bit} limitations of the input. The remaining two boundaries are set far apart to $r_{\text{outer}} = \sqrt{8000}$ and $R_{\text{inner}} = \sqrt{13000}$. The area in between the classes is where the network should place the decision boundary. The more space is available, the easier it is for the network to succeed. 
 
-
-
-The Circles task is slightly modified to reduce the implementation effort on the \gls{ppu} and to make it easier to find a decision boundary. The class $0$ is reduced to one confining circle by setting the inner radius to zero. The other class can also be reduced to one confining conditions by replacing the outer radius with the \SI{8}{\bit} limitations of the input. The remaining two boundaries are set far apart to $r_{\text{outer}} = \sqrt{8000}$ and $R_{\text{inner}} = \sqrt{13000}$. The area in between the classes is where the network will try to place the decision boundary. The more space is available, the easier it is for the network to succeed.
-
-In \cref{circlesinputs} the frequency dependent input and the final shape of the input classes is illustrated by a representative data set of 100 samples per class. For a data point from the lower right corner e.g. $p(100,-100)$. The corresponding input rate generated by the first input node is given by $\nu_{\text{in, x}}(100) \approx \SI{450}{\kilo \Hz}$. The second node yields $\nu_{\text{in, y}}(-100) \approx \SI{55}{\kilo \Hz}$.
-\begin{figure}[htb!]
+\begin{figure}[b!]
 	\begin{subfigure}[c]{0.5\textwidth}
 		\centering
 		%		\caption{}
@@ -58,10 +67,17 @@ In \cref{circlesinputs} the frequency dependent input and the final shape of the
 		\inputpgf{figures}{nu_y_input.pgf}	
 		%		\label{nuyinput}
 	\end{subfigure}
-	\caption[Rate coding for the Circles experiment.]{Rate coding for the Circles experiment. Each point $p(x,y)$ of a representative validation data set with 100 points per class is mapped to a frequency depending on the x-direction. The figure resembles one of two input nodes in the input layer of the network. The second input node depends on the y-direction.}
+	\caption[Input coding for the Circles experiment.]{Input coding for the Circles experiment. Each point $p(x,y)$ of a representative data set with 100 points per class is mapped to two input frequencies each depending on one of the coordinates. In the left figure, the $x$-dependency is shown and to the right the $y$-dependency.}
 	\label{circlesinputs}
 \end{figure}
-To identify the classes in the output layer only a single unit is required. Each data point $p$ yields a certain output firing rate $\gls{nuout}(p)$ in the output layer, which is compared to a target rate $\nu^*$ depending on the class of point $p$
+
+With a rate-based coding, the data points need to be translated into firing rates first. A point $p$ is represented by two signed \SI{8}{\bit} integers which correspond to the coordinates $x$ and $y$ with $x, y \in [-128,127]$. The corresponding firing rate of a coordinate $c \in \{x,y\}$ is then given by
+\begin{equation}\label{inputfrequency}
+\nu_{\text{input, c}}(c) = \nu_\text{max} \cdot \frac{c + 128}{255},
+\end{equation}
+with the maximum firing rate $\nu_\text{max}$ set by a respective spike train source. A representative data set of 100 samples per class illustrates in \cref{circlesinputs} how the points of the modified task are distributed. Moreover, the translation of a point into an input rate is shown. For instance, a point from the lower right corner p(100,100) is associated with two input rates: one depends on the x coordinate $\nu_{\text{in, x}}(100) \approx \SI{450}{\kilo \Hz}$ and one on the y coordinate $\nu_{\text{in, y}}(-100) \approx \SI{55}{\kilo \Hz}$.
+
+As for a supervised learning method, the input data is labeled. To identify the class of an input pattern in the output layer, a single readout neuron is trained to yield a target rate $\nu^*$
 \begin{align}
 \nu^*(p) =
 \begin{cases}
@@ -70,43 +86,38 @@ To identify the classes in the output layer only a single unit is required. Each
 \end{cases}
 \label{circlestarget}
 \end{align}
-The mismatch between the target and firing rate then determines the error of the output layer $e^{(o)}$
+The mismatch between the target rate and firing rate of the readout neuron \gls{nuout} then determines the error of the output layer $e^{(o)}$
 \begin{equation*}
 e^{(o)}(p) = \gls{nuout}(p) - \nu^*(p).
 \label{circleserror}
 \end{equation*}
-A reasonable choice of the target rates is crucial to the training success. If the rates are either too close or too far from each other, the network will have troubles to solve the task. The decision boundary, the rate separating both classes, is chosen to be the mean of both target rates
+The decision boundary, the rate separating both classes, is chosen to be the mean of both target rates
 \begin{equation*}
 \nu_\text{DB} = \frac{\nu_0^* + \nu_1^*}{2} = \SI{63.05}{\kilo \Hz}.
 \label{circlesdb}
 \end{equation*}
 
+%A reasonable choice of the target rates is crucial for the training success. If the rates are either too close or too far from each other, the network will have troubles to solve the task. 
 
 \section{Poisson Spike Train Generator}
 \label{poissonspiketrains}
-In the introduction to rate coding (\cref{ratecoding}) the mean firing rate $\nu$ of a neuron has been defined by the number of spikes $n_\text{spikes}$ sent within a period $T$
-\begin{equation*}
-\nu = \frac{n_\text{spikes}}{T},
-\end{equation*}
-and it was mentioned that this formalism is only well defined, if the temporal distribution of the spikes within a spike train is based on Poisson processes.
+The on-chip implementation of the experiment requires the generation of spikes for the input data and noise spikes for sigmoid activation function. The latter relies on spike trains with an underlying Poisson distribution of the spikes. With the lack of dedicated spike generators on-chip, the \gls{ppu} has to fulfill the task.
 
-One way to numerically generate such a Poisson spike train is to repeatedly perform a Bernoulli process on a short time interval $\Delta t$ over a period $T$. The Bernoulli process is equivalent to an unfair coin flip with probability $p$, which is set depending on the desired firing rate $\nu$ by $p(\nu) = \nu \cdot \Delta t$. Given that the probability equals one, i.e. at every time interval a spike will be fired, the firing rate reaches its maximum at $\nu_\text{max} = \nicefrac{1}{\Delta t}$.
+One way to numerically generate a Poisson spike train is to repeatedly perform a Bernoulli process on a short time interval $\Delta t$ over a period $T$. The Bernoulli process is equivalent to an unfair coin flip with probability $p$, which is set depending on the desired firing rate $\nu$ by $p(\nu) = \nu \cdot \Delta t$. Given that the probability equals one, i.e. at every time interval a spike will be fired, the firing rate reaches its maximum at $\nu_\text{max} = \nicefrac{1}{\Delta t}$. However, the spike train is no longer Poisson-based for high firing rates but rather fires with a fixed \glsfirst{isi}. Therefore, the spike generator will only be used at low frequencies for the noise generation ($\nu_\text{noise} \ll \nu_\text{max}$). The input spike trains on the other hand do not rely on pure Poisson spike trains and thus can use the full frequency range of the spike train generator.
 
-With respect to the hardware limitations, in particular the time required to generate the shortest possible spike on the \gls{ppu} $\Delta t_\text{spike}$, the maximum firing rate is limited to 
+With respect to hardware limitations, the maximum fire rate of the spike train generator $\nu_\text{max, ppu}$ is defined by the shortest possible \gls{isi} on the \gls{ppu} which is in turn limited by the time required to generate a single spike $\Delta t_\text{spike}$
 \begin{align*}
 \nu_\text{max, ppu} = \frac{1}{\Delta t_\text{spike}} = \frac{1}{\SI{0.44}{\mu \s}} = \SI{2.27}{\mega \Hz}.
 \end{align*}
-The duration of the shortest configurable spike on the \gls{ppu} is determined by measuring the duration of a constant spiking pattern with the highest possible frequency and for a known number of spikes. The number of spikes is determined by the on-chip spike counters and the duration is simply measured by recording the membrane potential with an oscilloscope.
-
-However, at maximum rate, the spike generation can no longer be assumed to follow a Poisson Distribution and should only be used for frequencies $\nu \ll \nu_\text{max, ppu}$.
+The duration of the spike generation $\Delta t_\text{spike}$ on the \gls{ppu} is determined by recording a constant spiking pattern with the highest possible frequency. The total number of spikes is counted by on-chip spike counters and the duration is simply measured by recording the membrane potential with an oscilloscope.
 
 % Stopped here, rewrite again not schlüssig yet...
-The use case of the spike generator in the final setup is to generate noise spike trains for the sigmoid activation function and to translate the Circles data set into input rates. Only the latter requires high input rates up to $\SI{500}{\kilo \Hz}$, the noise rate is only in the order of a few $\si{\kilo \Hz}$.
+%The use case of the spike generator in the final setup is to generate noise spike trains for the sigmoid activation function and to translate the Circles data set into input rates. Only the latter requires high input rates up to $\SI{500}{\kilo \Hz}$, the noise rate is only in the order of a few $\si{\kilo \Hz}$.
 
 %In theory the maximum fire rate of a \gls{lif} neuron $\nu_\text{max}$ is give by $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$.
 %In the final experiment setup, the output rate of an individual neuron is further constraint by a chosen 8-bit resolution of the spike counts and a measurement period of a few milliseconds to a measurable rate in order of few $\SI{100}{\kilo \Hz}$.
 %will be divided into four independent channels, each producing at max a fourth of $\nu_\text{max, hw}$.
-On the \gls{ppu} the Bernoulli process is implemented by comparing the frequency dependent probability $p(\nu)$ with a randomly drawn number. A popular method to generate random numbers on a system with limited memory and computational resources is the \emph{xorshift} (\citealp{marsaglia2003xorshift}). A random number is thereby generated by repeatedly applying the XOR operator on a seed variable and a bit-shifted versions of itself. The \emph{bit shift} of a variable $x$ to the left by $n$, written as $x\;{\scriptstyle<<}\;n$, corresponds to the multiplication by $2^n$. In analogy, a shift to the right, $x\;{\scriptstyle>>}\;n$, is equivalent to the division by $2^n$. 
+On the \gls{ppu} the Bernoulli process is implemented by comparing the frequency dependent probability $p(\nu)$ with a randomly drawn number. A popular method to generate random numbers on a system with limited memory and computational resources is the \emph{xorshift} (\citealp{marsaglia2003xorshift}). A random number is thereby generated by repeatedly applying the XOR operator on a seed variable and a bit-shifted versions of itself. %The \emph{bit shift} of a variable $x$ to the left by $n$, written as $x\;{\scriptstyle<<}\;n$, corresponds to the multiplication by $2^n$. In analogy, a shift to the right, $x\;{\scriptstyle>>}\;n$, is equivalent to the division by $2^n$. 
 
 
 %The xorshift can be implemented in C as follows.
@@ -121,7 +132,7 @@ On the \gls{ppu} the Bernoulli process is implemented by comparing the frequency
 %\end{minted}
 
 \section{Activation Function on Chip}
-The theoretical ground for a sigmoid activation function for a \gls{lif} neuron has been motivated in \cref{ratecoding}: The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$. In \cref{vleak_w_noise} the measured membrane potential on the hardware is shown, using noise spike trains with a frequency of \SI{70}{\kilo \Hz} and a synaptic strength of $w_\text{noise}= \pm 15$.
+The theoretical background of how the activation function of a \gls{lif} neuron becomes sigmoidal has been motivated in \cref{ratecoding}. The main tool to create such an activation function is the continuous stimulation of the neuron with Poisson noise spike trains. Thereby a broad Gaussian distribution of the membrane potential is established, which in turn yields a sigmoid activation function. In \cref{vleak_w_noise}, the recorded free membrane potential on the \gls{dls} is shown while being stimulated by excitatory and inhibitory noise spike trains with a frequency of \SI{70}{\kilo \Hz} and a synaptic strength of $w_\text{noise}= 15$. The overall activation function then depends on several parameters such as the synaptic weights and frequencies of the spike sources, the neuron potentials as well as the time constants \gls{tau_m} and \gls{refrac}. 
 
 %The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ centered around the resting potential \gls{v_leak} as depicted in \cref{vleak_w_noise}). In a naive approach, the part of the distribution that exceeds a certain threshold potential correlates to the number of fired spikes. This neglects non vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \citealp{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of very short time constants for the synaptic input \gls{tau_syn} and the membrane \gls{tau_m}.
 %
@@ -134,19 +145,23 @@ The theoretical ground for a sigmoid activation function for a \gls{lif} neuron 
 	\label{vleak_w_noise}
 \end{figure}
 
- The overall activation function then depends on several parameters
-\begin{equation}
-\gls{transfer} = \gls{transfer}(\gls{nuin}, b, \gls{refrac}, \gls{tau_m}, \gls{v_reset}, f_{\gls{v_mem}}),
-\end{equation}
-with the free membrane distribution $f_{\gls{v_mem}} = f_{\gls{v_mem}}(V; \gls{v_leak}, \nu_\text{noise}, w_\text{noise})$. 
-The bias term $b$ in the neuron's activation is again replaced by the relative distance $\delta V$ between the resting potential and the threshold, since $b \propto \delta V = \gls{v_leak} - \gls{thres}$. 
 
-Some parameters will be kept fixed, whereas others are required to operate within a certain range such as the threshold or the input frequency. The setup is hand tuned with the support of parameter sweeps to find a suitable configuration of the fixed parameters. The final set of parameters is listed in \cref{hardwarevssimulationtable}
 
-\subsubsection*{Calibration}\label{calibration}
-The manufacturing process of analog neuromorphic hardware causes systematic stochastic deviations in the neuron and synapse parameters. The thereby induced heterogeneity between neurons and synapses is referred to as \emph{fixed-pattern noise} and is constant in time. Despite the detuned parameters, it has been shown that plasticity rules can correct the intrinsic imperfections of the analog hardware to a certain degree (\citealp{wunderlich2019advantages}).
+%As shown in the simulation of the activation function in \cref{ratecoding}, the slope and of the activation function and its alignment along the x-axis can be easily modified.
 
-In an uncalibrated state, the neuron circuits exhibit activation functions which do not align with regards to their maximum rate and the bias with which the sigmoid can be moved along the x-axis (see \cref{transferfunction_wout_calib}). Up to a certain degree the misalignment will be corrected during the training process. However, the dynamic range of the individual neurons on the chip is limited and to ensure properly overlapping activation function a calibration of the respective parameters is inevitable.
+%A slope is tuned by 
+
+%\begin{equation}
+%\gls{transfer} = \gls{transfer}(\gls{nuin}, b, \gls{refrac}, \gls{tau_m}, \gls{v_reset}, f_{\gls{v_mem}}),
+%\end{equation}
+%with the free membrane distribution $f_{\gls{v_mem}} = f_{\gls{v_mem}}(V; \gls{v_leak}, \nu_\text{noise}, w_\text{noise})$. 
+%The bias term $b$ in the neuron's activation is again replaced by the relative distance $\delta V$ between the resting potential and the threshold, since $b \propto \delta V = \gls{v_leak} - \gls{thres}$. 
+%
+%Some parameters will be kept fixed, whereas others are required to operate within a certain range such as the threshold or the input frequency. The setup is hand tuned with the support of parameter sweeps to find a suitable configuration of the fixed parameters. The final set of parameters is listed in \cref{hardwarevssimulationtable}
+%
+\paragraph{Calibration}\label{calibration}
+The manufacturing process of analog neuromorphic hardware causes systematic stochastic deviations in the neuron and synapse parameters. The thereby induced heterogeneity between neurons and synapses is referred to as \emph{fixed-pattern noise} and is constant in time. In an uncalibrated state, the neuron circuits exhibit activation functions which do not align with regards to their maximum rate and alignment along the x-axis (see \cref{transferfunction_wout_calib}). Despite the detuned parameters, it has been shown that plasticity rules can correct the intrinsic imperfections of the analog hardware up to a certain degree (\citealp{wunderlich2019advantages}). However, the dynamic range of the individual neurons on the chip is limited and to ensure properly overlapping activation function a calibration of the respective parameters is inevitable.
+
 \begin{figure}
 	%\captionsetup[subfigure]{justification=centering}
 	\centering
@@ -163,29 +178,27 @@ In an uncalibrated state, the neuron circuits exhibit activation functions which
 	\caption[Calibration of the sigmoid activation function on \acrshort{dls}.]{Calibration of the activation function on \acrshort{dls}. \textbf{(\subref{transferfunction_wout_calib})}: In the uncalibrated state the maximum rate (\gls{refrac}) and center alignment (\gls{v_leak}) deviates due to imperfection in the manufacturing process of the analog hardware.  \textbf{(\subref{transferfunction_w_calib})}: The calibration aligns the dynamic range of individual neurons, which helps the training.}
 \end{figure}
 
-A collection of simple experiment-specific \gls{ppu}-based calibration routines is implemented to maintain a pure on-chip implementation. The calibration is based on a binary search algorithm to find the suitable \gls{dac}-values for the analog neuron parameters. In general, the binary search algorithm compares a target value to the middle value of a given sorted array. Depending on the outcome of the comparison the lower or the upper half is eliminated from the search space and the search is repeated with new boundaries which are set by the remaining half. In a worst case scenario, the algorithm finds the target value after $\mathcal{O}(\log(n))$ repetitions, given the searched array has $n$ entries  (\citealp{binarysearchsource}). Especially in the context of analog circuits it is very unlikely to find the target value, but it continuously approximates the searched value under a chosen assumption.
+A collection of simple experiment-specific \gls{ppu}-based calibration routines is implemented to maintain a pure on-chip implementation. The calibration is based on a binary search algorithm to find the suitable \gls{dac}-values for the analog neuron parameters. In general, the binary search algorithm compares a target value to the middle value of a given sorted array. Depending on the outcome of the comparison the lower or the upper half is eliminated from the search space and the search is repeated with new boundaries which are set by the remaining half. In a worst case scenario, the algorithm finds the target value after $\mathcal{O}(\log(n))$ repetitions, given the searched array has $n$ entries  (\citealp{binarysearchsource}).
 
-For the calibration of the activation function, the sorted array is replaced by the range of the 10-bit \gls{dac}-value and instead of direct comparison, the measured output rate of a neuron using the updated analog parameter is compared to a target rate.
+For the calibration of the activation function the sorted array is replaced with the \SI{10}{\bit} range of the targeted analog parameter. Instead of the direct comparison with a target value, a condition is chosen which resembles the desired calibration outcome. For instance, the maximum output frequency of the neuron is calibrated
+by changing the \gls{dac} value of the refractory period \gls{refrac}, since in the limit of high frequencies the output rate mainly depends on the refractory period, c.f. with \cref{fireratehigh}. As condition for the binary search, the maximum output rate \gls{nuout} is measured at a high input rate and compared to a target rate $\gls{nuout}^*$. Depending on the outcome, either half of the parameter range is eliminated from the search space.
+For the experiment, the target rate is set to \SI{111.3}{\kilo \Hz} which corresponds to $256$ recorded spikes over a measurement period of $T=\SI{2.3}{\milli \s}$.
 
-In the limit of a high input rate the calibration only depends on one parameter, the refractory period \gls{refrac} which determines the maximum firing rate, c.f. \cref{fireratehigh}. The rate is measured using a high input rate, zero bias and no noise
-\begin{equation}
-\gls{transfer}(\nu_\text{max, hw}, 0, \gls{refrac}, f_{\gls{v_mem}}) = \frac{1}{\gls{refrac}} \quad \text{ with } \nu_\text{noise} = 0.
-\end{equation}
+The calibration of the alignment along the x-axis is slightly more complicated. The activation function is centered if its inflection point is positioned at zero. In theory, the firing rate at the inflection point equals half the maximum rate. As shown in the simulation of the activation function in \cref{ratecoding}, the curve can be shifted along the x-axis by changing the potential difference $\delta V$ between the resting potential and the threshold. Since later on the threshold is used as the bias parameter, the \gls{dac}-value of the resting potential will be calibrated. As condition for the binary search, the rate of the activation function is measured with no additional input except for the noise sources and is compared to the half of the maximum rate.
 
-The target rate of the maximum output rate $\gls{nuout}$ is set to roughly \SI{111.3}{\kilo \Hz} which corresponds to $256$ recorded spikes over a measurement period of $T=\SI{2.3}{\milli \s}$.
+During the calibration of the resting potential with respect to a centered inflection point of the activation function, the positioning of the sigmoid only depends on the relative potential difference $\delta V$. The choice of a work point for the absolute threshold and resting potential should in theory be arbitrary, as the whole operating range can be shifted. On analog hardware, this does not hold true, since some circuits exhibit limited operating ranges. As a consequence the work point is fixed by a threshold potential of \SI{0.54}{\V}.
 
-The alignment along the x-axis is slightly more complicated. A neuron approximately yields half of its maximum rate if there is input except for the noise sources and the bias is set to zero, i.e. $\delta V = 0 \Leftrightarrow \gls{v_leak} = \gls{thres}$
-\begin{equation}
-\gls{transfer}(0, 0, \gls{refrac}, f_{\gls{v_mem}}) = \frac{1}{2\gls{refrac}} \quad \text{ with } \nu_\text{noise} = \SI{70}{kHz}.
-\end{equation}
+%In a practical observation, the center of the sigmoid activation function could be placed at zero input by balancing a fixed position of the reset potential with a minor correction of the bias. This was achieved by formulating the condition of the binary search for the bias related parameter in a way that at zero input the activation function returns half the maximum rate. For a higher output rate, the bias had to be reduced and vice versa. On chip, a change of the bias is applied by adapting the \gls{dac} value of the resting potential while keeping the threshold fixed at a chosen work point of approximately \SI{0.54}{\V}.
+%The choice of a work point for the absolute threshold and resting potential should in theory be arbitrary, as the whole operating range can be shifted. On analog hardware, this does not hold true, since some circuits exhibit limited operating ranges.
 
-In a practical observation, the center of the sigmoid activation function could be placed at zero input by balancing a fixed position of the reset potential with a minor correction of the bias. This was achieved by formulating the condition of the binary search for the bias related parameter in a way that at zero input the activation function returns half the maximum rate. For a higher output rate, the bias had to be reduced and vice versa. On chip, a change of the bias is applied by adapting the \gls{dac} value of the resting potential while keeping the threshold fixed at a chosen work point of approximately \SI{0.54}{\V}.
+\textbf{STOPPED HERE}
 
-The choice of a work point for the absolute threshold and resting potential should in theory be arbitrary, as the whole operating range can be shifted. On analog hardware, this does not hold true, since some circuits exhibit limited operating ranges.
+The calibration of the refractory period and the resting potential is repeated and interleaved several times. This is done to reduce the potential influence of the other yet uncalibrated parameter. In \cref{transferfunction_w_calib} the final calibrated state is shown. 
 
-The calibration of the maximum firing rate and the centered alignment of the activation function around zero input is repeated and interleaved several times, to reduce the potential influence of the other yet uncalibrated parameter. In \cref{transferfunction_w_calib} the final calibrated state is shown. 
+In the context of analog circuits it is very unlikely to find the exact target \gls{dac}-value due to a temporal variability during the measurements. However, the algorithm continuously approximates the searched value under the chosen condition. The 
 
 
+\paragraph{Bias and Synaptic Weights} As shown in the simulation of the activation function in \cref{ratecoding}, the slope and of the activation function and its alignment along the x-axis can be easily modified. ...
 
 \begin{figure}
 	\begin{subfigure}[c]{0.5\textwidth}
@@ -211,13 +224,13 @@ The calibration of the maximum firing rate and the centered alignment of the act
 %	\label{transferfunction_with_bias}
 %\end{figure}
 
-%The bias term $b$ is again replaced by the relative distance $\delta V$ between the resting potential and the threshold $b \propto \delta V$. As the analog core brings more and less favorable operating points, the resting potential is kept constant and only the threshold is shifted to change the bias (c.f. \cref{transferfunction_with_bias}).
+The bias term $b$ is again replaced by the relative distance $\delta V$ between the resting potential and the threshold $b \propto \delta V$. As the analog core brings more and less favorable operating points, the resting potential is kept constant and only the threshold is shifted to change the bias (c.f. \cref{transferfunction_with_bias}).
 
 
 
 \section{Experiment Setup on \gls{dls}}
 \label{circlesimplementation}
-For the classification of the Circles dataset a single hidden layer network is trained on-chip using \acrlong{sgd}. The \gls{ppu} controls the experiment, including a forward and a backward pass. After a proper initialization routine, the training loop is started: the corresponding input rates of a randomly drawn data point $p(x,y)$ are fed into the network and the resulting output rates are evaluated by the \gls{sgd} routine on the \gls{ppu}. The computed parameter updates are then applied before the next iteration can start.
+For the classification of the Circles dataset a single hidden layer network is trained on-chip with \glsfirst{sgd}. The \gls{ppu} executes both the forward and a backward pass. This also includes generating the dataset and the input spikes. After a proper initialization routine, the training loop is started: the corresponding input rates of a randomly drawn data point $p(x,y)$ are fed into the network and the resulting output rates are evaluated by the \gls{sgd} routine on the \gls{ppu}. The computed parameter updates are then applied before the next iteration can start.
 
 \paragraph{Forward Pass}
 
@@ -225,17 +238,17 @@ For the classification of the Circles dataset a single hidden layer network is t
 	\centering
 	\vspace{-1cm}
 	\input{dlsv2overview.tex}
-	\caption[Overview of the synapse array.]{Overview of the synapse array. Figure adapted from Sebastian Billaudelle} 
+	\caption[Overview of the synapse array.]{Overview of the synapse array. Figure adapted from \cite{billaudelle2019versatile}.} 
 	\label{synapsearraysketch}
 	\vspace{-1cm}
 \end{wrapfigure}
-The neuromorphic core of the \gls{dls} provides 32 analog neuron circuits which are interconnected by synapse array of $32 \times 32$ synapses (c.f. \cref{synapseschematics}). Any input to the network is injected row-wise by dedicated synapse drivers as either excitatory or inhibitory spikes. At a column, the label of an incoming spike is compared with local address field and in case of a match the spike is relayed down to the designated neuron.
+The neuromorphic core of the \gls{dls} provides 32 analog neuron circuits which are interconnected by synapse array of $32 \times 32$ synapses (c.f. \cref{synapseschematics}). Any input spike to the network is injected row-wise by dedicated synapse drivers as either excitatory or inhibitory input current. At a column, the label of an incoming spike is compared with local address field and in case of a match the spike is relayed down to the designated neuron.
 
-As for \glspl{ann}, the synapse's weight must be able to seamlessly evolve from negative to positive and vice versa. By design a single synapse cannot alternate between the signs of the input without changing the synapse driver's configuration which is unfortunately time-consuming. Instead of a single input row, two rows are used for the same input - one in excitatory and one inhibitory mode. In each column only one of the double-synapses is active and corresponds to the current sign of the synaptic weight. As the weight changes the sign, the active synapse is silenced and the other one is reactivated. 
+As for \glspl{ann}, the synapse must be able to seamlessly evolve from an inhibitory weight to an excitatory weight and vice versa. By design a single synapse cannot alternate between the signs of the input without changing the synapse driver's configuration which is time-consuming and can only be done row-wise. Instead of a single input row, two rows are used for the same input - one in excitatory and one inhibitory mode. In each column only one of the double-synapses is active and corresponds to the current sign of the synaptic weight. As the weight changes the sign, the active synapse is silenced by setting its weight to zero and the other one is reactivated. 
 
 The first layer of the network, the input layer, is connected to the hidden units by using a total of four rows and eleven columns. A dedicated event router injects the generated spikes by the hidden neurons back into the network, with each hidden neuron requiring another double-row. The recurrent connections of the hidden layer are then summed by a single column over the respective $11 \times 2$ rows into the output unit. The weight of the noise sources remains fixed and thus they only require a single row, one for excitatory and one for inhibitory noise spikes.
 
-A Poisson spike train generator on the \gls{ppu} provides a stream of random spikes over a certain measurement period. The provided spike resources are split into four branches, two for the excitatory and inhibitory noise source and two for both input units. Each noise branch has to supply twelve neurons with Poisson spike trains. In an attempt to reduce cross-correlation between the individual neurons the branches are further divided into eight channels and thus only four will share the noise with other ones.
+A Poisson spike train generator on the \gls{ppu} provides a stream of random spikes over a certain measurement period. The provided spike resources are split into four branches, two for the excitatory and inhibitory noise source and two for both input units. Each noise branch has to supply twelve neurons with Poisson spike trains. In an attempt to reduce correlated input between the individual neurons the branches are further divided into eight channels and thus only four will share the noise with other ones.
 
 %With the double-row structure, a total of six rows is used for the various inputs: two for the noise generation and four for the two-dimensional input. The recurrent connections of the hidden layer require another $22$ rows. In \cref{network_structure} the exact row assignment is sketched. Other than during the calibration process, where each neuron was calibrated individually, now the noise source needs to provide Poisson spike trains for all neurons in the hidden and output layer. As a compromise the source is divided further into eight channels. Four neurons will share the noise with other ones. The frequency of the noise in both layers is set to $\nu_\text{noise} \approx \SI{1.1}{\kilo \Hz}$ using weights with $w_\text{noise} = \pm 15$. The received input frequency varies for each layer. The input layer provides an input rate of up to $2 \times \SI{500}{\kilo \Hz}$ for each hidden unit. The output frequency of hidden units is limited by the spike counter and measurement period to $\gls{nuout} \approx \SI{111.3}{\kilo \Hz}$, leading to a theoretical maximum of $\gls{nuin}= 11 \times \gls{nuout} \approx 1219.6$ for the output layer. 
 %A presynaptic spike train, e.g. generated by the \gls{ppu}, is injected row-wise into the $32\times32$ synapse array. Then, the synapses compare a dedicated address label of the incoming spike with their own. Once they match, the spike is weighted and forwarded to the column-wise connected neurons at the bottom as either inhibitory or excitatory current. Recurrent connections are made available by the use of a spike router, which routes the postsynaptic spike trains generated by a neuron back into the synapse array.
@@ -268,8 +281,7 @@ The bias is set by lowering or raising the \gls{dac}-value of the threshold pote
 
 However, compared to the speed of the accelerated neuromorphic core, the \acrlong{dac} is slow. Instead of an instant and large change of the bias, a continuous and slow implementation can reduce potential negative effects of the coarse bias resolution, especially in combination with a low learning rate.
 
-\subsubsection*{Initial Conditions and Hyperparameters}
-
+\paragraph{Initial Conditions and Hyperparameters}
 The final experiment setup involves the setting of initial conditions, neuron parameters and the tuning of hyper-parameters. The latter describe a set of parameters, that is not changed during the training process but their choice often determines whether or not the training succeeds (\citealp{Goodfellow-et-al-2016}). A subset of the most relevant parameters is listed in \cref{circlesinitparameters}.
 
 \begin{table}[t!]\centering\ra{1.3}
@@ -301,7 +313,7 @@ The input layer, on the other hand, exploits almost the maximum with firing rate
 The learning rates may appear unusually high, which is mainly due to the lack of normalization. The normalization was not done beforehand in order to reduce the risk of eliminating small contributions of variables in the on-chip computation of the parameter updates. Furthermore the learning rates are divided into layer and parameter, to cope with the individual magnitudes. Even without the necessity to norm resulting parameter updates, it is not unusual to tune learning rates separately (\citealp{Goodfellow-et-al-2016}). The final rates are set to provide a fair amount of activity for both layers and parameters (c.f. \cref{monitoringplots}).
 
 \section{Training}
-The implementation of a full on-chip training is achieved by generating the required training dataset on the fly. In this way, each forward pass is performed with a randomly drawn data point from either of the two annuli from \cref{circlestask}. The backward pass is performed directly after the first training sample, i.e. the minibatch size is one.
+The implementation of a full on-chip training is achieved by generating the required training dataset on the fly. In this way, each forward pass is performed with a randomly drawn data point from either of the two rings from \cref{circlestask}. The backward pass is performed directly after the first training sample, i.e. the minibatch size is one.
 
 \begin{figure}
 	\begin{center}

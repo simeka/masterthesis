@@ -7,7 +7,7 @@ The presented introduction to deep learning in this section is largely oriented 
 
 Deep learning is among the most useful and powerful tools machine learning has provided to the scientific community. Image or pattern recognition are in general hard to solve for traditional computation concepts. Deep learning abstracts such task in terms of a hierarchy of concepts. Each concept is based upon a combination of simpler ones. Going down on a hypothetical ladder towards the easiest concept available, creates a deep structure with many layers. This is why it is called.
 
-A popular example for deep learning is the \gls{mlp}, a deep feed-forward network. As the name suggests, the information is forwarded from one layer to another (see \cref{multilayernetwork}). At each layer $l$ the input $\mathbf{x}^{(l)}$ is mapped to an output $\mathbf{y}^{(l)} = \gls{activation}(\mathbf{x}^{(l)}, \mathbf{\theta}^{(l)})$ with the activation function \gls{activation} and a set of parameters $\mathbf{\theta}^{(l)}$. The output of the layer $l$ then determines the input of the next layer, i.e. $\mathbf{y}^{(l)} = \mathbf{x}^{(l+1)}$, and so forth. The layer structure is inspired by biological neural networks and therefore they are often referred to as \gls{ann}. 
+A popular example for deep learning is the \gls{mlp}, a deep feedforward network. As the name suggests, the information is forwarded from one layer to another (see \cref{multilayernetwork}). At each layer $l$ the input $\mathbf{x}^{(l)}$ is mapped to an output $\mathbf{y}^{(l)} = \gls{activation}(\mathbf{x}^{(l)}, \mathbf{\theta}^{(l)})$ with the activation function \gls{activation} and a set of parameters $\mathbf{\theta}^{(l)}$. The output of the layer $l$ then determines the input of the next layer, i.e. $\mathbf{y}^{(l)} = \mathbf{x}^{(l+1)}$, and so forth. The layer structure is inspired by biological neural networks and therefore they are often referred to as \gls{ann}. 
 
 An \gls{ann} is trained by adapting the parameters $\mathbf{\theta}^{(l)}$ for all layers $l$ following a training algorithm. In machine learning, one discriminates between supervised, and unsupervised learning algorithms. Yet, drawing a consequent line to categorize machine learning methods is difficult, as the approaches are sometimes combined into hybrid forms too. Without a supervisor, an algorithm looks for structures and useful properties within the input data. To this end, unsupervised learning algorithms try to observe the underlying probability distribution of the input data. In supervised learning, on the other side, each input vector $x$ is associated with a target vector $\textbf{y}^*$. In this case, the algorithm is trained to predict a target for a given input.
 
@@ -105,7 +105,7 @@ The error of the output layer $\mathbf{e}^{(o)}$ is propagated backwards with th
 \frac{\partial \mathbf{y}^{(h)} }{\partial \mathbf{a}^{(h)}} \; \mathbf{x}^{(h), T}.
 \end{equation*}
 
-The backward propagation of the error is eponymous for the method's name \textit{backpropagation}. Despite the great performance for many deep learning tasks, the biological plausibility of propagating the error signal backward has been questioned ever since (\citealp{grossberg1987competitive}). A simple but effective adjustment was suggested by \cite{lillicrap2016random} which is also known as \textit{feedback alignment}. Instead of the transpose of the feed-forward weight matrix, a fixed random matrix $B$ is chosen to propagate the error backwards. Compared to the backpropagation variant from \cref{backpropupdate} the update in the hidden layer changes to
+The backward propagation of the error is eponymous for the method's name \textit{backpropagation}. Despite the great performance for many deep learning tasks, the biological plausibility of propagating the error signal backward has been questioned ever since (\citealp{grossberg1987competitive}). A simple but effective adjustment was suggested by \cite{lillicrap2016random} which is also known as \textit{feedback alignment}. Instead of the transpose of the feedforward weight matrix, a fixed random matrix $B$ is chosen to propagate the error backwards. Compared to the backpropagation variant from \cref{backpropupdate} the update in the hidden layer changes to
 \begin{equation*}
 \delta W^{(h)} = - \eta \;
 (B \mathbf{e}^{(o)}) \;
@@ -157,6 +157,7 @@ Such plasticity mechanism are self-regulating and independent of any reward-givi
 Developing biologically inspired and plausible supervised learning algorithms is a dedicated goal in the field of modern neuroscience. Before discussing two such candidates in more detail, a practicable model of the biological neuron is presented first. This model is implemented in the analog core of the neuromorphic platform \gls{bss2} and resembles the basis of all experimental work presented in this thesis.
 
 \section{The \acrlong{lif} Model}
+\label{lifmodel}
 
 An early but successful description of the biological neuron dynamics was accomplished by the \glsfirst{lif} neuron model, first described by \cite{lapicque1907recherches}. Despite some strong simplifications, the main dynamics of the membrane potential are well described by the model and it thus has been a popular and portable choice for neuromorphic hardware implementations.
 
@@ -223,7 +224,7 @@ The communication among biological neurons can be modeled by \glspl{snn} where i
 %A neuron's primary way to exchange information with another is to send and receive spikes.
 %\Glspl{snn} take the biological inspiration for \glspl{ann} further by conveying and processing information using spikes and neuronal models such as the \gls{lif} neuron. As mentioned before, spikes are assumed to have a stereotypical shape, leaving the temporal and spatial dimension to communicate. In the context of large multilayer networks, the topology itself, i.e. the types of synapses, the synaptic strength, the pre- and postsynaptic partners, encodes information as well.
 
-In the following, the different coding schemes and supervised training approaches for a feed-forward multi-layer \glspl{snn} using \gls{lif} neurons are presented.
+In the following, the different coding schemes and supervised training approaches for a feedforward multi-layer \glspl{snn} using \gls{lif} neurons are presented.
 
 \subsection{Rate Coding}
 \label{ratecoding}
@@ -249,14 +250,14 @@ In the terminology of the \gls{lif} model, a presynaptic spike train $S_j$ from 
 \left\langle \gls{isyn} \right\rangle = \sum_j w_j \nu_{\text{in}, j}.
 \end{equation*}
 
-\subsubsection*{Training with Rate Coding}
-With a rate coding approach, a spiking feed-forward network obtains properties from an \glspl{ann}. In particular, the activation function of a node in an \gls{snn} associates a given input rate $\nu_{\text{in}}$ with an output rate $\nu_{\text{out}}$ 
+\paragraph{Training with Rate Coding}
+With a rate coding approach, a spiking feedforward network obtains properties from an \glspl{ann}. In particular, the activation function of a node in an \gls{snn} associates a given input rate $\nu_{\text{in}}$ with an output rate $\nu_{\text{out}}$ 
 \begin{equation*}
 	\gls{activation}(\nu_{\text{in}}) = \nu_\text{out}.
 \end{equation*}
 Unlike for individual spikes, the gradient of the activation function can now be formulated with the use of rates.  This allows the use of typical deep learning methods such as \glsfirst{sgd} for rate-based \glspl{snn}.
  
-%The similarity to \glspl{ann} implies that typical training methods such as \acrfull{sgd} will work with rate-based \glspl{snn} too. In a spiking feed-forward network the output of a node is determined by the activation function \gls{activation}, which is given by the neuron model in place.
+%The similarity to \glspl{ann} implies that typical training methods such as \acrfull{sgd} will work with rate-based \glspl{snn} too. In a spiking feedforward network the output of a node is determined by the activation function \gls{activation}, which is given by the neuron model in place.
 % In case of the \gls{lif} neuron, the activation function is similar to a \gls{relu}, with a significant difference, that the rate will no keep increasing but rather saturates quickly at a maximum frequency $\nu_\text{max}$ which is limited by the refractory period $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$.
 %The choice for a sigmoid activation function in combination with a cross entropy loss have already been motivated in. With a few adjustments the activation function can be implemented for a \gls{lif} model and rate-based coding.
 
@@ -320,7 +321,7 @@ So far, training \glspl{snn} with hidden units has been proven to be a difficult
 \subsubsection*{Supervised Training with Temporal Coding}
 %Until now, only few people have successfully trained \glspl{snn} with hidden units. The main issue arises from the non-differentiable dynamics of spikes. A promising approach, solving this issue was proposed with \emph{SuperSpike}, a surrogate gradient descent implementation for \glspl{snn} (\citealp{zenke2018superspike}).
 
-As before, only feed-forward networks on the basis of \gls{lif} neurons are considered. The training routine of SuperSpike can again be split up into a forward and backward pass.
+As before, only feedforward networks on the basis of \gls{lif} neurons are considered. The training routine of SuperSpike can again be split up into a forward and backward pass.
 
 The \textbf{forward pass} changes only slightly compared to \glspl{ann}. Instead of a continuous input and output, the formalism of the \gls{lif} is used. The presynaptic activity of neuron $j$ is given by the spike train $S_j$ and the postsynaptic activity of neuron $i$ by the spike train $S_i$. Again the activation function \gls{activation} is determined by the dynamics of the \gls{lif} neuron.
 %Todo: "surrogate gradient" is not really introduced but just used -> fix this

@@ -20,7 +20,7 @@
 \begingroup%
 \makeatletter%
 \begin{pgfpicture}%
-\pgfpathrectangle{\pgfpointorigin}{\pgfqpoint{2.919536in}{2.393545in}}%
+\pgfpathrectangle{\pgfpointorigin}{\pgfqpoint{2.919536in}{2.541112in}}%
 \pgfusepath{use as bounding box, clip}%
 \begin{pgfscope}%
 \pgfsetbuttcap%
@@ -32,8 +32,8 @@
 \pgfsetdash{}{0pt}%
 \pgfpathmoveto{\pgfqpoint{0.000000in}{0.000000in}}%
 \pgfpathlineto{\pgfqpoint{2.919536in}{0.000000in}}%
-\pgfpathlineto{\pgfqpoint{2.919536in}{2.393545in}}%
-\pgfpathlineto{\pgfqpoint{0.000000in}{2.393545in}}%
+\pgfpathlineto{\pgfqpoint{2.919536in}{2.541112in}}%
+\pgfpathlineto{\pgfqpoint{0.000000in}{2.541112in}}%
 \pgfpathclose%
 \pgfusepath{}%
 \end{pgfscope}%
@@ -4937,6 +4937,12 @@
 \pgfusepath{stroke}%
 \end{pgfscope}%
 \begin{pgfscope}%
+\definecolor{textcolor}{rgb}{0.000000,0.000000,0.000000}%
+\pgfsetstrokecolor{textcolor}%
+\pgfsetfillcolor{textcolor}%
+\pgftext[x=1.410799in,y=2.376878in,,base]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont x input}%
+\end{pgfscope}%
+\begin{pgfscope}%
 \pgfpathrectangle{\pgfqpoint{2.373736in}{0.439795in}}{\pgfqpoint{0.089125in}{1.782500in}}%
 \pgfusepath{clip}%
 \pgfsetbuttcap%
@@ -5112,10 +5118,10 @@
 \definecolor{textcolor}{rgb}{0.317647,0.317647,0.317647}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=2.719228in,y=1.331045in,,top,rotate=90.000000]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont \(\displaystyle \nu_{\mathrm{input, x}} \quad (\si{\kilo \Hz})\)}%
+\pgftext[x=2.719228in,y=1.331045in,,top,rotate=90.000000]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont \(\displaystyle \nu_{\mathrm{in, x}} \;(\si{\kilo \Hz})\)}%
 \end{pgfscope}%
 \begin{pgfscope}%
-\pgfsys@transformshift{2.370000in}{0.443545in}%
+\pgfsys@transformshift{2.370000in}{0.441112in}%
 \pgftext[left,bottom]{\pgfimage[interpolate=true,width=0.090000in,height=1.780000in]{nu_x_input-img0.png}}%
 \end{pgfscope}%
 \begin{pgfscope}%

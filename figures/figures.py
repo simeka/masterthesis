@@ -183,44 +183,44 @@ if __name__ == "__main__":
 
 
     # ###################################################################################
-    # # Gaussian Free Membrane Distribution
-    # mmnts = ["membrane_data_0.npy", "membrane_data_1.npy"]
-    # input_rates = [0, true_input_spike_rate(100)]
-    # noise_rates = true_input_spike_rate(70)
-    # full_data = np.zeros((2, 26137))
-    # for i in range(2):
-    #     full_data[i] = np.load(mmnts[i])[:26137]
-    #
-    # def gaus(x, mue, sig):
-    #     return np.exp(-(x - mue) ** 2 / (2 * sig ** 2)) / sig / np.sqrt(2 * np.pi)
-    #
-    # fig, axes = plt.subplots(nrows=1)
-    # for i in range(1):
-    #     ax = axes
-    #     kullback_leibler_divergence = []
-    #     data = pd.Series(full_data[i]).dropna()
-    #     y, x = np.histogram(data, bins=200)
-    #     x = x[1:] - (x[1] - x[0]) / 2
-    #     std = data.std()
-    #     mean = data.mean()
-    #     kb_lb_entropy = entropy(y, gaus(x, mean, std))
-    #     kullback_leibler_divergence += [kb_lb_entropy, ]
-    #
-    #     y_normed, _ = np.histogram(data, bins=200, density=True)
-    #     ax.set_ylabel("density")
-    #
-    #     mean_stored = mean
-    #     ax.plot(x, gaus(x, mean, std))
-    #     ax.axvline(mean, linestyle="--")
-    #     ax.text(mean + 2, 0.02, '$V_{\mathrm{leak}}$')
-    #     ax.hist(data, bins=200, alpha=0.3, density=True)
-    #     ax.axvline(x[150 - 1], linestyle="--", color="red")
-    #     ax.text(x[150 - 1] + 2, 0.02, '$\\vartheta$')
-    #     ax.bar(x[150:], y_normed[150:])
-    #
-    #     # ax.legend(["Gaussian Fit", "$V_{leak}$", "$V_{thres}$", "Histogram", "Spiking"], loc="upper left")
-    # ax.set_xlabel("$membrane potential V_\mathrm{m} \; (\si{\milli \V})$")
-    # save_plot(fig, "activation_function_vmem_distr_with_thres", (5,3.5))
+    # Gaussian Free Membrane Distribution
+    mmnts = ["membrane_data_0.npy", "membrane_data_1.npy"]
+    input_rates = [0, true_input_spike_rate(100)]
+    noise_rates = true_input_spike_rate(70)
+    full_data = np.zeros((2, 26137))
+    for i in range(2):
+        full_data[i] = np.load(mmnts[i])[:26137]
+
+    def gaus(x, mue, sig):
+        return np.exp(-(x - mue) ** 2 / (2 * sig ** 2)) / sig / np.sqrt(2 * np.pi)
+
+    fig, axes = plt.subplots(nrows=1)
+    for i in range(1):
+        ax = axes
+        kullback_leibler_divergence = []
+        data = pd.Series(full_data[i]).dropna()
+        y, x = np.histogram(data, bins=200)
+        x = x[1:] - (x[1] - x[0]) / 2
+        std = data.std()
+        mean = data.mean()
+        kb_lb_entropy = entropy(y, gaus(x, mean, std))
+        kullback_leibler_divergence += [kb_lb_entropy, ]
+
+        y_normed, _ = np.histogram(data, bins=200, density=True)
+        ax.set_ylabel("density")
+
+        mean_stored = mean
+        ax.plot(x, gaus(x, mean, std))
+        ax.axvline(mean, linestyle="--")
+        ax.text(mean + 2, 0.02, '$V_{\mathrm{leak}}$')
+        ax.hist(data, bins=200, alpha=0.3, density=True)
+        ax.axvline(x[150 - 1], linestyle="--", color="red")
+        ax.text(x[150 - 1] + 2, 0.02, '$\\vartheta$')
+        ax.bar(x[150:], y_normed[150:])
+
+        # ax.legend(["Gaussian Fit", "$V_{leak}$", "$V_{thres}$", "Histogram", "Spiking"], loc="upper left")
+    ax.set_xlabel("membrane potential $V_\mathrm{m} \; (\si{\milli \V})$")
+    save_plot(fig, "activation_function_vmem_distr_with_thres", (5,3.5))
     #
     # # ##################################################################################
     # # # Gaussian Free Membrane Distribution
@@ -300,7 +300,8 @@ if __name__ == "__main__":
     #                  vmin=VMIN_INPUT, vmax=VMAX_INPUT)
     # plt.xlabel("x")
     # plt.ylabel("y")
-    # cbar = fig.colorbar(sc, fraction=0.046, pad=0.04, label="$\\nu_{\mathrm{input, x}} \quad (\si{\kilo \Hz})$")
+    # plt.title("x input")
+    # cbar = fig.colorbar(sc, fraction=0.046, pad=0.04, label="$\\nu_{\mathrm{in, x}} \;(\si{\kilo \Hz})$")
     # save_plot(fig, "nu_x_input", (2.5, 2.5))
     #
     # fig = plt.figure(figsize=(3, 3))
@@ -308,7 +309,8 @@ if __name__ == "__main__":
     #                  vmin=VMIN_INPUT, vmax=VMAX_INPUT)
     # plt.xlabel("x")
     # plt.ylabel("y")
-    # cbar = fig.colorbar(sc, fraction=0.046, pad=0.04, label="$\\nu_{\mathrm{input, y}} \quad (\si{\kilo \Hz})$")
+    # plt.title("y  input")
+    # cbar = fig.colorbar(sc, fraction=0.046, pad=0.04, label="$\\nu_{\mathrm{in, y}} \;(\si{\kilo \Hz})$")
     # save_plot(fig, "nu_y_input", (2.5, 2.5))
 
     # #############################################################################

@@ -206,7 +206,7 @@
 \definecolor{textcolor}{rgb}{0.317647,0.317647,0.317647}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=2.465330in,y=0.197222in,,top]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont \(\displaystyle membrane potential V_\mathrm{m} \; (\si{\milli \V})\)}%
+\pgftext[x=2.465330in,y=0.197222in,,top]{\color{textcolor}\rmfamily\fontsize{6.664000}{7.996800}\selectfont membrane potential \(\displaystyle V_\mathrm{m} \; (\si{\milli \V})\)}%
 \end{pgfscope}%
 \begin{pgfscope}%
 \pgfsetbuttcap%

@@ -246,12 +246,10 @@ A Poisson spike train generator on the \gls{ppu} provides a stream of random spi
 %A single input row cannot provide alternating negative and positive inputs to the same neuron. Changing the synapses configuration simply costs too much time. To ensure a continuous evolution of the weight from negative to positive, two rows are used simultaneously for the same input - one in excitatory and one inhibitory mode. As the weight changes sign, the unused row is set silent. At the start of the experiment the weights are randomly initialized using a uniform distribution limited to $w_{ij} \in [-25, 25]$.
 %The initial conditions of the network have been proven to crucial for its learning success. A ``silent" hidden units has a hard to time become active. Adding a weight depending term to the initial zero bias $b_i^\text{init} \propto \sum_j w_{ij}$ establishes a certain initial fire rate and solves the problem for most cases.
 
-\textbf{stopped here}
-
 \paragraph{Backward Pass}
-The output rates obtained by the forward pass are then used to compute the updates for weights and biases according to \glsfirst{sgd}.
+In the backward pass, the output rates which have been obtained by the forward pass are used to compute the updates for weights and biases according to \glsfirst{sgd}. A fully on-chip implementation of the required computation comes with some compromises, such as a limited precision or not directly accessible weights. In the following, the developed workarounds are presented.
 
-The general-purpose unit of the \gls{ppu} operates with a 32-bit architecture without hardware-support to floating point types. To increase the precision of the parameter updates, the computation is bit-shifted to the left. The calculated results are then stochastically rounded and shifted back right before being applied to the hardware. Stochastic rounding has been proven to be a viable workaround for deep learning with parameters of limited precision (\citealp{limitedprecisionpaper}). Typical methods of directed rounding to an integer $x$ are rounding up $\lceil x\rceil$, down $\lfloor x\rfloor$ or to the nearest neighbor $\lceil\frac{\lfloor2x\rfloor}{2}\rceil$. Stochastic rounding on the other hand rounds $x$ with a probability $p$ corresponding to the proximity to the upper or lower neighbor
+The general-purpose unit of the \gls{ppu} operates with a 32-bit architecture without hardware-support for floating point types. To increase the precision of the parameter updates, the computation is bit-shifted to the left. The calculated results are then stochastically rounded and shifted back right before being applied to the network. Stochastic rounding has been proven to be a viable workaround for deep learning with parameters of limited precision (\citealp{limitedprecisionpaper}). Typical methods of directed rounding to an integer $x$ are rounding up $\lceil x\rceil$, down $\lfloor x\rfloor$ or to the nearest neighbor $\lceil\frac{\lfloor2x\rfloor}{2}\rceil$. Stochastic rounding on the other hand rounds $x$ with a probability $p$ corresponding to the proximity to the upper or lower neighbor
 \begin{equation*}
 x_\text{stoch}(x) = 
 \begin{cases}
@@ -260,27 +258,26 @@ x_\text{stoch}(x) =
 \end{cases}
 \end{equation*}
 
-Direct access to the analog weight parameters from the general-purpose unit is time-consuming and computation intensive due to the lack of parallelizations. With feedback alignment, the need of the current weight information becomes irrelevant to the plasticity rule. Only the computed weight update needs to be applied somehow. This can be implemented by using the vector unit. The \gls{simd} instructions allow parallel access to all weights and therefore it is not only used to efficiently apply the weight updates but also to silence and reactivated the respective synapses in the double-row structure of the synapse array. The \emph{assembly} code-base for this implementation has been co-written by Sebastian Billaudelle and Benjamin Cramer.
+Unfortunately a direct access to the analog weight parameters from the general-purpose unit is time-consuming and computation intensive due to the lack of parallelizations. With feedback alignment, the need of the current weight information becomes irrelevant to the plasticity rule, but the computed weight update still needs to be applied to the network. This can be implemented by using the vector unit. The \gls{simd} instructions allow parallel access to all weights and therefore it is not only used to efficiently apply the weight updates but also to silence and reactivated the respective synapses in the double-row structure of the synapse array. The \emph{assembly} code-base for this implementation has been co-written by Sebastian Billaudelle and Benjamin Cramer.
 
-During training the weights can max out, due to their limited \SI{6}{\bit} range. The implementation of a simple weight regularization using the convenient parallel access of the vector unit solves this issue. The regularization of both, excitatory and inhibitory weights $w_{ij}^\text{inh},\; w_{ij}^\text{exc}\equiv w_{ij} \in [0,2^6)$ is implemented using bit shifts to minimize the implementation effort and given by
-\begin{align*}
-\text{Reg}(w_{ij}) &= w_{ij} - \left(\left(w_{ij} \ll 1\right) \gg 6\right) \nonumber \\
-&= w_{ij} - \left\lfloor \frac{\lfloor 2 \cdot w_{ij}  \rfloor}{2^{6}} \right\rfloor.					
+During training the weights can max out due to their limited \SI{6}{\bit} range. The implementation of a simple weight regularization using the convenient parallel access of the vector unit solves this issue. The regularization of both, excitatory and inhibitory weights $w_{ij}^\text{inh},\; w_{ij}^\text{exc}\equiv w_{ij} \in [0,2^6)$ is implemented using bit shifts to minimize the implementation effort and is given by
+\begin{equation*}
+\text{Reg}(w_{ij}) = w_{ij} - \left\lfloor \frac{\lfloor 2 \cdot w_{ij}  \rfloor}{2^{6}} \right\rfloor.					
 %	&= w_{ij} - \left\lfloor \lfloor 2 w_{ij} \rfloor \cdot 2^{-6} \right\rfloor
-\end{align*}
-The impact of the regularization is fine tuned by applying it only with a probability $p=\nicefrac{1}{4}$.
+\end{equation*}
+The impact of the regularization is then fine tuned by applying it only with a certain probability $p$.
 
-The bias is set by lowering or raising the \gls{dac}-value of the threshold potential. The resolution of the capacitive parameter memory equals to roughly \SI{1.7}{\milli \V}, which in turn translates to a change of the input frequency of about \SI{9.9}{\kilo \Hz}. As a comparison the maximum input frequency of a neuron is around \SI{1}{\mega \Hz}, but the magnitude of the typical presynaptic activity will only be at a few \SI{100}{\kilo \Hz}. Hence, the bias has a rather coarse resolution.
+The bias is set by lowering or raising the \gls{dac}-value of the threshold potential. The resolution of the capacitive parameter memory equals roughly \SI{1.7}{\milli \V}, which in turn translates to a change of the input frequency of about \SI{9.9}{\kilo \Hz}. As a comparison the maximum input frequency of a neuron is around \SI{1}{\mega \Hz}, but the magnitude of the typical presynaptic activity will only be at a few \SI{100}{\kilo \Hz}. Hence, the bias has a rather coarse resolution.
 
-However, compared to the speed of the accelerated neuromorphic core, the \acrlong{dac} is slow. Instead of an instant and large change of the bias, a continuous and slow implementation can reduce potential negative effects of the coarse bias resolution, especially in combination with a low learning rate.
+However, compared to the speed of the accelerated neuromorphic core, the \acrlong{dac} is slow. Instead of a rapid change, a continuous and slow implementation can reduce potential negative effects of the coarse bias resolution, especially in combination with a low learning rate.
 
 \paragraph{Initial Conditions and Hyperparameters}
 The final experiment setup involves the setting of initial conditions, neuron parameters and the tuning of hyper-parameters. The latter describe a set of parameters, that is not changed during the training process but their choice often determines whether or not the training succeeds (\citealp{Goodfellow-et-al-2016}). A subset of the most relevant parameters is listed in \cref{circlesinitparameters}.
 
 \begin{table}[t!]\centering\ra{1.3}
 	\begin{tabular}{@{}rlll@{}}\toprule
-		& Parameter								& 	hidden neurons 			& 	output neurons 	\\ \midrule
-		& initial weights $w_{ij}^\text{init}$	& 	 $\in[-25, 25]$			&	$\in[-25, 25]$	\\
+		& Parameter								& 	hidden layer 			& 	output layer 	\\ \midrule
+		& initial weights $w_{ij}^\text{init}$	& 	 $\in[-25, 25]$	LSB		&	$\in[-25, 25]$ LSB	\\
 		& initial bias $b_{i}^\text{init}$		& $\propto \frac{1}{2} \sum_j w_{ij}$ &	0		\\
 		& learning rate of bias  $\eta_\text{w}$&	$165e4$					& 	$5.5e4$			\\
 		& learning rate of bias  $\eta_\text{b}$&	$2.3e4$					& 	$0.23e4$		\\
@@ -295,38 +292,36 @@ The final experiment setup involves the setting of initial conditions, neuron pa
 	\label{circlesinitparameters}
 \end{table}
 
-At the beginning of the experiment all weights of both layers are randomly initialized using a uniform distribution ranging from $-25$ to $25$. 
+At the beginning of the experiment all weights of both layers are randomly initialized using a uniform distribution ranging from $-25$ to $25$ LSB. A random initialization of the weights is vital to the training performance (\citealp{Goodfellow-et-al-2016}). In a worst case scenario, the initialization of the weights can even prohibit the network from learning at all.
 
-The initial bias of both layers is set to zero, i.e. $\gls{thres} = \gls{v_leak}$. In this setting it has been observed that a ``silent" hidden unit at the start of the training most likely remains inactive throughout the training process. As a workaround, a weight dependent term is added to the zero bias, such that $b_i^\text{init} \propto \sum_j w_{ij}$. This ensures an initial firing rate of every neuron at the beginning of the training.
+Initially, the biases of both layers are set to zero, i.e. $\gls{thres} = \gls{v_leak}$. With this setting it has been observed that some hidden units are ``silent" at the start of the training. Furthermore, the silent units remained inactive throughout the training process. As a workaround, a weight dependent term is added to the zero bias, such that $b_i^\text{init} \propto \sum_j w_{ij}$. This ensures an initial firing rate of every neuron at the beginning of the training and solved the issue of silently initialized hidden units.
 
-In the final setting, the incline of the activation function needed to be raised by a fair amount resulting in a noise frequency $\nu_\text{noise}$ of roughly \SI{1.1}{\kilo \Hz}, which corresponds only to a fraction of the available resource. The impact of the noise spikes is tuned by the synaptic weight $w_\text{noise}$ which is set to $\pm 15$ for excitatory and inhibitory spikes respectively.
+During the tuning of the network's hyperparameters, the slope of the activation function had to be raised by a fair amount to increase the contrast of the nodes. By a steeper sigmoid, the network can create a more precise decision boundary than by a flat slope. The slope is changed by reducing the frequency of the noise spike train $\nu_\text{noise}$ to \SI{1.1}{\kilo \Hz}. %The impact of the noise spikes is further tuned by the synaptic weight $w_\text{noise}$ which is set to $15$ LSB for the excitatory and inhibitory noise sources.
 
-The input layer, on the other hand, exploits almost the maximum with firing rates ranging from \SIrange{0}{500}{\kilo \Hz}. The maximum input rate of a hidden unit is then given by the combined input of both input units. The same applies to the output layer where the output rates of the hidden units are combined to a maximum input of $11 \times \SI{111.3}{\kilo \Hz}$.
+A further increase of the slope of the activation function is achieved by increasing the dynamic range of the input rates. With frequencies ranging from \SIrange{0}{500}{\kilo \Hz} almost all available resources are exploited. The maximum input rate of a hidden unit is then given by the combined rate of the x and y input. In turn, each hidden unit produces an output rate of up to \SI{111.3}{\kilo \Hz}, generating a potential maximum input of $11 \times \SI{111.3}{\kilo \Hz}$ for the readout unit in the output layer.
 
-The learning rates may appear unusually high, which is mainly due to the lack of normalization. The normalization was not done beforehand in order to reduce the risk of eliminating small contributions of variables in the on-chip computation of the parameter updates. Furthermore the learning rates are divided into layer and parameter, to cope with the individual magnitudes. Even without the necessity to norm resulting parameter updates, it is not unusual to tune learning rates separately (\citealp{Goodfellow-et-al-2016}). The final rates are set to provide a fair amount of activity for both layers and parameters (c.f. \cref{monitoringplots}).
+The learning rates as chosen in \cref{circlesinitparameters} may appear unusually high. This is mainly due to a lack of normalization during the computation of the parameter updates. In order to avoid the risk of eliminating small contributions of variables during the on-chip computation of the parameter updates, the magnitude of the individual variables has not been normalized in advance. An individual learning rate per layer and parameter copes with the different magnitudes later on. Even without the necessity to norm resulting parameter updates, it is not unusual to tune learning rates separately, since different network layouts will cause varying update velocities for the individual network parameters (\citealp{Goodfellow-et-al-2016}). The final choice of the learning rates is then tuned such that a fair amount of learning activity is provided for both layers and parameters. In the appendix in \cref{monitoringplots} a detailed time evolution of the weight and bias updates per layer is shown.
 
 \section{Training}
-The implementation of a full on-chip training is achieved by generating the required training dataset on the fly. In this way, each forward pass is performed with a randomly drawn data point from either of the two rings from \cref{circlestask}. The backward pass is performed directly after the first training sample, i.e. the minibatch size is one.
+For a fully on-chip implementation of experiment the required input data for the training data set needs to be generated on the fly, since there is only limited memory on-chip available. In this way, each forward pass is performed with a randomly generated data point from either of the two rings from \cref{circlestask}. The backward pass is performed directly after the first training sample, i.e. the minibatch size is one.
 
 \begin{figure}
 	\begin{center}
 		\input{figures/circles_learning_performance.pgf}
 	\end{center}
-	\caption[Monitoring of the training performance.]{Monitoring of the training performance. The performance is monitored by the accuracy (left) and the \acrfull{rmse} (right).}
+	\caption[Training success of the Circles Classification.]{Training success of the Circles Classification. The performance is monitored by the accuracy (a) and the \acrfull{rmse} (b) over 2500 iterations.}
 	\label{circles_acc}
 \end{figure}
 
-In the following the network is trained for 2500 iterations. For a better illustration of the training process, a balanced \emph{validation} dataset with $100$ randomly drawn data points per class is chosen to validate the current state of the network after every fifth iteration. The limitation to every fifth step was chosen to reduce the measurement time to a few hours and to cope with the increasing instability of the \gls{fpga} during long measurements.
-
-The same dataset is also used to monitor the performance of the training process by computing the \gls{rmse} and the accuracy. The \gls{rmse} is given by
+In the following the network is trained for 2500 iterations. For a better illustration of the training process, a balanced \emph{validation} dataset with $100$ randomly drawn data points per class is chosen to validate the current state of the network after every fifth iteration. The limitation to every fifth step was chosen to reduce the measurement time to a few hours and to cope with the increasing instability of the \gls{fpga} during long measurements. To measure the performance of the training process the \gls{rmse} and the accuracy are evaluated. The \gls{rmse} is given by
 \begin{equation}
 \text{\gls{rmse}} = \sqrt{\frac{\sum_p e^{(o)}(p)^2}{n_\text{points}}},
 \end{equation}
-with the error $e^{(o)}$ from \cref{circleserror} and the number of data points $n_\text{points}$ in the validation dataset and the accuracy yields
+with the error $e^{(o)}$ from \cref{circleserror} and the number of data points $n_\text{points}$ in the validation dataset and the accuracy is
 \begin{equation}
 \text{Accuracy} = \frac{n_\text{true}}{n_\text{points}},
 \end{equation}
-with $n_\text{true}$ the number of correctly classified points with respect to decision boundary from \cref{circlesdb}.
+with the number of correctly classified points $n_\text{true}$. Whether or not a point is correctly identified is determined by decision boundary which was introduced in \cref{circlesdb}.
 
 %\begin{figure}[htb!]
 %	\centering
@@ -361,10 +356,10 @@ with $n_\text{true}$ the number of correctly classified points with respect to d
 		\label{learning_process_s2500}
 	\end{subfigure}
 	\vspace{-.4in}
-	\caption[Evolution of the network during training.]{Evolution of the network during training. For simplicity only the hidden and output layer are displayed. The connecting arrows resemble the excitatory (\emph{red}) and inhibotry (\emph{blue}) synaptic connections and their thickness corresponds to the synaptic strength. \textbf{(\subref{learning_process_s5})} Initial untrained state of the network. \textbf{(\subref{learning_process_s500})} Network state after 500 iterations. With a decision boundary of roughly \SI{60}{\kilo \Hz}, the output unit starts to correctly identify the two classes. \textbf{(\subref{learning_process_s2500})} Final trained state of the network. After 2500 iterations the network has succeed to separate both classes with an accuracy of almost 100 \%.}
+	\caption[Evolution of the network's ability to separate the Circles data set.]{Evolution of the network's ability to separate the Circles data set. For simplicity only the hidden and output layer are displayed. The connecting arrows resemble the excitatory (\emph{red}) and inhibitory (\emph{blue}) synaptic connections and their thickness corresponds to the synaptic strength. \textbf{(\subref{learning_process_s5})} The initial untrained state of the network does not separate the inner and outer circle. \textbf{(\subref{learning_process_s500})} After 500 iterations the first improvements can be seen. With a decision boundary of roughly \SI{60}{\kilo \Hz}, the output unit starts to correctly identify the two classes. \textbf{(\subref{learning_process_s2500})} After 2500 iterations the network has succeed to separate both classes with an accuracy of almost 100 \%.}
 \end{figure}
 
-At the beginning of the training process, each hidden unit is initialized with a linear combination of the input schemes from \cref{circlesinputs} which is then transformed into a non-linear output by the activation function. The new representations of the input layer are again linearly combined into a net input for the output unit where another non-linear transformation is applied. The initial state of the network is shown in \cref{learning_process_s5}. At this stage of the training process the output unit cannot classify the task correctly. 
+At the beginning of the training process, each hidden unit is stimulated with a linear combination of the inputs from \cref{circlesinputs}. The activation function then transforms the linear input into a non-linear output. The new representations of the input layer are again linearly combined into a net input for the output unit where another non-linear transformation is applied. The initial state of the network is shown in \cref{learning_process_s5}. At this stage of the training process the output unit cannot classify the task correctly.
 
 %\begin{figure}
 %	\label{learning_process_s500}
@@ -372,9 +367,11 @@ At the beginning of the training process, each hidden unit is initialized with a
 %	\caption[Network state after 500 iterations.]{Network state after 500 iterations. With a decision boundary of roughly \SI{60}{\kilo \Hz}, the output unit starts to correctly identify the two classes.}
 %\end{figure}
 
-The evolved network after 500 iterations is depicted in \cref{learning_process_s500} and shows first signs of improvement. The \gls{rmse} has already been cut in half and also the accuracy has improved as shown in \cref{circles_acc}. Less useful representation in the hidden layer are further modified by changing the bias or the weights. The beneficial ones are rewarded with a stronger connection to the output layer and further refinement of their bias and input weights.
+The evolved network after 500 iterations is depicted in \cref{learning_process_s500} and shows first signs of improvement. The \gls{rmse} has already been reduced to half of its initial error and the accuracy has improved to roughly \SI{80}{\%} as shown in \cref{circles_acc}. Less useful representation in the hidden layer are further modified by changing their bias or the connected weights. The beneficial ones are rewarded with a stronger connection to the output layer and further refinement of their bias and input weights.
 
-At 2500 iterations, see \cref{learning_process_s2500}, the network has converged. The accuracy has also stabilized at almost 100 \%. The average over the last 500 iterations yields a mean accuracy of $(98.2 \pm 2.9)\,\%$ and the average over the last 250 iterations improves to  $(99.6 \pm 0.8)\,\%$. The \gls{rmse} is also reduced to a minimum, i.e. the output neuron resembles the target well. The average output error over the last 250 iterations yields $(9.6 \pm 1.4)\,\si{\kilo \Hz}$.
+At 2500 iterations, see \cref{learning_process_s2500}, the network has converged. The accuracy has also stabilized at almost 100 \% (see \cref{circles_acc}). The average over the last 500 iterations yields a mean accuracy of $(98.2 \pm 2.9)\,\%$ and the average over the last 250 iterations improves to  $(99.6 \pm 0.8)\,\%$. The \gls{rmse} is also reduced to a minimum, i.e. the output neuron resembles the target well. The average output error over the last 250 iterations yields $(9.6 \pm 1.4)\,\si{\kilo \Hz}$. To provide a better understanding of how the network evolves to improve these performance measures, the evolution and contribution of the first hidden unit is discussed in more detail.
+
+The random initial weights for the first hidden unit create a less beneficial representation of the input where more than half of the data points are yield a high output rate (\cref{learning_process_s5}). However, the initial contribution of the unit to the output unit is small. Over the next hundred iterations, the weights are adjusted such that the contour lines of the output rates are rotate clockwise by $45^\circ$ (\cref{learning_process_s500}). More importantly, the bias is reduced and removes any high output rates from the inner circle. The more useful representation is then rewarded with a stronger contribution to the readout unit. Until the final iteration, the nature of the representation does not change much anymore but the parameters are still fine-tuned (\cref{learning_process_s2500}). The bias is slightly increased such that a greater portion of the outer circles fires with at a high rate and the orientation of the contour lines is slightly rotated back. Furthermore, the contribution of the hidden unit is further fostered by the network.
 
 
 %For further monitoring purposes, the evolution of the weights and biases are tracked for the hidden and output layer (see \cref{network_monitoring}).

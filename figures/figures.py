@@ -508,27 +508,51 @@ if __name__ == "__main__":
     plt.ylabel('input unit')
     save_plot(fig, "superspiketask", (3, 3))
 
+    # consecutive input pattern
     s = [(r) ** 2 for r in np.arange(1, 5, 1)]
     s = s[::-1]
     lw = 0.8
-    fig = plt.figure(figsize=(3, 3))
 
     batchsize = 8
+    dt = 250
+    fig, axes = plt.subplots(1, batchsize)
     batch = np.random.randint(0, 4, size=batchsize)
     for i, p in enumerate(batch):
+        ax = axes[i]
         (spiketrain, c) = pop_xor_spiketrains[p]
         if p != 3:
-            plt.scatter(spiketrain[:, 1] * 1e6 + 250*i, spiketrain[:, 0], s=s[p], lw=lw, facecolors='none',
-                        edgecolors=colors[p])
+            ax.scatter(spiketrain[:, 1] * 1e6 + 250 * i, spiketrain[:, 0], s=s[p], lw=lw,
+                       facecolors='none',
+                       edgecolors=colors[p])
         else:
-            plt.scatter(spiketrain[:, 1] * 1e6 + 250*i, spiketrain[:, 0], s=s[p], lw=lw, color=colors[p])
+            ax.scatter(spiketrain[:, 1] * 1e6 + 250 * i, spiketrain[:, 0], s=s[p], lw=lw,
+                       color=colors[p])
 
-    plt.legend(*legend_handles_labels, loc='upper right', bbox_to_anchor=(1, 1))
+        # cut x axis
+        ax.set_xlim(i * dt - 30, (i + 1) * dt + 30)
+        if i != 0:
+            ax.spines['left'].set_visible(False)  # hide the spines
+            ax.yaxis.set_ticks([]) # and yticks
+
+        d = .015  # how big to make the diagonal lines in axes coordinates
+        if i != (batchsize - 1):
+            kwargs = dict(transform=ax.transAxes, color='k', clip_on=False)
+            ax.plot((1 - d, 1 + d), (-d, +d), **kwargs)  # top-right diagonal
+        if i != 0:
+            kwargs.update(transform=ax.transAxes)
+            ax.plot((-d, +d), (- d, + d), **kwargs)
+        if i != 0:
+            ax.yaxis.set_ticks([])
+        ax.set_ylim(-4, 100)
+        ax.xaxis.set_ticklabels([250, 0] * 8)
+        ax.xaxis.tick_bottom()
+
+    fig.legend(*legend_handles_labels, loc='upper right', bbox_to_anchor=(.86, .85))
     # plt.legend(["$S_{%s}$, $\mathrm{class}=%s" % (i, target[i-1]) for i in range(1, 5)], loc='upper right', bbox_to_anchor=(1, 0.75))
-    plt.xlim(-30, 250*batchsize)
-    #plt.title('XOR Input  raster plot')
-    plt.xlabel('spike time $(\si{\micro \s})$')
-    plt.ylabel('input unit')
+    # plt.xlim(-30, 250*batchsize)
+    # plt.title('XOR Input  raster plot')
+    axes[4].set_xlabel('spike time $(\si{\micro \s})$')
+    axes[0].set_ylabel('input unit')
     save_plot(fig, "superspiketaskconsecutive", (6, 3))
 
     ###################################################################################

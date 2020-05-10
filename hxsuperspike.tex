@@ -224,7 +224,7 @@ A \gls{lif} neuron is fully described by a set of time constants and neuron pote
 
 In the given task, the neurons are not required to fire multiple times. The refractory period has therefore been increased to \SI{30}{\micro \s} to suppresses repetitive fire patterns. Another way of avoiding repetitive fire patterns is to set the reset potential far below the equilibrium state.
 
-The distance between the resting potential and the threshold defines the dynamic range of a non-spiking membrane. The choice of the distance follows two main motivations. A larger gap increases the dynamic range and therefore improves the \gls{snr} of the \gls{cadc} traces. At the same time, a greater potential difference between threshold and resting potential requires a stronger synaptic input current to trigger a fire response. A single input spike with a maximum excitatory weight and time constants set as in \cref{temporalconstants} increases the membrane potential by approximately \SI{0.3}{\V}. The final setting is a compromise of both assuring that the \SI{6}{\bit} weights are not maxing out during training and setting the potentials as far apart as possible. Since the overall input activity of the output layer is reduced compared to the hidden layer, the threshold of the output unit is further lowered by \SI{0.5}{\V}. The choice of the neuron potentials for the hidden and output layer is listed in \cref{initparameters}.
+The distance between the resting potential and the threshold defines the dynamic range of a non-spiking membrane. The choice of the distance follows two main motivations. A larger gap increases the dynamic range and therefore improves the \gls{snr} of the \gls{cadc} traces. At the same time, a greater potential difference between threshold and resting potential requires a stronger synaptic input current to trigger a fire response. A single input spike with a maximum excitatory weight and time constants set as in \cref{temporalconstants} increases the membrane potential by approximately \SI{0.3}{\V}. The final setting is a compromise of both assuring that the \SI{6}{\bit} weights are not maxing out during training and setting the potentials as far apart as possible. Since the overall input activity of the output layer is reduced compared to the hidden layer, the threshold of the output unit is further lowered by \SI{0.05}{\V}. The choice of the neuron potentials for the hidden and output layer is listed in \cref{initparameters}.
 
 \begin{table}[htb!]\centering\ra{1.3}
 	\begin{tabular}{@{}rlll@{}}\toprule
@@ -241,44 +241,47 @@ The distance between the resting potential and the threshold defines the dynamic
 	\label{initparameters}
 \end{table}
 
-In addition to a proper choice of the neuron parameters, the performance of the training strongly depends on the initialized weights and the chosen learning rate (\citealp{Goodfellow-et-al-2016}). In analogy to the simulation of SuperSpike, the weights are drawn from a normal distribution which is centered around zero (\citealp{zenke2018superspike}). The learning rates are set, such that both layers show learning activity but at the same time do not cause rapid weight updates that would in turn require a regularization to keep the weights within their limited range.
+In addition to a proper choice of the neuron parameters, the performance of the training depends on the initialized weights and the chosen learning rate (\citealp{Goodfellow-et-al-2016}). In analogy to the simulation of SuperSpike, the weights are drawn from a normal distribution which is centered around zero (\citealp{zenke2018superspike}). The learning rates are set, such that weights in both layers are adapted during the learning but at the same time do not cause rapid weight updates that would in turn require a regularization to prevent the weights from maxing out.
 
 Another tunable parameter in the SuperSpike plasticity rule is the slope of the auxiliary function $\sigma(V)$, which is defined in \cref{auxilliaryfunction}. The choice of the parameter depends on the distance between the threshold and the resting potential. The slope is chosen such that at rest the surrogate gradient $\sigma'(V)$ provides little to no contribution and reaches its maximum when the membrane is about to cross the threshold.
 
-Unlike the previous rate based plasticity rule from \cref{ratecoding}, SuperSpike does not contain a bias term. Instead, the bias is implicitly included into the input by dedicated input spikes that occur in all patterns. These ``bias spikes" can then excite or inhibit the membrane and thus establish a certain base level upon which further dynamics are induced by the remaining pattern-specific input spikes.
+%\textbf{STOPPED HERE}
+
+%Unlike in the previous experiment, the network in place does not contain a bias. Instead, the bias is implicitly included into the input by dedicated input spikes that occur in all patterns. These ``bias spikes" can then excite or inhibit the membrane and thus establish a certain base level upon which further dynamics are induced by the remaining pattern-specific input spikes.
+
+%\textbf{STOPPED HERE}
 
 \begin{figure}[htb!]
 	\centering
 	\input{figures/debug_plot_0_100.pgf}
-	\caption[Monitoring of the analog traces measured on the \gls{hx}.]{Monitoring of the analog traces measured on the \gls{hx}. Each column represents an important observable for the backward pass. The hidden and output layer are discriminated row-wise. The first column, contains the information of the presynaptic spike train spike train $S_j^{(l)}$, the second column shows the evolution of the membrane potential \gls{v_mem} with respect to the total synaptic input generated by the incoming spikes and in the third column the adapted van Rossum error $e^{(l)}$ is displayed.}
+	\caption[Monitoring of the network on \gls{hx}.]{Monitoring of the network on \gls{hx}. Each column represents an important observable for the backward pass. The hidden and output layer are discriminated row-wise. The first column, contains the information of the presynaptic spike trains $S_j^{(l)}$, the second column shows the analog traces of the membrane potential \gls{v_mem} with respect to the total synaptic input generated by the incoming spikes. The third column displays the adapted van Rossum error $e^{(l)}$.}
 	\label{debugplot}
 \end{figure}
 
-\textbf{STOPPED HERE}
 
-In \cref{debugplot} the relevant traces of the forward and backward pass are shown for the final parameter settings. In the first column the input spikes from the various sources are marked. Their contribution to the membrane potential depends on the type and strength of the respective synapse. Despite the calibration of the membrane potential, the fixed-pattern noise of the chip is still clearly visible. As soon as the membrane reaches the threshold, the reset mechanism is triggered. The thereby generated spikes are indicated in the second row of the first column, where they start to rise the membrane potential of the hidden neurons, which in turn can lead to spikes in the output layer.
+\paragraph{Network Observables}
+In \cref{debugplot} the relevant traces of the forward and backward pass are shown for the final parameter settings. The first column shows raster plots of the incoming spike trains for the hidden (a) and output (d) layer, respectively. Their contribution to the membrane potential depends on the type and strength of the respective synapse. The second column depicts the recorded membrane traces of the hidden (b) and output layer (e). Despite the calibration of the membrane potential, the fixed-pattern noise of the chip is still clearly visible. The input of the output layer (d) resembles the spikes generated in the hidden layer, visible from the threshold crossings and subsequent membrane reset (c).
 
-The third column needs to be read starting from the second row. The error, as given in \cref{superspikeerror}, is defined by a temporal window within which the output unit needs to spike.
-The interval is set in accordance with the duration of the input pattern and the time constants from \SI{0}{\micro \s} to \SI{80}{\micro \s}. In the example given in \cref{debugplot}, the output unit 1 is required to fire but the membrane potential falls just short to doing so. In this case, a target spike $t^*$ indicates where the silent output unit should have fired. The time is chosen to be near the end of input pattern at \SI{33}{\micro \s}. Depending on the preferred propagation method, the error of the output unit is then relayed backwards to the hidden unit either by transpose of the weight matrix (backpropagation) or by a random matrix (feedback alignment).
+The third column shows the error as given in \cref{superspikeerror}. The dashed vertical lines in the panes (e, f) indicate the time window within which the target output unit needs to spike. The interval is set in accordance with the duration of the input pattern and the neuron's time constants from \SI{0}{\micro \s} to \SI{80}{\micro \s}. As indicated by the color of the dashed lines, unit 1 is required to fire, but the membrane potential falls short of doing so (e). In this case, a target spike $t^*$ indicates where the silent output unit should have fired. The time is chosen to be near the end of input pattern at \SI{33}{\micro \s}. Depending on the preferred propagation method, the error of the output unit (f) is then relayed to the hidden unit (c) either by backpropagation or feedback alignment.
 
 \begin{figure}
 	\centering
 	\input{figures/dweight_plot_0_100.pgf}
-	\caption[Weight update in the backward pass using SuperSpike.]{Computation traces of the backward pass using SuperSpike. The integrand of the weight update $\Delta w_{ij}^{(o)}$ is given by the adapted von Rossum error $e^{(o)}$ (first column) and the convolution of the surrogate gradient with the presynaptic spike activity yielding the eligibility traces $\lambda_{ij}^{(o)}$ (second column). The final weight update is given by the integral over temporal traces of the last column.}
+	\caption[Weight update in the backward pass using SuperSpike.]{Weight update in the backward pass using SuperSpike. \textbf{(a)} The first contribution to the weight update is given by the adapted von Rossum error $e^{(o)}$. \textbf{(b)} The convolution of the surrogate gradient with the presynaptic spike activity yields the eligibility traces $\lambda_{ij}^{(o)}$. \textbf{(c)} The final weight update $\Delta w_{i,j}^{(o)}$ is then given by the integral over $\delta w_{i,j}^{(o)}$ which is the product of (a) and (b).}
 	\label{weightchangesplot}
 \end{figure}
 
-The final weight update depends on the error, a postsynaptic and a presynaptic term. The post and presynaptic term can be combined into so called eligibility traces $\lambda_{ij}^{(o)}$
+As already introduced in \cref{temporalcoding}, the final weight update depends on the error, a postsynaptic and a presynaptic term. The post and presynaptic term can be combined into \emph{eligibility} traces $\lambda_{ij}^{(o)}$
 \begin{equation*}
 \lambda_{ij}^{(o)} = \alpha \ast 
 \Big(\underbrace{\sigma'(V^{(o)}_{\text{m},i})}_{\text{Post}} 
-\underbrace{\left(\epsilon \ast S_j^{(o)}\right)}_{\text{Pre}}\Big),
+\underbrace{\big(\epsilon \ast S_j^{(o)}\big)}_{\text{Pre}}\Big),
 \end{equation*}
-which can be interpreted as a memory over presynaptic events and how close the membrane is to spike . This memory then influences the update of the weight by how ``eligible" it is (c.f. \citealp{sutton2011reinforcement}). The composition of the weight update for the given examples in \cref{debugplot} are shown in \cref{weightchangesplot}
+which can be interpreted as a memory over presynaptic events and how close the membrane is to spike . This memory then influences the update of the weight by how ``eligible" it is (c.f. \citealp{sutton2011reinforcement}). The composition of the weight update for the given example in \cref{debugplot} is shown in \cref{weightchangesplot}
 
 \section{Training and Results}
 
-The classification task is now trained on the hidden layer network with SuperSpike and different propagation methods in the backward pass. For each method ten trials are executed with independent training data sets consisting of 2000 minibatches. 
+A hidden layer network is trained on the classification task with SuperSpike using backpropagation or feedback alignment as propagation methods in the backward pass. Each method is trained for ten trials with a balanced training data set consisting of 2000 minibatches.
 
 \begin{figure}
 	\centering
@@ -287,15 +290,9 @@ The classification task is now trained on the hidden layer network with SuperSpi
 	\label{batchpatterns}
 \end{figure}
 
-A minibatch is created by randomly drawing eight patterns from a uniform distribution, resulting in an overall balanced training data set, but unbalanced batches. The length of an input pattern is set to \SI{40}{\micro \s} and within a batch the patterns are repeated approximately every \SI{250}{\micro \s}. The duration of a batch then sums up to roughly \SI{2}{\milli \s}, as shown in \cref{batchpatterns}.
+A minibatch is created by randomly drawing eight patterns from a set of four fixed input patterns with a uniform probability (c.f. \cref{batchpatterns}). The individual batches are not necessarily balanced, but the overall training data set will be. A single input pattern spans over \SI{40}{\micro \s}, but the evaluation of the pattern in the forward pass takes at least \SI{250}{\micro \s}. After the \gls{cadc} traces have been read out on the host, the next pattern can be injected. As soon as all patterns of a minibatch have been processed, the gathered information is evaluated in the backward pass yielding the respective weight updates for the synaptic connections of the network. A trial is completed once all minibatches have been processed. The next trial will then be started with a new seed for the random initial parameters.
 
-The performance of each method is verified using a validation data set. After every update step, the progress of the training is evaluated by testing the network with each pattern exactly one time. The accuracy is then given by 
-
-As in the previous experiment the accuracy of the validation or training batch is determined by the fraction of correctly identified inputs $n_\text{true}$ over the total number of inputs $n_\text{inputs}$ in a batch.
-\begin{equation}
-\text{Accuracy} = \frac{n_\text{true}}{n_\text{points}}.
-\end{equation}
-The overall accuracy is then averaged over the trials and the error is determined by a 95 \% confidence interval, which uses a t-score (c.f. \citealp{Smithson2011}). The final plot data is then resampled from 2000 to 500 samples using a polyphase method for better displaying (c.f. \citealp{scipypolyresample}).
+The performance of the different propagation methods is measured by using a validation data set. After every minibatch, the updated network is evaluated by testing each pattern exactly one time. As in the previous experiment the accuracy is determined by the fraction of correctly identified inputs $n_\text{true}$ over the total number of inputs $n_\text{inputs}$ in the data set. In the following accuracy-figures, the overall accuracy is determined by the 0.5-quantile over the various trials, i.e. the median. Moreover, the upper and lower error bounds are set by the 0.2-quantile and 0.8-quantile, respectively, covering 60 \% of the data. For better displaying the displayed data is further resampled from 2000 to 500 samples using a polyphase method  (c.f. \citealp{scipypolyresample}).
 
 \paragraph{Backpropagation vs. Feedback Alignment}
 First, the standard backpropagation method is compared to feedback alignment, where instead of the transpose of the connecting weight matrix a random matrix is taken to propagate the error from the output to the hidden layer (c.f. \cref{superspike}). The random matrix is drawn from either a uniform distribution ranging from -25 to 25 or from a centered normal distribution $\mathcal{N}(0, 20)$.
@@ -313,19 +310,17 @@ First, the standard backpropagation method is compared to feedback alignment, wh
 		\input{figures/accuracy_test_73_BP_FA_small.pgf}
 		\label{bptest73}
 	\end{subfigure}
-	\caption[Train and test accuracy of SuperSpike using backpropagation and feedback alignment.]{Train and test accuracy of SuperSpike using backpropagation and feedback alignment. \textbf{(\subref{bptrain73})} The training accuracy is shown for various training methods. As expected, backpropagation (\textit{black}) outperforms feedback alignment (\textit{red} and \textit{blue}). The underlying distribution of the randomly drawn feedback weights for feedback alignment does not effect the convergence. \textbf{(\subref{bptest73})} The test accuracy does not differ much from the training accuracy.}
+	\caption[Train and validation accuracy of SuperSpike using backpropagation and feedback alignment.]{Train and validation accuracy of SuperSpike using backpropagation (BP) and feedback alignment (FA). \textbf{(\subref{bptrain73})} The training accuracy for backpropagation (\textit{black}) converges faster than for feedback alignment (\textit{red} and \textit{blue}). The underlying distribution of the randomly drawn feedback weights, normal (\textit{red}) versus uniform (\textit{blue}), does not effect the performance. \textbf{(\subref{bptest73})} The accuracy for the chosen validation data set does not differ much from the training accuracy.}
 	\label{BPvsFA73}
 \end{figure}
 
-The accuracy of the training aligns well with the validation (see \cref{BPvsFA73}). The backpropagation method outperforms the use of a random feedback matrix clearly. Interestingly the choice of the underlying distribution of the random matrix has not a great impact on the performance of the training. Both distributions converge at the same velocity, despite an observed sensitivity on the range of the distributions during the parameter tuning.
+The performance of the training aligns well with the performance of the chosen validation data set (see \cref{BPvsFA73}). As expected, backpropagation converges significantly faster than feedback alignment. Interestingly the choice of the underlying distribution of the random matrix has not a great impact on the performance of the training, at least on the setup in use. Both distributions converge at the same velocity, despite an observed sensitivity on the range of the distributions during the parameter tuning.
 
-\paragraph{Hidden Learning}
-As a sanity check, the learning rate of the hidden layer is set to zero. This validates, that the initial state of the hidden layer is not yet solving the task and thus hidden learning is not even required by the setup.
+\paragraph{The Necessity of Hidden Learning}
+As a sanity check, the learning rate of the hidden layer is set to zero. This validates, that the initial state of the hidden layer is not solving the task through the random weight initialization and thus the setup does not even require hidden learning. In a more drastic approach the whole hidden layer is removed. According to the theory, the network should not be able to perform under these circumstances as the XOR-related classification task specifically requires a hidden layer structure with a non-linear activation function (c.f. \citealp{Goodfellow-et-al-2016}).
 
-In a more drastic approach the whole hidden layer is removed. According to the theory, the network should not be able to perform under these circumstances as the XOR-related classification task specifically requires a hidden layer structure with a non-linear activation function (c.f. \citealp{Goodfellow-et-al-2016}).
-
-The performance of the setup with the applied limitations for the hidden layer is shown in \cref{hiddenlearning}. With the inability to train the hidden layer the accuracy cannot increase. The initial conditions are set in a way, that only little activity is generated by the hidden layer. In the following, the output layer receives only few spikes and fails to build a fire response upon them. In case of the removed hidden layer, the accuracy settles below 50 \%. This reflects the nature of the XOR-related classification task. In the best case only two out four patterns are correctly identified. 
-All in all, this confirms that the presented experimental implementation of SuperSpike requires not only a deep network structure but also training activity within the hidden layer.
+The performance of the setup with the applied limitations for the hidden layer is shown in \cref{hiddenlearning}. With the inability to train the hidden layer the accuracy cannot increase. The initial conditions are set in a way, that only little activity is generated by the hidden layer. In the following, the output layer receives only few spikes and fails to build a fire response upon them. In case of the removed hidden layer, the accuracy settles below 50 \%. This reflects the nature of the XOR-related classification task. In the best case only two out of four patterns are correctly identified. 
+All in all this confirms the necessity of hidden learning for the chosen classification task. Not only is a deep network structure required to solve the task, but also training activity within the hidden layer.
 
 \begin{figure}[htb!]
 		\centering
@@ -352,19 +347,17 @@ Throughout the development process of the experimental setup for SuperSpike seve
 	\caption[Membrane trace comparison between \gls{hx} setups.]{Membrane trace comparison between \gls{hx} setups. The calibration of the resting potential for the setup ``63" (right) did not work as well as for ``73" (left).}
 	\label{hxsetupmemtracescomparison}
 \end{figure}
-In a direct comparison of the calibrated membrane traces, the second chip is less precise. Specifically the resting potential is well spread (\cref{hxsetupmemtracescomparison}). As a consequence, the threshold level in the hidden and output layer has been increased by \SI{0.05}{V}. Overall, the performance appeared to not suffer too much. In an attempt to create some evidence, the presented data from above is remeasured on different setup. In \cref{hxsetuptransferability} the individual performance of each setup is compared per measurement method.
+In a direct comparison of the calibrated membrane traces, the second chip is less precise. Specifically the resting potential is not well aligned as the membrane potential spans over almost \SI{0.3}{\V} at rest (\cref{hxsetupmemtracescomparison}). As a consequence, the threshold level in the hidden and output layer has been increased by \SI{0.05}{V}. Overall, the performance appeared to not suffer too much. To verify this, the presented data from above is remeasured on a different setup. In \cref{hxsetuptransferability} the individual performance of each setup is compared per propagation method. 
 
-Given the fair amount of spread in the resting potential, the second chip performs still reasonable well.
-
-As shown in \cref{backpropresults}, both setups achieve a similar accuracy with backpropagation. The ``73" setup achieved a slightly better average test accuracy over the last 100 and 250 steps. With respect to induced uncertainty by the various seeds, the difference between the setups is negligible. However, the convergence speed in \cref{hxsetuptransferability} is visibly different for both setups. 
+Given the fair amount of spread in the resting potential, the second chip performs still reasonable well. As shown in \cref{backpropresults}, both setups achieve the same median accuracy with backpropagation, but the lower error bound of the ``73" setup is clearly smaller than for the other setup. In addition, the uncertainty increases only marginally on ``73" if more steps are taken into account, whereas on ``63" the average lower bound over 100 steps is at \SI{82.9}{\%}. The lower precision of the worse calibrated setup coincides with a visibly lower convergence speed in \cref{hxsetuptransferability}. 
 \begin{table}[h!]\centering\ra{1.3}
 	\begin{tabular}{@{}rlcc@{}}\toprule
-		& \gls{hx}& mean Acc. (100 steps)	 & 	mean Acc. (250 steps) \\ \midrule
-		& no. 73			& 	 $(97.2 \pm 9.6) \%$ & 	$(96.5 \pm 9.9) \%$\\
-		& no. 63			&	$(95.1 \pm 11.3) \%$ & 	$(96.1 \pm 9.9) \%$\\
+		& \gls{hx}& average Accuracy (25 steps)	 & 	average Accuracy (100 steps) \\ \midrule
+		& no. 73			& 	 $100.0_{-5.2}^{+0.0}\,\%$ & 	$100.0_{-5.8}^{+0.0}\, \%$\\
+		& no. 63			&	$100.0_{-11.2}^{+0.0}\,\%$ &   $100.0_{-17.1}^{+0.0}\, \%$\\
 		\bottomrule
 	\end{tabular}
-	\caption[Performance of SuperSpike with Backpropagation.]{Performance of SuperSpike with Backpropagation. The test accuracy is averaged over the last 100 respectively 250 steps.}
+	\caption[Performance of SuperSpike using backpropagation.]{Performance of SuperSpike using backpropagation. The average validation accuracy is evaluated by averaged the median accuracy over the last 25 respectively 100 steps. The uncertainty bounds are given by the mean 0.1-quantile in the subscript and by the mean 0.9-quantile in the superscript.}
 	\label{backpropresults}
 \end{table}
  %  $(97.2 \pm 9.6) \%$ 73 100
@@ -372,7 +365,7 @@ As shown in \cref{backpropresults}, both setups achieve a similar accuracy with 
 %  $(95.1 \pm 11.3) \%$ 63 100
 %  $(96.1 \pm 9.9) \%$ 63 250
 
-The performance of a random propagation matrix based on a normal distribution (``FA normal") is almost identical for both chips. If feedback alignment is performed with a uniformly drawn random matrix (``FA uniform") the detuned chip converged slower. For this specific task, a normal distributed random weights is more robust to fixed-pattern noise than a uniformly drawn one. 
+The performance of a random propagation matrix based on a normal distribution (``FA normal") is almost identical for both chips. If feedback alignment is performed with a uniformly drawn random matrix (``FA uniform") the detuned chip converges slower. For this specific task, normally distributed random weights are more robust to fixed-pattern noise than uniformly drawn ones. 
 \begin{figure}[htb!]
 	\begin{subfigure}{0.245\textwidth}
 		\caption{}
@@ -405,5 +398,5 @@ The performance of a random propagation matrix based on a normal distribution (`
 	\caption[Setup transferability for SuperSpike.]{Setup transferability for SuperSpike. The \gls{hx} setups ``63" and ``73" are compared to each other. The performances of backpropagation, feedback alignment with a normal and uniform distribution and the no hidden learning are shown.}
 	\label{hxsetuptransferability}
 \end{figure}
-All in all, the transferability between setups can not only be subjectively observed, but actually works without causing too much issues. One should keep in mind, that the calibration routine in use is heavily exposed to the cross-talk problematic, which can differ from setup to setup. Furthermore, the reduction of the fixed-pattern noise is limited to the neuron potentials. With the use of a more extensive and robust calibration routines, the performance and transferability will most certainly be increased. 
+All in all, the transferability between setups can not only be subjectively observed, but actually works without causing too much issues. One should keep in mind, that the calibration routine in use is heavily exposed to the cross-talk problematic, which can differ from setup to setup. Furthermore, the reduction of the fixed-pattern noise is limited to the neuron potentials. With the use of a more extensive and robust calibration routine, the performance and transferability will most certainly be increased. 
 

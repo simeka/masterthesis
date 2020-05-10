@@ -373,9 +373,6 @@ As shown in \cref{backpropresults}, both setups achieve a similar accuracy with 
 %  $(96.1 \pm 9.9) \%$ 63 250
 
 The performance of a random propagation matrix based on a normal distribution (``FA normal") is almost identical for both chips. If feedback alignment is performed with a uniformly drawn random matrix (``FA uniform") the detuned chip converged slower. For this specific task, a normal distributed random weights is more robust to fixed-pattern noise than a uniformly drawn one. 
-
-All in all, the transferability between setups can not only be subjectively observed, but actually works without causing too much issues. One should keep in mind, that the calibration routine in use is heavily exposed to the cross-talk problematic, which can differ from setup to setup. Furthermore, the reduction of the fixed-pattern noise is limited to the neuron potentials. With the use of a more extensive and robust calibration routines, the performance and transferability will most certainly be increased. 
-
 \begin{figure}[htb!]
 	\begin{subfigure}{0.245\textwidth}
 		\caption{}
@@ -408,3 +405,5 @@ All in all, the transferability between setups can not only be subjectively obse
 	\caption[Setup transferability for SuperSpike.]{Setup transferability for SuperSpike. The \gls{hx} setups ``63" and ``73" are compared to each other. The performances of backpropagation, feedback alignment with a normal and uniform distribution and the no hidden learning are shown.}
 	\label{hxsetuptransferability}
 \end{figure}
+All in all, the transferability between setups can not only be subjectively observed, but actually works without causing too much issues. One should keep in mind, that the calibration routine in use is heavily exposed to the cross-talk problematic, which can differ from setup to setup. Furthermore, the reduction of the fixed-pattern noise is limited to the neuron potentials. With the use of a more extensive and robust calibration routines, the performance and transferability will most certainly be increased. 
+

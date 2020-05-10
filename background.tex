@@ -201,7 +201,7 @@ Then the membrane is set to a reset potential \gls{v_reset} where it remains unc
 \end{equation*}
 Unlike for its biological counterpart, the modeled neuron cannot spike during the refractory period.
 
-\begin{figure}
+\begin{figure}[htb!]
 	\centering
 	\scalebox{0.93}{\input{figures/lif_adex_dynamics.pgf}}
 	\caption[Membrane dynamics of the \gls{lif} and \gls{adex} given a constant input.]{Membrane dynamics of the \gls{lif} and \gls{adex} given a constant input. \textbf{(a)} Evolution of the membrane potential $V_\text{m}^\text{LIF}$ according to the \gls{lif} model in response to a different stimulation currents. The first current is not strong enough to trigger an action potential. A more intense stimulation yields a repetitive and equidistant spiking pattern. \textbf{(b)} Given a small box shaped current, the evolution of the \gls{adex} neuron's potential $V_\text{m}^\text{AdEx}$ is similar to the \gls{lif} model. At higher inputs, a negative adaption suppresses a repetitive spiking pattern after the first spike. The peak resembles the positive exponential voltage feedback simulating an action potential. \textbf{(c)} A box-shaped stimulation current $I_\text{stim}$ is used for both models to show the course of the membrane potential. Figure taken from \citealp{stradmann2019msc}}
@@ -290,6 +290,7 @@ Without external noise, the fluctuations are small, reflecting only the variatio
 However, despite the strongly simplified picture, this view still offers a correct intuition of how the threshold, the leak potential and the strength of the noise effect the free membrane potential and in turn change the shape of the activation function: more noise leads to a broader distribution and thus a more gentle incline of the output rate, synaptic input moves the distribution to either a lower or a higher mean value, moving the threshold corresponds to an additional bias term. The latter has been motivated by \cite{petrovici2016stochastic}. The bias term in the neuron's activation can be adequately replaced by adapting the relative distance $\delta V$ between the resting potential and the threshold
 \begin{equation}
 b \propto \delta V = \gls{v_leak} - \gls{thres}.
+\label{biasproptothreseq}
 \end{equation}
 With the approximations made in \cref{fireratehigh} and \cref{fireratelow} as well as a suitable choice of neuron parameters, the activation function yields an sigmoidal shape (\cref{theoreticalactivationfunction}). The slope of the sigmoid can be easily adapted by changing the synaptic strength of the input spike trains. And the alignment along the x-axis can be done by the bias. Finding the appropriate neuron model parameters to create a well shaped sigmoid can be tricky. The parameters in-use are listed in \cref{hardwarevssimulationtable} in the appendix.
 
@@ -306,7 +307,7 @@ With the approximations made in \cref{fireratehigh} and \cref{fireratelow} as we
 		\input{figures/theoretical_activation_function_variablebias_new.pgf}
 		\label{theoreticalactivationfunctionbias}
 	\end{subfigure}
-	\caption[Simulation of a sigmoid activation function using Poisson noise]{Simulation of a sigmoid activation function using Poisson noise. The shape of the activation function \gls{activation} depends on several parameters of the \gls{lif} neuron and the Poisson input  spike trains. \textbf{(\subref{theoreticalactivationfunctionweight})} The input current that is seen by the neuron is directly proportional to the weight $\gls{isyn} \propto w_\text{in} \nu_\text{in}$. In this way, a lower weight causes a lower input current which in turn leads to smaller incline of the output rate (\emph{black}) than for a higher input weight (\emph{red} or \emph{blue}). \textbf{(\subref{theoreticalactivationfunctionbias})} The \emph{red} curve is centered at zero input which requires a small threshold offset of \SI{0.75}{\V}. A negative potential difference $\delta V$ shifts the sigmoid (\emph{black}) to the left. With a lower threshold the neuron starts to fire earlier. The potential difference of the \emph{blue} and \emph{black} curve relative to the centered sigmoid equals $\pm \SI{5}{\V}$.}
+	\caption[Simulation of a sigmoid activation function using Poisson noise]{Simulation of a sigmoid activation function using Poisson noise. The shape of the activation function \gls{activation} depends on several parameters of the \gls{lif} neuron and the Poisson input  spike trains. \textbf{(\subref{theoreticalactivationfunctionweight})} The input current that is seen by the neuron is directly proportional to the weight $\gls{isyn} \propto w_\text{in} \nu_\text{in}$. In this way, a lower weight causes a lower input current which in turn leads to smaller incline of the output rate (\emph{black}) than for a higher input weight (\emph{red} or \emph{blue}). \textbf{(\subref{theoreticalactivationfunctionbias})} The \emph{red} curve is centered at zero input which requires a small threshold offset of \SI{0.75}{\V}. A positive potential difference $\delta V$ shifts the sigmoid (\emph{black}) to the left. With a lower threshold the neuron starts to fire earlier. The potential difference of the \emph{blue} and \emph{black} curve relative to the centered sigmoid equals $\pm \SI{5}{\V}$.}
 	\label{theoreticalactivationfunction}
 \end{figure}
 
@@ -441,9 +442,21 @@ Depending on the chip version, the analogue core contains the physical implement
 The biological time constants of neurons and synapses are usually in the order of 1 to 100 milliseconds. The \textit{in-silico} implementation of the neuron models cause a temporal speed-up compared to their \textit{in-vivo} counterpart, leading to chip-time constants of a few microseconds. This acceleration is possible due to the supra-threshold dynamics of CMOS transistors. 
 
 \begin{figure}
-	\centering
-	\includegraphics[width=0.8\textwidth]{figures/synapse.png}
-	\caption[Synapse circuit overview on \gls{dls}]{Synapse circuit overview on \gls{dls}. Synapse drivers inject the presynaptic activity row-wise as either inhibitory or excitatory spikes. The 6-bit addresses of the presynaptic neuron is compared at each synapse with a local \SI{6}{\bit} address. If the addresses match, the spike is relayed to the corresponding neuron at the bottom of the synapse grid. The synaptic strength can be configured by a \SI{6}{\bit} weight. The two correlation sensors (causal and anti-causal) record \gls{stdp} traces. Figure from \cite{friedmann2016hybridlearning}.}
+	\begin{subfigure}[c]{0.7\textwidth}
+		\centering
+		\caption{}
+		\includegraphics[width=\textwidth]{figures/synapse.png}
+		\label{synapsecircuit}
+	\end{subfigure}	
+	\begin{subfigure}[c]{0.29\textwidth}
+		\centering
+		\caption{}
+		%\vspace{-1cm}
+		\input{dlsv2overview.tex}
+		\label{synapsearraysketch}
+		\vspace{1cm}
+	\end{subfigure}
+	\caption[Synapse circuit overview on \gls{dls}]{Synapse circuit overview on \gls{dls}. \textbf{(\subref{synapsecircuit})} Synapse drivers inject the presynaptic activity row-wise as either inhibitory or excitatory spikes. The 6-bit addresses of the presynaptic neuron is compared at each synapse with a local \SI{6}{\bit} address. If the addresses match, the spike is relayed to the corresponding neuron at the bottom of the synapse grid. The synaptic strength can be configured by a \SI{6}{\bit} weight. The two correlation sensors (causal and anti-causal) record \gls{stdp} traces. Figure taken from \cite{friedmann2016hybridlearning}. \textbf{(\subref{synapsearraysketch})} Overview of the row-wise synapse drivers and the synapse array. Figure adapted from \cite{billaudelle2019versatile}.}
 	\label{synapseschematics}
 \end{figure}
 

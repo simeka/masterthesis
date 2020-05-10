@@ -132,8 +132,9 @@ On the \gls{ppu} the Bernoulli process is implemented by comparing the frequency
 %\end{minted}
 
 \section{Activation Function on Chip}
-The theoretical background of how the activation function of a \gls{lif} neuron becomes sigmoidal has been motivated in \cref{ratecoding}. The main tool to create such an activation function is the continuous stimulation of the neuron with Poisson noise spike trains. Thereby a broad Gaussian distribution of the membrane potential is established, which in turn yields a sigmoid activation function. In \cref{vleak_w_noise}, the recorded free membrane potential on the \gls{dls} is shown while being stimulated by excitatory and inhibitory noise spike trains with a frequency of \SI{70}{\kilo \Hz} and a synaptic strength of $w_\text{noise}= 15$. The overall activation function then depends on several parameters such as the synaptic weights and frequencies of the spike sources, the neuron potentials as well as the time constants \gls{tau_m} and \gls{refrac}. 
+The theoretical background of how the activation function of a \gls{lif} neuron becomes sigmoidal has been motivated in \cref{ratecoding}. The main tool to create such an activation function is the continuous stimulation of the neuron with Poisson noise spike trains. Thereby a broad Gaussian distribution of the membrane potential is established, which in turn yields a sigmoid activation function. In \cref{vleak_w_noise}, the recorded free membrane potential on the \gls{dls} is shown while being stimulated by excitatory and inhibitory noise spike trains with a frequency of \SI{70}{\kilo \Hz} and a synaptic strength of $w_\text{noise}= 15$. 
 
+The overall activation function depends on several parameters such as the neuron potentials, the synaptic weights and frequencies of the spike sources as well as the time constants \gls{tau_m}, \gls{tau_syn} and \gls{refrac}. Most of these parameters are not required to be changed during the experiment. However, their choice has a great impact on the shape of the activation function. A suitable setting for these parameters was found by performing various parameter sweeps on the \gls{dls}. In the appendix in \cref{hardwarevssimulationtable} the final choice of parameters for the activation function are compared to ones chosen for the simulation in \cref{ratecoding}.
 %The continuous stimulation with Poisson spike trains leads to a Gaussian free membrane potential distribution $f_{\gls{v_mem}}$ centered around the resting potential \gls{v_leak} as depicted in \cref{vleak_w_noise}). In a naive approach, the part of the distribution that exceeds a certain threshold potential correlates to the number of fired spikes. This neglects non vanishing effects from the fire dynamics of the membrane which have been investigated in more detail by \citealp{petrovici12phdthesis}. The impact of these dynamics can be reduced by the use of very short time constants for the synaptic input \gls{tau_syn} and the membrane \gls{tau_m}.
 %
 %However, despite the strongly simplified picture, this view still offers a correct intuition how the threshold and leak potential as well as the strength of the noise effect the free membrane potential and in turn change the shape of the transfer function: more noise leads to a broader distribution and thus a more gently incline of the sigmoid; synaptic input moves the distribution to either to a lower or higher mean value; moving the threshold corresponds to an additional bias term.
@@ -141,15 +142,11 @@ The theoretical background of how the activation function of a \gls{lif} neuron 
 	\begin{center}
 		\input{figures/activation_function_vmem_distr_with_thres.pgf}
 	\end{center}
-	\caption[Gaussian free membrane potential distribution on \gls{dls}.]{Gaussian free membrane potential distribution on \gls{dls}. In a naive approach, the part of the distribution that exceeds a certain threshold potential correlates to the number of fired spikes, which yields a perfect sigmoid for the activation function in return. The width of the distribution correlates to amount and impact of the injected noise spikes.}
+	\caption[Gaussian free membrane potential distribution on \gls{dls}.]{Gaussian free membrane potential distribution on \gls{dls}. A broad distribution of the free membrane is achieved by sufficiently stimulating the membrane with Poisson noise spikes. By changing the frequency and impact of the noise spikes the width of the distribution can be changed. In a naive approach, the part of the distribution that exceeds a certain threshold potential correlates to the number of fired spikes (\textit{black}).}
 	\label{vleak_w_noise}
 \end{figure}
 
-
-
 %As shown in the simulation of the activation function in \cref{ratecoding}, the slope and of the activation function and its alignment along the x-axis can be easily modified.
-
-%A slope is tuned by 
 
 %\begin{equation}
 %\gls{transfer} = \gls{transfer}(\gls{nuin}, b, \gls{refrac}, \gls{tau_m}, \gls{v_reset}, f_{\gls{v_mem}}),
@@ -160,9 +157,11 @@ The theoretical background of how the activation function of a \gls{lif} neuron 
 %Some parameters will be kept fixed, whereas others are required to operate within a certain range such as the threshold or the input frequency. The setup is hand tuned with the support of parameter sweeps to find a suitable configuration of the fixed parameters. The final set of parameters is listed in \cref{hardwarevssimulationtable}
 %
 \paragraph{Calibration}\label{calibration}
-The manufacturing process of analog neuromorphic hardware causes systematic stochastic deviations in the neuron and synapse parameters. The thereby induced heterogeneity between neurons and synapses is referred to as \emph{fixed-pattern noise} and is constant in time. In an uncalibrated state, the neuron circuits exhibit activation functions which do not align with regards to their maximum rate and alignment along the x-axis (see \cref{transferfunction_wout_calib}). Despite the detuned parameters, it has been shown that plasticity rules can correct the intrinsic imperfections of the analog hardware up to a certain degree (\citealp{wunderlich2019advantages}). However, the dynamic range of the individual neurons on the chip is limited and to ensure properly overlapping activation function a calibration of the respective parameters is inevitable.
+The manufacturing process of analog neuromorphic hardware causes systematic stochastic deviations in the neuron and synapse parameters. The thereby induced heterogeneity between neurons and synapses is referred to as \emph{fixed-pattern noise} and is constant in time. In an uncalibrated state, the neuron circuits exhibit activation functions which do not align with regards to their maximum rate and alignment along the x-axis (see \cref{transferfunction_wout_calib}). Despite the detuned parameters, it has been shown that plasticity rules can correct the intrinsic imperfections of the analog hardware up to a certain degree (\citealp{wunderlich2019advantages}). However, the dynamic range of the individual neurons on the chip is limited and to ensure properly overlapping activation functions a calibration of the respective parameters is inevitable.
 
-\begin{figure}
+A collection of simple experiment-specific \gls{ppu}-based calibration routines is implemented to maintain a pure on-chip implementation. The calibration is based on a binary search algorithm to find the suitable \gls{dac}-values for the analog neuron parameters. In general, the binary search algorithm compares a target value to the middle value of a given sorted array. Depending on the outcome of the comparison the lower or the upper half is eliminated from the search space and the search is repeated with new boundaries which are set by the remaining half. In a worst case scenario, the algorithm finds the target value after $\mathcal{O}(\log(n))$ repetitions, given the searched array has $n$ entries  (\citealp{binarysearchsource}).
+
+\begin{figure}[tb!]
 	%\captionsetup[subfigure]{justification=centering}
 	\centering
 	\begin{subfigure}[b]{0.49\textwidth}
@@ -175,32 +174,23 @@ The manufacturing process of analog neuromorphic hardware causes systematic stoc
 		\input{figures/calibrated_activation_function.pgf}
 		\label{transferfunction_w_calib}
 	\end{subfigure}
-	\caption[Calibration of the sigmoid activation function on \acrshort{dls}.]{Calibration of the activation function on \acrshort{dls}. \textbf{(\subref{transferfunction_wout_calib})}: In the uncalibrated state the maximum rate (\gls{refrac}) and center alignment (\gls{v_leak}) deviates due to imperfection in the manufacturing process of the analog hardware.  \textbf{(\subref{transferfunction_w_calib})}: The calibration aligns the dynamic range of individual neurons, which helps the training.}
+	\caption[Calibration of the sigmoid activation function on \acrshort{dls}.]{Calibration of the activation function on \acrshort{dls}. \textbf{(\subref{transferfunction_wout_calib})}: In the uncalibrated state the maxima of the activation function and the position of the inflection point deviates due to fixed pattern noise of the hardware. \textbf{(\subref{transferfunction_w_calib})}: The calibration of the refractory time and the resting potential aligns the activation functions well.}
 \end{figure}
-
-A collection of simple experiment-specific \gls{ppu}-based calibration routines is implemented to maintain a pure on-chip implementation. The calibration is based on a binary search algorithm to find the suitable \gls{dac}-values for the analog neuron parameters. In general, the binary search algorithm compares a target value to the middle value of a given sorted array. Depending on the outcome of the comparison the lower or the upper half is eliminated from the search space and the search is repeated with new boundaries which are set by the remaining half. In a worst case scenario, the algorithm finds the target value after $\mathcal{O}(\log(n))$ repetitions, given the searched array has $n$ entries  (\citealp{binarysearchsource}).
 
 For the calibration of the activation function the sorted array is replaced with the \SI{10}{\bit} range of the targeted analog parameter. Instead of the direct comparison with a target value, a condition is chosen which resembles the desired calibration outcome. For instance, the maximum output frequency of the neuron is calibrated
 by changing the \gls{dac} value of the refractory period \gls{refrac}, since in the limit of high frequencies the output rate mainly depends on the refractory period, c.f. with \cref{fireratehigh}. As condition for the binary search, the maximum output rate \gls{nuout} is measured at a high input rate and compared to a target rate $\gls{nuout}^*$. Depending on the outcome, either half of the parameter range is eliminated from the search space.
 For the experiment, the target rate is set to \SI{111.3}{\kilo \Hz} which corresponds to $256$ recorded spikes over a measurement period of $T=\SI{2.3}{\milli \s}$.
 
-The calibration of the alignment along the x-axis is slightly more complicated. The activation function is centered if its inflection point is positioned at zero. In theory, the firing rate at the inflection point equals half the maximum rate. As shown in the simulation of the activation function in \cref{ratecoding}, the curve can be shifted along the x-axis by changing the potential difference $\delta V$ between the resting potential and the threshold. Since later on the threshold is used as the bias parameter, the \gls{dac}-value of the resting potential will be calibrated. As condition for the binary search, the rate of the activation function is measured with no additional input except for the noise sources and is compared to the half of the maximum rate.
+The calibration of the alignment along the x-axis is slightly more complicated. The activation function is centered if its inflection point is positioned at zero. In theory, the firing rate at the inflection point equals half the maximum rate. As shown in the simulation of the activation function in \cref{ratecoding}, the curve can be shifted along the x-axis by changing the potential difference $\delta V$ between the resting potential and the threshold. Since the threshold is already used as the bias parameter, the \gls{dac}-value of the resting potential will be calibrated. As condition for the binary search, the rate of the activation function is measured with no additional input except for the noise sources and is compared to the half of the maximum rate.
 
 During the calibration of the resting potential with respect to a centered inflection point of the activation function, the positioning of the sigmoid only depends on the relative potential difference $\delta V$. The choice of a work point for the absolute threshold and resting potential should in theory be arbitrary, as the whole operating range can be shifted. On analog hardware, this does not hold true, since some circuits exhibit limited operating ranges. As a consequence the work point is fixed by a threshold potential of \SI{0.54}{\V}.
 
 %In a practical observation, the center of the sigmoid activation function could be placed at zero input by balancing a fixed position of the reset potential with a minor correction of the bias. This was achieved by formulating the condition of the binary search for the bias related parameter in a way that at zero input the activation function returns half the maximum rate. For a higher output rate, the bias had to be reduced and vice versa. On chip, a change of the bias is applied by adapting the \gls{dac} value of the resting potential while keeping the threshold fixed at a chosen work point of approximately \SI{0.54}{\V}.
 %The choice of a work point for the absolute threshold and resting potential should in theory be arbitrary, as the whole operating range can be shifted. On analog hardware, this does not hold true, since some circuits exhibit limited operating ranges.
 
-\textbf{STOPPED HERE}
+In the context of analog circuits it is very unlikely to find the exact target \gls{dac}-value due to a temporal variability during the measurements. However, the algorithm continuously approximates the searched value under the chosen condition and serves its purpose well. Furthermore, the calibration of the refractory period and the resting potential are repeated and interleaved several times. This is done to reduce the influence of the other yet uncalibrated parameter. In the final calibration state, the activation functions align well (see \cref{transferfunction_w_calib}).
 
-The calibration of the refractory period and the resting potential is repeated and interleaved several times. This is done to reduce the potential influence of the other yet uncalibrated parameter. In \cref{transferfunction_w_calib} the final calibrated state is shown. 
-
-In the context of analog circuits it is very unlikely to find the exact target \gls{dac}-value due to a temporal variability during the measurements. However, the algorithm continuously approximates the searched value under the chosen condition. The 
-
-
-\paragraph{Bias and Synaptic Weights} As shown in the simulation of the activation function in \cref{ratecoding}, the slope and of the activation function and its alignment along the x-axis can be easily modified. ...
-
-\begin{figure}
+\begin{figure}[tb!]
 	\begin{subfigure}[c]{0.5\textwidth}
 		\centering
 		\caption{}
@@ -213,18 +203,12 @@ In the context of analog circuits it is very unlikely to find the exact target \
 		\input{figures/activation_function_w_bias.pgf}
 		\label{dlsactivationfunctionbias}
 	\end{subfigure}
-	\caption[Measurement of the sigmoid activation function on \gls{dls}]{Measurement of the sigmoid activation function on \gls{dls}. A sigmoid activation function can be achieved by applying additional Poisson noise spike trains onto the membrane. \textbf{(\subref{dlsactivationfunctionweight})}: The dependency of the input weight is given due to its direct proportionality to the synaptic input current $\gls{isyn} \propto w \nu_\text{in}$. \textbf{(\subref{dlsactivationfunctionbias})}: Changing the value of \gls{thres} and thereby the potnetial difference $\delta V$ to resting potential is interchangeable with adding a bias to the synaptic input of the neuron. The activation function is thereby shifted in either direction along the x-axis. This has been measured for all neurons in use for the Circles task. The shifted activation functions do not need to align per neuron, since the threshold parameter is set individually and can be easily adapted during the training.}
+	\caption[Changing the shape of the sigmoid activation function on \gls{dls}.]{Changing the shape of the sigmoid activation function on \gls{dls}. \textbf{(\subref{dlsactivationfunctionweight})}: The synaptic weight of the input is direct proportionality to the synaptic input current $\gls{isyn} \propto w \nu_\text{in}$ and effects the slope of the activation function. \textbf{(\subref{dlsactivationfunctionbias})}: The activation function can be shifted along the x-axis by changing the threshold. The dotted lines represent a higher threshold and thus a negative bias whereas the dashed lines correlates to a lower threshold and a positive bias.}
 \end{figure}
-%
-%\begin{figure}
-%	\begin{center}
-%		\input{figures/activation_function_w_bias.pgf}
-%	\end{center}
-%	\caption[Sigmoid transfer function on \gls{dls}.]{Sigmoid transfer function on \gls{dls}. The resulting transfer function of the broadened free membrane distribution is set to  Shifting \gls{thres} and thereby changing the relative potential difference $\delta V$ is interchangeable with adding a bias term to the \gls{lif} neuron's activation.}
-%	\label{transferfunction_with_bias}
-%\end{figure}
 
-The bias term $b$ is again replaced by the relative distance $\delta V$ between the resting potential and the threshold $b \propto \delta V$. As the analog core brings more and less favorable operating points, the resting potential is kept constant and only the threshold is shifted to change the bias (c.f. \cref{transferfunction_with_bias}).
+\paragraph{Synaptic Weights and Bias} As shown in the simulation of the activation function in \cref{ratecoding}, the slope and of the activation function and its alignment along the x-axis can be easily modified. By lowering the synaptic weight of the input the slope of the declines, since the total synaptic input exhibited by the membrane is reduce. A lower synaptic weight can also be interpreted as a stretch of the x-axis in \cref{dlsactivationfunctionweight}.
+
+More importantly, the threshold can be used as the bias. Changing the potential difference $\delta V$ between the threshold and the resting potential is interchangeable with adding a bias $b$ to the synaptic input current of the neuron, c.f. \cref{biasproptothreseq}. In \cref{dlsactivationfunctionbias} the activation function has been shifted in both direction by changing the threshold. Due to the fixed pattern noise, the shifted sigmoids do not align per neuron, but since the threshold parameter is set and trained individually the plasticity rule will correct the offset if necessary.
 
 
 
@@ -234,19 +218,26 @@ For the classification of the Circles dataset a single hidden layer network is t
 
 \paragraph{Forward Pass}
 
-\begin{wrapfigure}{R}{0.35\textwidth}
+%\begin{wrapfigure}{R}{0.35\textwidth}
+%	\centering
+%	\vspace{-1cm}
+%	\input{dlsv2overview.tex}
+%	\caption[Overview of the synapse array.]{Overview of the synapse array. Figure adapted from \cite{billaudelle2019versatile}.} 
+%	\label{synapsearraysketcha}
+%	\vspace{-1cm}
+%\end{wrapfigure}
+%The neuromorphic core of the \gls{dls} provides 32 analog neuron circuits which are interconnected by synapse array of $32 \times 32$ synapses (c.f. \cref{synapseschematics}). Any input spike to the network is injected row-wise by dedicated synapse drivers as either excitatory or inhibitory input current. At a column, the label of an incoming spike is compared with local address field and in case of a match the spike is relayed down to the designated neuron.
+\begin{wrapfigure}{R}{0.4\textwidth}
 	\centering
-	\vspace{-1cm}
-	\input{dlsv2overview.tex}
-	\caption[Overview of the synapse array.]{Overview of the synapse array. Figure adapted from \cite{billaudelle2019versatile}.} 
-	\label{synapsearraysketch}
-	\vspace{-1cm}
+	\vspace{-0.5cm}
+	\includegraphics[width=0.4\textwidth]{figures/overview_circles_synapses3.png}
+	\caption[Configuration of the synapse array for the Circles data set.]{Configuration of the synapse array for the Circles data set. } 
+	\label{overview_circles_synapses}
+	\vspace{-.5cm}
 \end{wrapfigure}
-The neuromorphic core of the \gls{dls} provides 32 analog neuron circuits which are interconnected by synapse array of $32 \times 32$ synapses (c.f. \cref{synapseschematics}). Any input spike to the network is injected row-wise by dedicated synapse drivers as either excitatory or inhibitory input current. At a column, the label of an incoming spike is compared with local address field and in case of a match the spike is relayed down to the designated neuron.
+As for \glspl{ann}, the synapse must be able to seamlessly evolve from an inhibitory weight to an excitatory weight and vice versa. By design a single synapse cannot alternate between the type of the weight without changing the synapse driver's configuration which is time-consuming and can only be done row-wise. Instead of a single input row, two rows are used for the same input - one in excitatory and one inhibitory mode. In each column only one of the double-synapses is active and corresponds to the current type of the synaptic weight. As the weight changes from excitatory to inhibitory, the excitatory synapse is silenced by setting its weight to zero while the other one is reactivated.
 
-As for \glspl{ann}, the synapse must be able to seamlessly evolve from an inhibitory weight to an excitatory weight and vice versa. By design a single synapse cannot alternate between the signs of the input without changing the synapse driver's configuration which is time-consuming and can only be done row-wise. Instead of a single input row, two rows are used for the same input - one in excitatory and one inhibitory mode. In each column only one of the double-synapses is active and corresponds to the current sign of the synaptic weight. As the weight changes the sign, the active synapse is silenced by setting its weight to zero and the other one is reactivated. 
-
-The first layer of the network, the input layer, is connected to the hidden units by using a total of four rows and eleven columns. A dedicated event router injects the generated spikes by the hidden neurons back into the network, with each hidden neuron requiring another double-row. The recurrent connections of the hidden layer are then summed by a single column over the respective $11 \times 2$ rows into the output unit. The weight of the noise sources remains fixed and thus they only require a single row, one for excitatory and one for inhibitory noise spikes.
+As shown in \cref{overview_circles_synapses} the first layer of the network, the input layer, is connected to the hidden units by two rows per $x$ and $y$ input over eleven columns. A dedicated spike router injects the generated spikes by the hidden neurons back into the network, with each hidden neuron requiring another double-row. The feedforward connections of the hidden layer are then relayed to a single column over the $11 \times 2$ rows, where the activity is combined for a single output unit. The synaptic weights of the excitatory and inhibitory noise spike trains remains fixed throughout the experiment and require each a single row with twelve columns.
 
 A Poisson spike train generator on the \gls{ppu} provides a stream of random spikes over a certain measurement period. The provided spike resources are split into four branches, two for the excitatory and inhibitory noise source and two for both input units. Each noise branch has to supply twelve neurons with Poisson spike trains. In an attempt to reduce correlated input between the individual neurons the branches are further divided into eight channels and thus only four will share the noise with other ones.
 
@@ -254,6 +245,8 @@ A Poisson spike train generator on the \gls{ppu} provides a stream of random spi
 %A presynaptic spike train, e.g. generated by the \gls{ppu}, is injected row-wise into the $32\times32$ synapse array. Then, the synapses compare a dedicated address label of the incoming spike with their own. Once they match, the spike is weighted and forwarded to the column-wise connected neurons at the bottom as either inhibitory or excitatory current. Recurrent connections are made available by the use of a spike router, which routes the postsynaptic spike trains generated by a neuron back into the synapse array.
 %A single input row cannot provide alternating negative and positive inputs to the same neuron. Changing the synapses configuration simply costs too much time. To ensure a continuous evolution of the weight from negative to positive, two rows are used simultaneously for the same input - one in excitatory and one inhibitory mode. As the weight changes sign, the unused row is set silent. At the start of the experiment the weights are randomly initialized using a uniform distribution limited to $w_{ij} \in [-25, 25]$.
 %The initial conditions of the network have been proven to crucial for its learning success. A ``silent" hidden units has a hard to time become active. Adding a weight depending term to the initial zero bias $b_i^\text{init} \propto \sum_j w_{ij}$ establishes a certain initial fire rate and solves the problem for most cases.
+
+\textbf{stopped here}
 
 \paragraph{Backward Pass}
 The output rates obtained by the forward pass are then used to compute the updates for weights and biases according to \glsfirst{sgd}.

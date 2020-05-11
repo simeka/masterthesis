@@ -78,14 +78,14 @@ For the purpose of the experiment, the membrane traces of 128 neurons are record
 		\input{figures/post_cadc_calib.pgf}
 		\label{postcadccalib}
 	\end{subfigure}
-	\caption[Pre and post calibration state of the \gls{cadc}.]{Pre and post calibration state of the \gls{cadc}. \textbf{(\subref{precadccalib})} The pre calibration \gls{cadc} measurement of a reference voltage ranging from \SIrange{0.2}{1.0}{\V} are not aligned. The slope and offset parameter differ per quadrant. Both quadrants from the upper chip half are shown. \textbf{(\subref{postcadccalib})} Both quadrants are calibrated such that they share the same characteristic. The thereby implicated conversion from \gls{dac} LSB to \si{\V} will be used throughout this chapter.}
+	\caption[Pre and post calibration state of the \gls{cadc}.]{Pre and post calibration state of the \gls{cadc}. \textbf{(\subref{precadccalib})} The pre calibration \gls{cadc} measurement of a reference voltage ranging from \SIrange{0.2}{1.0}{\V} are not aligned. The slope and offset parameter differ per quadrant. Both quadrants from the upper chip half are shown. \textbf{(\subref{postcadccalib})} Both quadrants are calibrated such that they share the same characteristic.}
 	\label{cadccalibration}
 \end{figure}
 Before the \gls{cadc} can be employed, its characteristic needs to be calibrated. This is done by setting various reference voltages and recording it by the \gls{cadc}. Since at the minimum voltage (\SI{0.0}{\V}) and maximum voltage (\SI{1.2}{\V}) the \gls{cadc} shows a non-linear behavior, the sweep range of the reference voltage is limited from \SIrange{0.2}{1.0}{\V}. Per quadrant, a slope and offset parameter of the characteristic is manually adjusted such that the full range of the LSBs is used. In addition to the per-quadrant settings, each channel has an individual offset parameter, that can be adjusted as well. Unlike the offset correction per channel, the ramp and slope parameters are not trivial to tune, since they show a sensitive cross-dependency in certain areas. A manual method was thereby preferred over an automated fit-routine. In \cref{cadccalibration} the pre and post calibration state of the characteristics are shown for both quadrants from the upper chip half. The thereby implicated conversion from \gls{dac} LSB to \si{\V} will be used for most of the data shown throughout this chapter.
 
 \paragraph{Calibration of \acrshort{lif} Neurons}
 %The manufacturing process of analog neuromorphic hardware causes systematic stochastic deviations in the neuron and synapse parameters. The thereby induced heterogeneity between neurons and synapses is referred to as \emph{fixed-pattern noise} and is constant in time. Despite the detuned parameters, it has been shown that plasticity rules can correct the intrinsic imperfections of the analog hardware to a certain degree (\citealp{wunderlich2019advantages}). 
-In chapter \cref{circles} it has already been mentioned that analog neuromorphic hardware exhibits fixed-pattern noise, which in turn can be corrected up to a certain degree by the plasticity rule in place (\citealp{wunderlich2019advantages}). It is therefore a constant trade-off of between resources invested into the calibration and a potential degrade of the learning performance by less tuned analog setups.
+In \cref{circles} it has already been mentioned that analog neuromorphic hardware exhibits fixed-pattern noise, which in turn can be corrected up to a certain degree by the plasticity rule in place (\citealp{wunderlich2019advantages}). It is therefore a constant trade-off of between resources invested into the calibration and a potential degradation of the learning performance by less tuned analog setups.
 
 At the time of the experiment, the development of chip-specific software for the new prototype was in an early stage. Among others, there was a lack of a calibration database and more generally, a lack of available calibrated hardware resources. This was largely due to an at the time impractical and slow calibration routine, that is based around the \gls{madc}. The \gls{madc} offers a precise measurement of an observable but does not provide any parallel readout.
 
@@ -220,9 +220,9 @@ The chosen initial conditions and neuron parameters for this experiment are insp
 	\caption[Time constants used for SuperSpike.]{Time constants used for SuperSpike. Shown is a comparison between the tuned hardware parameters used in this thesis and the original simulation.}
 	\label{temporalconstants}
 \end{table}
-A \gls{lif} neuron is fully described by a set of time constants and neuron potentials. Their specific values have a significant impact on the training performance. If for instance the time constants are chosen to short, the individual parts of the learning rule in \cref{superspikeweightupdatedivided} do not overlap anymore and will yield a vanishing weight update, despite an incorrect spiking behavior of the network. On the other hand, longer time constants will blur the network's temporal perception. The time constants used in the backward pass are shown in the \cref{temporalconstants} and resemble an average estimate of the detuned hardware time constants of the recorded membrane traces. 
+A \gls{lif} neuron is fully described by a set of time constants and neuron potentials. Their specific values have a significant impact on the training performance. If for instance the time constants are chosen too short, the individual parts of the learning rule in \cref{superspikeweightupdatedivided} do not overlap anymore and will yield a vanishing weight update, despite an incorrect spiking behavior of the network. On the other hand, longer time constants will blur the network's temporal perception. The time constants used in the backward pass are shown in the \cref{temporalconstants} and resemble an average estimate of the detuned hardware time constants of the recorded membrane traces. 
 
-In the given task, the neurons are not required to fire multiple times. The refractory period has therefore been increased to \SI{30}{\micro \s} to suppresses repetitive fire patterns. Another way of avoiding repetitive fire patterns is to set the reset potential far below the equilibrium state.
+In the given task, the neurons are not required to fire multiple times. The refractory period has therefore been increased to \SI{30}{\micro \s} to suppresses repetitive firing patterns. Another way of avoiding repetitive firing patterns is to set the reset potential far below the equilibrium state.
 
 The distance between the resting potential and the threshold defines the dynamic range of a non-spiking membrane. The choice of the distance follows two main motivations. A larger gap increases the dynamic range and therefore improves the \gls{snr} of the \gls{cadc} traces. At the same time, a greater potential difference between threshold and resting potential requires a stronger synaptic input current to trigger a fire response. A single input spike with a maximum excitatory weight and time constants set as in \cref{temporalconstants} increases the membrane potential by approximately \SI{0.3}{\V}. The final setting is a compromise of both assuring that the \SI{6}{\bit} weights are not maxing out during training and setting the potentials as far apart as possible. Since the overall input activity of the output layer is reduced compared to the hidden layer, the threshold of the output unit is further lowered by \SI{0.05}{\V}. The choice of the neuron potentials for the hidden and output layer is listed in \cref{initparameters}.
 
@@ -262,7 +262,7 @@ Another tunable parameter in the SuperSpike plasticity rule is the slope of the 
 \paragraph{Network Observables}
 In \cref{debugplot} the relevant traces of the forward and backward pass are shown for the final parameter settings. The first column shows raster plots of the incoming spike trains for the hidden (a) and output (d) layer, respectively. Their contribution to the membrane potential depends on the type and strength of the respective synapse. The second column depicts the recorded membrane traces of the hidden (b) and output layer (e). Despite the calibration of the membrane potential, the fixed-pattern noise of the chip is still clearly visible. The input of the output layer (d) resembles the spikes generated in the hidden layer, visible from the threshold crossings and subsequent membrane reset (c).
 
-The third column shows the error as given in \cref{superspikeerror}. The dashed vertical lines in the panes (e, f) indicate the time window within which the target output unit needs to spike. The interval is set in accordance with the duration of the input pattern and the neuron's time constants from \SI{0}{\micro \s} to \SI{80}{\micro \s}. As indicated by the color of the dashed lines, unit 1 is required to fire, but the membrane potential falls short of doing so (e). In this case, a target spike $t^*$ indicates where the silent output unit should have fired. The time is chosen to be near the end of input pattern at \SI{33}{\micro \s}. Depending on the preferred propagation method, the error of the output unit (f) is then relayed to the hidden unit (c) either by backpropagation or feedback alignment.
+The third column shows the error as given in \cref{superspikeerror}. The dashed vertical lines in the panes (e, f) indicate the time window within which the target output unit needs to spike. The interval is set in accordance with the duration of the input pattern and the neuron's time constants from \SI{0}{\micro \s} to \SI{80}{\micro \s}. As indicated by the color of the dashed lines, unit 1 is required to fire, but the membrane potential falls short of doing so (e). In this case, a target spike $t^*$ indicates where the silent output unit should have fired. The time is chosen to be near the end of the input pattern at \SI{33}{\micro \s}. Depending on the preferred propagation method, the error of the output unit (f) is then relayed to the hidden unit (c) either by backpropagation or feedback alignment.
 
 \begin{figure}
 	\centering
@@ -286,7 +286,7 @@ A hidden layer network is trained on the classification task with SuperSpike usi
 \begin{figure}
 	\centering
 	\input{figures/superspiketaskconsecutive.pgf}
-	\caption[Example of a training batch.]{Example of a training batch. After The chosen batch-size for the XOR-related task is eight. The network evaluates}
+	\caption[Example of a training minibatch.]{Example of a training minibatch. The chosen batch-size of the minibatches is eight. The break in the x-axis indicates the time needed to transfer the recorded \gls{cadc} data from the \gls{ppu} memory and the spike times from the digital back end to the host after an input pattern has been processed by the forward pass.}
 	\label{batchpatterns}
 \end{figure}
 
@@ -314,18 +314,17 @@ First, the standard backpropagation method is compared to feedback alignment, wh
 	\label{BPvsFA73}
 \end{figure}
 
-The performance of the training aligns well with the performance of the chosen validation data set (see \cref{BPvsFA73}). As expected, backpropagation converges significantly faster than feedback alignment. Interestingly the choice of the underlying distribution of the random matrix has not a great impact on the performance of the training, at least on the setup in use. Both distributions converge at the same velocity, despite an observed sensitivity on the range of the distributions during the parameter tuning.
+The performance of the training aligns well with the performance of the chosen validation data set (see \cref{BPvsFA73}). As expected, backpropagation converges significantly faster than feedback alignment. Interestingly the choice of the underlying distribution of the random matrix does not have a great impact on the performance of the training, at least on the setup in use. Both distributions converge at the same velocity, despite an observed sensitivity on the range of the distributions during the parameter tuning.
 
 \paragraph{The Necessity of Hidden Learning}
 As a sanity check, the learning rate of the hidden layer is set to zero. This validates, that the initial state of the hidden layer is not solving the task through the random weight initialization and thus the setup does not even require hidden learning. In a more drastic approach the whole hidden layer is removed. According to the theory, the network should not be able to perform under these circumstances as the XOR-related classification task specifically requires a hidden layer structure with a non-linear activation function (c.f. \citealp{Goodfellow-et-al-2016}).
 
-The performance of the setup with the applied limitations for the hidden layer is shown in \cref{hiddenlearning}. With the inability to train the hidden layer the accuracy cannot increase. The initial conditions are set in a way, that only little activity is generated by the hidden layer. In the following, the output layer receives only few spikes and fails to build a fire response upon them. In case of the removed hidden layer, the accuracy settles below 50 \%. This reflects the nature of the XOR-related classification task. In the best case only two out of four patterns are correctly identified. 
-All in all this confirms the necessity of hidden learning for the chosen classification task. Not only is a deep network structure required to solve the task, but also training activity within the hidden layer.
+The performance of the setup with the applied limitations for the hidden layer is shown in \cref{hiddenlearning}. With the inability to train the hidden layer, the accuracy does not improve by much. The initial conditions are set in a way that only little activity is generated by the hidden layer. In the following, the output layer receives only few spikes and fails to build a fire response upon them. The median accuracy settles around \SI{25}{\%} which reflects the correct classification of one out four input patterns. In case of the removed hidden layer, the median accuracy also settles around the same accuracy. The upper error bound is limited to \SI{50}{\%} which reflects the nature of the XOR-related task. In the best case only two out of four patterns are correctly identified without a hidden layer. All in all this confirms the necessity of hidden learning for the chosen classification task. Not only is a deep network structure required to solve the task, but also training activity within the hidden layer.
 
 \begin{figure}[htb!]
 		\centering
-		\input{figures/accuracy_63_hiddentraining.pgf}
-	\caption[Performance of SuperSpike without hidden learning or hidden layer.]{Performance of SuperSpike without hidden learning or hidden layer. The accuracy without the possibility to train the hidden layer remains low, as the initial state does not allow many spikes to pass the hidden layer. The accuracy of with a missing hidden layer settles below 50 \%. Due to the nature of the XOR related task, only two out of four answers can be correctly given without a deep structure.}
+		\input{figures/accuracy_73_hiddentraining.pgf}
+	\caption[Performance of SuperSpike without hidden learning or hidden layer.]{Performance of SuperSpike without hidden learning or hidden layer. The accuracy without the possibility to train the hidden layer remains low, as the initial state does not allow many spikes to pass the hidden layer. For a missing hidden layer, the accuracy settles around \SI{25}{\%}. The upper bound is limited to \SI{50}{\%} due to the nature of the XOR related task.}
 	\label{hiddenlearning}
 \end{figure}
 
@@ -349,23 +348,19 @@ Throughout the development process of the experimental setup for SuperSpike seve
 \end{figure}
 In a direct comparison of the calibrated membrane traces, the second chip is less precise. Specifically the resting potential is not well aligned as the membrane potential spans over almost \SI{0.3}{\V} at rest (\cref{hxsetupmemtracescomparison}). As a consequence, the threshold level in the hidden and output layer has been increased by \SI{0.05}{V}. Overall, the performance appeared to not suffer too much. To verify this, the presented data from above is remeasured on a different setup. In \cref{hxsetuptransferability} the individual performance of each setup is compared per propagation method. 
 
-Given the fair amount of spread in the resting potential, the second chip performs still reasonable well. As shown in \cref{backpropresults}, both setups achieve the same median accuracy with backpropagation, but the lower error bound of the ``73" setup is clearly smaller than for the other setup. In addition, the uncertainty increases only marginally on ``73" if more steps are taken into account, whereas on ``63" the average lower bound over 100 steps is at \SI{82.9}{\%}. The lower precision of the worse calibrated setup coincides with a visibly lower convergence speed in \cref{hxsetuptransferability}. 
-\begin{table}[h!]\centering\ra{1.3}
+\begin{table}[t!]\centering\ra{1.3}
 	\begin{tabular}{@{}rlcc@{}}\toprule
 		& \gls{hx}& average Accuracy (25 steps)	 & 	average Accuracy (100 steps) \\ \midrule
 		& no. 73			& 	 $100.0_{-5.2}^{+0.0}\,\%$ & 	$100.0_{-5.8}^{+0.0}\, \%$\\
 		& no. 63			&	$100.0_{-11.2}^{+0.0}\,\%$ &   $100.0_{-17.1}^{+0.0}\, \%$\\
 		\bottomrule
 	\end{tabular}
-	\caption[Performance of SuperSpike using backpropagation.]{Performance of SuperSpike using backpropagation. The average validation accuracy is evaluated by averaged the median accuracy over the last 25 respectively 100 steps. The uncertainty bounds are given by the mean 0.1-quantile in the subscript and by the mean 0.9-quantile in the superscript.}
+	\caption[Performance of SuperSpike using backpropagation.]{Performance of SuperSpike using backpropagation. The average validation accuracy is evaluated by averaging the median accuracy over the last 25 respectively 100 steps. The uncertainty bounds are given by the mean 0.1-quantile in the subscript and by the mean 0.9-quantile in the superscript.}
 	\label{backpropresults}
 \end{table}
- %  $(97.2 \pm 9.6) \%$ 73 100
-%  $(96.5 \pm 9.9) \%$ 73 250
-%  $(95.1 \pm 11.3) \%$ 63 100
-%  $(96.1 \pm 9.9) \%$ 63 250
 
-The performance of a random propagation matrix based on a normal distribution (``FA normal") is almost identical for both chips. If feedback alignment is performed with a uniformly drawn random matrix (``FA uniform") the detuned chip converges slower. For this specific task, normally distributed random weights are more robust to fixed-pattern noise than uniformly drawn ones. 
+Given the fair amount of spread in the resting potential, the second chip performs still reasonably well. As shown in \cref{backpropresults}, both setups achieve the same median accuracy with backpropagation, but the lower error bound of the ``73" setup is clearly smaller than for the other setup. In addition, the uncertainty increases only marginally on ``73" if more steps are taken into account, whereas on ``63" the average lower bound over 100 steps is at \SI{82.9}{\%}. The lower precision of the worse calibrated setup coincides with a visibly lower convergence speed as shown in \cref{hx63vs73bp}. 
+
 \begin{figure}[htb!]
 	\begin{subfigure}{0.245\textwidth}
 		\caption{}
@@ -395,8 +390,13 @@ The performance of a random propagation matrix based on a normal distribution (`
 		\input{figures/accuracy_63VS73_nohiddenlearning_small.pgf}
 		\label{hx63vs73nohidden}
 	\end{subfigure}
-	\caption[Setup transferability for SuperSpike.]{Setup transferability for SuperSpike. The \gls{hx} setups ``63" and ``73" are compared to each other. The performances of backpropagation, feedback alignment with a normal and uniform distribution and the no hidden learning are shown.}
+	\caption[Setup transferability for SuperSpike.]{Setup transferability for SuperSpike. The \gls{hx} setups ``63" and ``73" are compared to each other. The performances of various propagation methods such as backpropagation (\subref{hx63vs73bp}), feedback alignment with a normal distribution (\subref{hx63vs73fanormal}) and feedback alignment with a uniform distribution (\subref{hx63vs73fauniform}) are compared. In the last pane (\subref{hx63vs73nohidden}) the performance of no hidden learning is shown for both setups.}
 	\label{hxsetuptransferability}
 \end{figure}
-All in all, the transferability between setups can not only be subjectively observed, but actually works without causing too much issues. One should keep in mind, that the calibration routine in use is heavily exposed to the cross-talk problematic, which can differ from setup to setup. Furthermore, the reduction of the fixed-pattern noise is limited to the neuron potentials. With the use of a more extensive and robust calibration routine, the performance and transferability will most certainly be increased. 
+
+The performance of a random propagation matrix based on a normal distribution (\cref{hx63vs73fanormal}) is almost identical for both chips. If feedback alignment is performed with a uniformly drawn random matrix (\cref{hx63vs73fauniform}) the detuned chip converges slower. For this specific task, normally distributed random weights are more robust to fixed-pattern noise than uniformly drawn ones. 
+
+
+
+All in all, the transferability between setups can not only be subjectively observed, but actually works without causing too many issues. One should keep in mind, that the calibration routine in use is heavily exposed to the cross-talk problematic, which can differ from setup to setup. Furthermore, the reduction of the fixed-pattern noise is limited to the neuron potentials. With the use of a more extensive and robust calibration routine, the performance and transferability will most certainly be increased. 
 

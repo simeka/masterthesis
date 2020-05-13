@@ -265,7 +265,7 @@ Unlike for individual spikes, the gradient of the activation function can now be
 % In case of the \gls{lif} neuron, the activation function is similar to a \gls{relu}, with a significant difference, that the rate will no keep increasing but rather saturates quickly at a maximum frequency $\nu_\text{max}$ which is limited by the refractory period $\nu_\text{max} = \nicefrac{1}{\gls{refrac}}$.
 %The choice for a sigmoid activation function in combination with a cross entropy loss have already been motivated in. With a few adjustments the activation function can be implemented for a \gls{lif} model and rate-based coding.
 
-The choice for a sigmoid activation function in combination with a cross entropy loss has already been motivated in \cref{supervisedtraining}. In the following, the necessary adjustments to shape the response of the \gls{lif} neuron model into a sigmoidal activation function are presented.
+The choice for a sigmoidal activation function in combination with a cross entropy loss has already been motivated in \cref{supervisedtraining}. In the following, the necessary adjustments to shape the response of the \gls{lif} neuron model into a sigmoidal activation function are presented.
 
 The stimulation of a \gls{lif} neuron can be expressed by the synaptic input current \gls{isyn} or the corresponding input firing rate $\nu_\text{in}$. In analogy to the activation of an \gls{ann} the synaptic current is split up into an input and bias term $\gls{isyn} = I_\text{in} + I_\text{bias}$. The input spike rate $\nu_\text{in}$ of the neuron scales linearly with the synaptic current and therefore $\nu_\text{in} \propto I_\text{in}$. The activation function of the \gls{lif} neuron is then approximated by 
 \begin{equation}
@@ -311,7 +311,7 @@ With the approximations made in \cref{fireratehigh} and \cref{fireratelow} as we
 		\input{figures/theoretical_activation_function_variablebias_new.pgf}
 		\label{theoreticalactivationfunctionbias}
 	\end{subfigure}
-	\caption[Simulation of a sigmoid activation function using Poisson noise]{Simulation of a sigmoid activation function using Poisson noise. The shape of the activation function \gls{activation} depends on several parameters of the \gls{lif} neuron and the Poisson input  spike trains. \textbf{(\subref{theoreticalactivationfunctionweight})} The input current that is seen by the neuron is directly proportional to the weight $\gls{isyn} \propto w_\text{in} \nu_\text{in}$. In this way, a lower weight causes a lower input current which in turn leads to a smaller incline of the output rate (\emph{black}) than for a higher input weight (\emph{red} or \emph{blue}). \textbf{(\subref{theoreticalactivationfunctionbias})} The \emph{red} curve is centered at zero input which requires a small threshold offset of \SI{0.75}{\V}. A positive potential difference $\delta V$ shifts the sigmoid (\emph{black}) to the left. With a lower threshold the neuron starts to fire earlier. The potential difference of the \emph{blue} and \emph{black} curve relative to the centered sigmoid equals $\pm \SI{5}{\V}$.}
+	\caption[Simulation of a sigmoidal activation function using Poisson noise]{Simulation of a sigmoidal activation function using Poisson noise. The shape of the activation function \gls{activation} depends on several parameters of the \gls{lif} neuron and the Poisson input  spike trains. \textbf{(\subref{theoreticalactivationfunctionweight})} The input current that is seen by the neuron is directly proportional to the weight $\gls{isyn} \propto w_\text{in} \nu_\text{in}$. In this way, a lower weight causes a lower input current which in turn leads to a smaller incline of the output rate (\emph{black}) than for a higher input weight (\emph{red} or \emph{blue}). \textbf{(\subref{theoreticalactivationfunctionbias})} The \emph{red} curve is centered at zero input which requires a small threshold offset of \SI{0.75}{\V}. A positive potential difference $\delta V$ shifts the sigmoid (\emph{black}) to the left. With a lower threshold the neuron starts to fire earlier. The potential difference of the \emph{blue} and \emph{black} curve relative to the centered sigmoid equals $\pm \SI{5}{\V}$.}
 	\label{theoreticalactivationfunction}
 \end{figure}
 
@@ -383,7 +383,7 @@ The great success of deep learning in the recent years has also increased the de
 	\begin{subfigure}{0.49\textwidth}
 		\centering
 		\caption{}
-		\includegraphics[width=0.98\textwidth]{figures/hxsetup_img_close_edited2.pdf}
+		\includegraphics[width=0.98\textwidth]{figures/hxsetup_img_close_edited3.pdf}
 		\label{cubesetup}
 	\end{subfigure}	
 	\begin{subfigure}{0.49\textwidth}
@@ -393,7 +393,7 @@ The great success of deep learning in the recent years has also increased the de
 		\label{hxcloseup}
 	\end{subfigure}
 	\centering
-	\caption[The \acrshort{hx} setup.]{The \acrshort{hx} setup. \textbf{(\subref{cubesetup})} The chip (\textit{blue}) is mounted on a carrier board and protected by a cover. The carrier board (\textit{red}) is then mounted on the xBoard (\textit{gray}) which is connected to the \acrshort{fpga} over the cube setup (\textit{yellow}). \textbf{(\subref{hxcloseup})} Close-up of the newest \gls{bss2} single chip. The analog core of the neuromorphic chip is bonded before a protective cover is placed over it. Picture taken by M{\"u}ller, 2020.} 
+	\caption[The cube setup \acrshort{hx}.]{The cube setup \acrshort{hx}. \textbf{(\subref{cubesetup})} The chip (\textit{red}) is mounted on the chip carrier board and is protected by a cover. The chip carrier board (\textit{gray}) is then mounted on the xBoard (\textit{yellow}) which is connected to the \acrshort{fpga} over the cube iBoard (\textit{blue}). \textbf{(\subref{hxcloseup})} Close-up of the newest \gls{bss2} single chip. The analog core of the neuromorphic chip is bonded before a protective cover is placed over it. Picture taken by M{\"u}ller, 2020.} 
 	\label{hxsetup}
 \end{figure}
 
@@ -401,7 +401,7 @@ In the context of this thesis, the presented learning strategies from \cref{neur
 %
 The \gls{bss2} platform is designed to perform various plasticity algorithms on-chip. The core of the platform is based upon a complete redesign of its predecessor the \gls{hicann}. By reducing the CMOS manufacturing process from \SI{180}{\nano \m} to \SI{65}{\nano \m} several new features could be included on the new core. One of the main renewals is a general purpose unit which can be used for any on-chip computation and a specialized vector unit that efficiently provides parallel access to observables from the analog core. The features have been implemented step by step on various prototype versions. The following paragraphs will focus on the specifications of the prototypes used for the experimental implementations of the discussed deep learning methods (c.f. \cref{bss2prototypes}).
 
-On the \gls{dls} the redesign of the \gls{lif} neuron model is implemented. Moreover, the chip features a general purpose unit and a vector unit which are summarized as the \gls{ppu}. The \gls{dls} has been manufactured at a reduced size of $32$ neurons and $32 \times 32$ synapses to avoid unnecessary costs. The \gls{hx} is the first full-size prototype of the \gls{bss2} platform with 512 \gls{adex} neuron circuits and 256 possible synaptic connections per neuron. In addition to the \gls{ppu}, the chip features on-chip event routing and HAGEN extension, an early realization of a neuromorphic system which basically implements an on-chip analog matrix multiplication (\citealp{schemmel2020accelerated}). Another renewal are dedicated noise generators, which come in handy when working with sigmoid activation functions and rate coding (c.f. \cref{ratecoding}).
+On the \gls{dls} the redesign of the \gls{lif} neuron model is implemented. Moreover, the chip features a general purpose unit and a vector unit which are summarized as the \gls{ppu}. The \gls{dls} has been manufactured at a reduced size of $32$ neurons and $32 \times 32$ synapses to avoid unnecessary costs. The \gls{hx} is the first full-size prototype of the \gls{bss2} platform with 512 \gls{adex} neuron circuits and 256 possible synaptic connections per neuron. In addition to the \gls{ppu}, the chip features on-chip event routing and HAGEN extension, an early realization of a neuromorphic system which basically implements an on-chip analog matrix multiplication (\citealp{schemmel2020accelerated}). Another renewal are dedicated noise generators, which come in handy when working with sigmoidal activation functions and rate coding (c.f. \cref{ratecoding}).
 
 \begin{table}[t!]\centering\ra{1.3}
 	\begin{tabular}{@{}rcccc@{}}\toprule

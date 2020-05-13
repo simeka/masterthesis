@@ -5,7 +5,7 @@ The second experiment in this thesis is done on the most recent chip version of 
 % überleitungssatz to the task
 To benchmark the implementation a constructed task is taken from the original publication by \cite{zenke2018superspike} which is equivalent to solving the XOR problem on a time scale.
 
-\section{Task}
+\section{XOR-related Task}
 A total of 96 input units, each firing once at a fixed random spike time, is split into four overlapping collections of different size. In \cref{superspiketaskoverview}, the various spike trains are visualized. As in the exclusive-or, the four different input patterns are assigned to two target classes which are represented by two distinct neurons in the output layer. Despite the multiple input sources, the task is by construction only two-dimensional. The first input pattern $p_1$ overlaps with all other patterns. The units involved in $p_1$ can therefore be interpreted as bias or reference units, since they will fire regardless of the active pattern. The second and third pattern do not overlap except for their bias units. In analogy to the XOR operator these patterns compare to $1 \veebar 0 = 0 \veebar 1 = 1$. Their combination then yields the fourth pattern resembling $1 \veebar 1 = 0$. In this way, $p_1$ and $p_4$ are associated with class $0$ whereas the remaining two input spike trains correspond to class $1$. 
 
 \begin{figure}	

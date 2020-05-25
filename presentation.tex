@@ -1,0 +1,481 @@
+\documentclass[12pt, aspectratio=169]{beamer}
+
+\usetheme[progressbar=frametitle]{metropolis}
+\usepackage{appendixnumberbeamer}
+
+\usepackage{booktabs}
+\usepackage[scale=2]{ccicons}
+
+\usepackage{pgfplots}
+\usepgfplotslibrary{dateplot}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{siunitx}
+
+\usepackage{xspace}
+\newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
+
+\usepackage{amsmath}
+\usepackage{pgfplotstable}
+
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes.misc,shapes}
+\usetikzlibrary{decorations.pathreplacing}
+
+\definecolor{blue}{RGB}{0,91,130}% Diagram color blue % 100%
+\definecolor{lightblue}{RGB}{110,159,189}% Diagram color blue % 50%
+\definecolor{red}{RGB}{185,70,60}% Diagram color red % 100%
+\definecolor{lightred}{RGB}{198,141,132}% Diagram color red % 70%
+\definecolor{green}{RGB}{50,120,50}% Diagram color green % 100%
+\definecolor{lightgreen}{RGB}{164,181,153}% Diagram color green % 70%
+\definecolor{orange}{HTML}{D7AA50}
+\definecolor{purple}{HTML}{7A68A6}
+
+\usetikzlibrary{calc}
+\usetikzlibrary{fit}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes.misc,shapes}
+\usetikzlibrary{decorations.pathreplacing}
+
+
+%%%%%%%%%%%%%%%%%% START PRESENTATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Deep Learning on Analog Neuromorphic Hardware}
+\subtitle{Masterthesis}
+% \date{\today}
+\date{}
+\author{Simeon Kanya}
+\institute{Kirchhoff-Institute for Physics - Electronic Vision(s) Group}
+% \titlegraphic{\hfill\includegraphics[height=1.5cm]{logo.pdf}}
+
+\begin{document}
+
+\maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTRODUCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section[Intro]{Introduction}
+
+\begin{frame}{Neural Coding}
+	\begin{columns}[t]
+	\begin{column}{.5\textwidth}
+		\textbf{Rate Coding}
+		\begin{itemize}
+			\item firing rate $r = $ number spikes $n$ over a period $T$
+			\item robust to noise
+			\item slow
+			\item SNNs behave like an ANNs \\
+			$\Rightarrow$ stochastic gradient descent
+		\end{itemize}
+	\end{column}
+	\begin{column}{.5\textwidth}
+		\textbf{Temporal Coding}
+		\begin{itemize}
+			\item exact spike time, ISI
+			\item exposed to noise
+			\item responsive
+			\item spikes are non-differentiable\\
+			$\Rightarrow$ surrogate gradient descent 
+			\end{itemize}
+	\end{column}
+	\end{columns}
+\end{frame}
+
+% Details on components of network
+\begin{frame}{Recap MFP Talk}
+\begin{columns}[t]
+	\begin{column}{0.5\textwidth}
+		\textbf{Classifcation of \emph{Circles}}
+		\begin{itemize}
+			\item rate coding
+			\item on-chip gradient descent
+			\item random feedback weights
+			\item one hidden layer with 11 units
+			\item not easily transferable to other setups
+			\item promising on HXv1\\
+			$\Rightarrow$ on-chip noise generators
+		\end{itemize}
+	\end{column}
+	\begin{column}{0.5\textwidth}
+		\begin{figure}
+			\vspace{-1cm}
+			\begin{subfigure}{0.3\textwidth}
+				\centering
+				\includegraphics[scale=0.20]{mfp/learning_process/output_neuron_5.png}
+				\label{cubesetup}
+			\end{subfigure}
+			\begin{subfigure}{0.3\textwidth}
+				\centering
+				\includegraphics[scale=0.20]{mfp/learning_process/output_neuron_500.png}
+				\label{cubesetup}
+			\end{subfigure}	
+			\begin{subfigure}{0.3\textwidth}
+				\centering
+				\includegraphics[scale=0.20]{mfp/learning_process/output_neuron_2500.png}
+			\end{subfigure}
+		    \end{figure}
+		    
+		\begin{figure}
+		     	\vspace{-.7cm}
+		     	\scalebox{0.8}{\input{figures/circles_learning_performance_v2.pgf}}
+		\end{figure}
+		
+		\vspace{-1.5cm}
+	\end{column}
+	\end{columns}
+\end{frame}
+
+\section{SuperSpike on Hicann-Xv1}
+% Gradient Descent on components of network
+\begin{frame}{Surrogate Gradient Descent (SuperSpike)}
+Gradient descent is performed on the \textbf{loss function} $\mathcal{L}$. Given a \textbf{learning rate} $\eta$ the parameters (e.g. weight) update accordingly:\\
+\begin{equation*}
+\frac{\partial w_{ij}}{\partial t} = \eta \int_{-\infty}^{t} dt'
+\underbrace{\left(\alpha \ast (S^*_i - S_i)\right)}_{= e_i \; \text{(Error)}} 
+\; \alpha \ast 
+\Big(\underbrace{\sigma'(V_{\text{m},i})}_{\text{Post}} 
+\underbrace{\left(\epsilon \ast S_j\right)}_{\text{Pre}}\Big)
+\label{superspikeweightupdateeq}
+\end{equation*}
+
+\begin{equation*}
+\lambda_{ij}^{(o)} = \alpha \ast 
+\Big(\underbrace{\sigma'(V^{(o)}_{\text{m},i})}_{\text{Post}} 
+\underbrace{\big(\epsilon \ast S_j^{(o)}\big)}_{\text{Pre}}\Big),
+\end{equation*}
+\end{frame}
+\newcommand{\circleone}{\tikz\draw[black, line width=1.5pt] (0,0) circle (.8ex);}
+\newcommand{\circletwo}{\tikz\draw[red, line width=1.5pt] (0,0) circle (.6ex);}
+\newcommand{\circlethree}{\tikz\draw[blue, line width=1.5pt] (0,0) circle (.4ex);}
+\newcommand{\circlefour}{\tikz[baseline=-0.5ex]\draw[green, line width=1.5pt] (0,0) circle (.2ex);}
+\begin{frame}{XOR Task}
+	\begin{columns}[t]
+		\begin{column}{0.32\textwidth}
+		\begin{table}
+			\begin{tabular}{@{}cccc@{}}\toprule
+				&\circleone		& $0 \veebar 0 = 0$ \\
+				&\circletwo		& $0 \veebar 1 = 1$ \\
+				&\circlethree	& $1 \veebar 0 = 1$ \\
+				&\circlefour	& $1 \veebar 1 = 0$ \\ \bottomrule
+			\end{tabular}
+			\caption{XOR-table}
+		\end{table}
+		\end{column}
+		\begin{column}{0.32\textwidth}
+		\begin{figure}
+			%\vspace{-.7cm}
+			\scalebox{0.6}{\input{figures/superspiketasksector.pgf}}
+		\end{figure}
+		\end{column}
+		\begin{column}{0.32\textwidth}
+			\begin{figure}
+				%\vspace{-.7cm}
+				\scalebox{0.6}{\input{figures/superspiketask.pgf}}
+			\end{figure}
+		\end{column}
+	\end{columns}
+\end{frame}
+
+%\begin{tabular}{@{}ccc@{}}\toprule
+%	&\circleone		& $0 \veebar 0 = 0$ \\
+%	&\circletwo		& $0 \veebar 1 = 1$ \\
+%	&\circlethree	& $1 \veebar 0 = 1$ \\
+%	&\circlefour	& $1 \veebar 1 = 0$ \bottomrule
+%\end{tabular}
+\begin{frame}{Task and Error}
+	\begin{align*}
+	e_\text{outside}(t) &= - S_i(t) \cdot \left(H(t^*_0 - t) + H(t - t^*_1)\right), \\
+	e_\text{inside}(t) &= 
+	\begin{cases}
+	0 ,&\quad \quad \text{if} \quad \exists \; t^{(s)}_i \in [t^*_0, t^*_1], \\
+	(\epsilon \ast t^*)(t) ,& \quad \quad \text{else}.
+	\end{cases}
+	\end{align*}
+\end{frame}
+
+\begin{frame}{Backward Pass and Gradient Descent}
+Gradient descent is performed on the \textbf{loss function} $\mathcal{L}$. Given a \textbf{learning rate} $\eta$ the parameters (e.g. weight) update accordingly:\\
+\begin{align*}
+   \text{output:} \quad \delta W =& - \eta \frac{\partial \mathcal{L}}{\partial W} 
+            = - \eta \;
+            \underbrace{\frac{\partial\mathcal{L}}{\partial \vec{y}} \;
+                        \frac{\partial \vec{y}}{\partial \vec{a} }}_{=\vec{e}\; \text{(error)}} \;
+              \frac{\partial \vec{a}}{\partial W}
+            = - \eta \, (\vec{e} \cdot \vec{x}^T)\\
+            \\ 
+   \text{hidden:} \quad \delta W =& - \eta \;
+                                (W^T \cdot \vec{e}) \;
+                                \nabla \phi(\vec{a}) \;
+                                \vec{x}^T\\
+   \text{feedback alignment:} \quad \delta W =& - \eta \;
+                                (B \cdot \vec{e}) \;
+                                \nabla \phi(\vec{a}) \;
+                                \vec{x}^T\;\\
+    \text{with } B \text{ being random matrix}
+\end{align*}
+\end{frame}
+
+\section[Implementation on DLSv2]{Implementation on DLSv2}
+% How is the activation of an hidden layer working
+% Neuron (Vmem + Noise)
+\begin{frame}{Membrane Potential and Noise}
+    \begin{figure}[!htb]    	
+        \minipage{0.5\textwidth}
+        \centering
+            \begin{figure}
+               \scalebox{1.75}{\input{mfp/neural_network_single_neuron_noise.tex}}
+                \label{neural network}
+            \end{figure}
+      	\endminipage\hfill
+      	\minipage{0.5\textwidth}
+        	\vspace{20pt}
+      	    \centering
+            \begin{figure}
+                \includegraphics[scale=0.5]{mfp/activation_function_vmem_distr.png}
+                \label{membrane_potential}
+            \end{figure}
+        \endminipage\hfill
+    \end{figure}
+\end{frame}
+
+% Neuron + Threshold => spikes
+\begin{frame}{Membrane Potential and Threshold}
+    \begin{figure}[!htb]
+    	\minipage{0.5\textwidth}
+            \begin{itemize}
+                \item membrane potential exceeds the threshold $\Rightarrow$ spiking
+                \item fast time constants necessary
+                \item $\delta V = V_{\text{leak}} - V_{\text{thres}}$
+                \item transfer function $\phi$ depends on $\delta V$
+            \end{itemize}
+      	\endminipage\hfill
+      	\minipage{0.5\textwidth}
+      	    \centering
+      	    \vspace{20pt}
+            \begin{figure}
+                \includegraphics[scale=0.5]{mfp/activation_function_vmem_distr_with_thres.png}
+                \label{membrane_potential}
+            \end{figure}
+        \endminipage\hfill
+    \end{figure}
+\end{frame}
+
+% Neuron + input => move distr
+\begin{frame}{Membrane Potential and Input}
+    \begin{figure}[!htb]
+    	\minipage{0.5\textwidth}
+            \begin{itemize}
+                \item excitatory input (Poisson spiketrain with $\sim 40 \text{kHz}$)
+                \item inhibitory and excitatory noise (each $\sim 30 \text{kHz}$)
+                \item weights: $w_{\text{input}} = 2 \times w_{\text{noise}}$
+                \item inhibitory input for other direction
+            \end{itemize}
+      	\endminipage\hfill
+      	\minipage{0.5\textwidth}
+      	    \centering
+      	    \vspace{20pt}
+            \begin{figure}
+            
+                \includegraphics[scale=0.5]{mfp/activation_function_vmem_distr_with_input_with_thres.png}
+                \label{membrane_potential}
+            \end{figure}
+        \endminipage\hfill
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Transfer Function on DLSv2}
+    \centering
+            \begin{figure}
+                \includegraphics[scale=0.48]{mfp/uncalibrated_activation_function_input_single.png}
+                \label{membrane_potential}
+            \end{figure}
+\end{frame}
+
+\begin{frame}{Transfer Function on DLSv2}
+    \centering
+            \begin{figure}
+                \includegraphics[scale=0.48]{mfp/uncalibrated_activation_function_input.png}
+                \label{membrane_potential}
+            \end{figure}
+\end{frame}
+
+\begin{frame}{Un-/Calibrated Transfer Functions}
+    \begin{figure}[!htb]
+    	\minipage{0.5\textwidth}
+            \centering
+            \textbf{uncalibrated}
+            \begin{figure}
+                \includegraphics[scale=0.44]{mfp/uncalibrated_activation_function_input.png}
+                \label{membrane_potential}
+            \end{figure}
+      	\endminipage\hfill
+      	\minipage{0.5\textwidth}
+            \centering
+            \textbf{calibrated}
+            \begin{figure}
+                \includegraphics[scale=0.44]{mfp/calibrated_activation_function_input.png}
+                \label{membrane_potential}
+            \end{figure}
+        \endminipage\hfill
+    \end{figure}
+\end{frame}
+
+% What about Bias => move the threshold around
+\begin{frame}{$V_{\text{thres}}$ as Bias}
+    \begin{figure}[!htb]
+    	\minipage{0.5\textwidth}
+            \begin{itemize}
+                \item moving $V_{\text{thres}}$ changes $\delta V$
+                \item bias $b \propto \delta V $\\
+                \item $b < 0 \Rightarrow $ fewer spikes $\Rightarrow$ shifted to the right
+                
+                \item conserves the working point of the membrane potential
+            \end{itemize}
+      	\endminipage\hfill
+      	\minipage{0.5\textwidth}
+            \centering
+            \vspace{20pt}
+            \begin{figure}
+                \includegraphics[scale=0.5]{mfp/bias_for_activation_function.png}
+                \label{membrane_potential}
+            \end{figure}
+        \endminipage\hfill
+    \end{figure}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LEARNING PROCESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section[Learning]{Deep Learning}
+% What about Bias => move the threshold around
+\begin{frame}{Learning Task: Circles}
+    \begin{figure}[!htb]
+    	\minipage{0.65\textwidth}
+            \begin{itemize}
+                \item feature plane: two inputs ("x" and "y")
+                \item two classes:
+                \begin{enumerate}
+                    \item inner circle: \textbf{low} target rate $y^* = 32.6\, \text{kHz}$
+                    \item outer circle: \textbf{high} target rate $y^* = 93.5\, \text{kHz}$
+                \end{enumerate}
+                \item find an appropriate decision-boundary
+                \item on-Chip learning only
+            \end{itemize}
+      	\endminipage\hfill
+      	\minipage{0.35\textwidth}
+            \centering
+            \begin{figure}
+                \includegraphics[scale=0.5]{mfp/targets.png}
+                \label{membrane_potential}
+            \end{figure}
+        \endminipage\hfill
+    \end{figure}
+\end{frame}
+
+\begin{frame}{On-Chip Experiment Design}
+    \begin{figure}[!htb]
+    	\minipage{0.6\textwidth}
+    	    \textbf{Analog Core}
+            \begin{itemize}
+                \item $32$ LIF neurons
+                \item $32 \times 32$ current based synapses
+            \end{itemize}
+        \textbf{PPU}
+            \begin{itemize}
+                \item experiment control
+                \item noise and input generation
+                \item update model parameters
+            \end{itemize}
+        
+      	\endminipage\hfill
+      	\minipage{0.4\textwidth}
+      	\centering
+      	
+            \scalebox{.9}{\input{mfp/dls2.tex}}
+        
+            \begin{figure}
+                \includegraphics[scale=0.22]{mfp/synapse_array_transparent.png}
+                \label{membrane_potential}
+            \end{figure}
+        \endminipage\hfill
+    \end{figure}
+\end{frame}
+
+% Performance
+\begin{frame}{Learning Performance}
+\begin{figure}[!htb]
+	\minipage{0.65\textwidth}
+        \begin{figure}
+            \includegraphics[scale=0.6]{mfp/learning_process/learning_performance.png}
+        \end{figure}
+  	\endminipage\hfill
+  	\minipage{0.35\textwidth}
+  	\centering
+        target
+        \begin{figure}
+            \includegraphics[scale=0.25]{mfp/targets.png}
+            \label{fig:my_label}
+        \end{figure}
+        output
+        \begin{figure}
+            \includegraphics[scale=0.25]{mfp/output_neuron_4000.png}
+            \label{fig:my_label}
+        \end{figure}
+    \endminipage\hfill
+\end{figure}
+\end{frame}
+
+\section[Summary]{Summary}
+
+\begin{frame}{Conclusion and Outlook}
+\begin{figure}[!htb]
+	\minipage{0.7\textwidth}
+        \textbf{Circles}
+            \begin{itemize}
+                \item performance with shorter measurement period
+                \item controlled decalibration
+                \item stability: better choice of system parameters
+                \item implementation on HICANN-X
+            \end{itemize}
+        \textbf{SuperSpike}
+        \begin{itemize}
+            \item prototype implementation on HICANN-X (computation via host)
+            \item implement host computation on-chip
+            \item on-chip only possible with next tape-out (Spring 2020)
+        \end{itemize}
+  	\endminipage\hfill
+  	\minipage{0.3\textwidth}
+  	\centering
+        \begin{figure}
+            \includegraphics[scale=0.3]{mfp/output_neuron_4000.png}
+            \label{fig:my_label}
+        \end{figure}
+    \endminipage\hfill
+\end{figure}
+\end{frame}
+
+\appendix
+
+\begin{frame}[fragile]{Backup slides}
+\centering
+        \begin{figure}
+            \includegraphics[scale=0.5]{mfp/model_parameters.png}
+            \label{fig:my_label}
+        \end{figure}
+\end{frame}
+
+\begin{frame}[fragile]{Backup slides}
+\centering
+        \begin{figure}
+            \includegraphics[scale=0.65]{mfp/rates_dist.png}
+            \label{fig:my_label}
+        \end{figure}
+\end{frame}
+
+\begin{frame}[fragile]{Backup slides}
+\textbf{Hardware Parameters}
+\begin{itemize}
+    \item $\tau_{\text{syn\_exc}}$ = 1e-5 s
+    \item $\tau_{\text{mem}}$ = 5e-7 s
+    \item $\tau_{\text{refrac}}$ = 9e-6 s
+    \item PulseLength = 1
+    \item Mmnt periode = 2.3 ms
+\end{itemize}
+\end{frame}
+  	
+\end{document}

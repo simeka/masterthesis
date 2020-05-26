@@ -89,7 +89,7 @@
 			\item random feedback weights
 			\item one hidden layer with 11 units
 			\item not easily transferable to other setups
-			\item promising on HXv1\\
+			\item promising on HXv2\\
 			$\Rightarrow$ on-chip noise generators
 		\end{itemize}
 	\end{column}
@@ -125,7 +125,11 @@
 \section{SuperSpike on Hicann-Xv1}
 % Gradient Descent on components of network
 \begin{frame}{Surrogate Gradient Descent (SuperSpike)}
-Gradient descent is performed on the \textbf{loss function} $\mathcal{L}$. Given a \textbf{learning rate} $\eta$ the parameters (e.g. weight) update accordingly:\\
+SuperSpike is based on the van Rossum distance as loss. The thereby ill-defined gradient of the spike train is replaced by a \emph{surrogate}:\\
+\begin{equation*}
+\frac{\partial S_i}{\partial w_{ij}} \quad \rightarrow \quad \sigma'(V_{\text{m},i})\frac{\partial V_{\text{m},i}}{\partial w_{ij}},
+\end{equation*}
+and the weight update is given by
 \begin{equation*}
 \frac{\partial w_{ij}}{\partial t} = \eta \int_{-\infty}^{t} dt'
 \underbrace{\left(\alpha \ast (S^*_i - S_i)\right)}_{= e_i \; \text{(Error)}} 
@@ -135,12 +139,13 @@ Gradient descent is performed on the \textbf{loss function} $\mathcal{L}$. Given
 \label{superspikeweightupdateeq}
 \end{equation*}
 
-\begin{equation*}
-\lambda_{ij}^{(o)} = \alpha \ast 
-\Big(\underbrace{\sigma'(V^{(o)}_{\text{m},i})}_{\text{Post}} 
-\underbrace{\big(\epsilon \ast S_j^{(o)}\big)}_{\text{Pre}}\Big),
-\end{equation*}
+%\begin{equation*}
+%\lambda_{ij}^{(o)} = \alpha \ast 
+%\Big(\underbrace{\sigma'(V^{(o)}_{\text{m},i})}_{\text{Post}} 
+%\underbrace{\big(\epsilon \ast S_j^{(o)}\big)}_{\text{Pre}}\Big),
+%\end{equation*}
 \end{frame}
+
 \newcommand{\circleone}{\tikz\draw[black, line width=1.5pt] (0,0) circle (.8ex);}
 \newcommand{\circletwo}{\tikz\draw[red, line width=1.5pt] (0,0) circle (.6ex);}
 \newcommand{\circlethree}{\tikz\draw[blue, line width=1.5pt] (0,0) circle (.4ex);}
@@ -173,13 +178,17 @@ Gradient descent is performed on the \textbf{loss function} $\mathcal{L}$. Given
 	\end{columns}
 \end{frame}
 
-%\begin{tabular}{@{}ccc@{}}\toprule
-%	&\circleone		& $0 \veebar 0 = 0$ \\
-%	&\circletwo		& $0 \veebar 1 = 1$ \\
-%	&\circlethree	& $1 \veebar 0 = 1$ \\
-%	&\circlefour	& $1 \veebar 1 = 0$ \bottomrule
-%\end{tabular}
-\begin{frame}{Task and Error}
+
+\begin{frame}{Adapted Error}
+	The van Rossum distance is changed from a specific target spike time $t^*$ to a target time window $[t_0^*, t_1^*]$
+	\begin{equation*}
+	e_i(t) = \begin{cases}
+	\left(\alpha \ast \big(e_\text{outside, i} + e_\text{inside, i}\big)\right)(t),& \quad \quad \text{if} \quad \text{class}(p_j) == i, \\
+	- (\alpha \ast S_i)(t)	,& \quad \quad \text{else}. 
+	\end{cases}
+	\label{superspikeerror}
+	\end{equation*}
+	The
 	\begin{align*}
 	e_\text{outside}(t) &= - S_i(t) \cdot \left(H(t^*_0 - t) + H(t - t^*_1)\right), \\
 	e_\text{inside}(t) &= 
@@ -189,6 +198,33 @@ Gradient descent is performed on the \textbf{loss function} $\mathcal{L}$. Given
 	\end{cases}
 	\end{align*}
 \end{frame}
+
+\begin{frame}{Chip-in-the-Loop}
+	\texttt{HXBlackbox} + SuperSpike Simulation $\Rightarrow$ \texttt{HXSuperSpike}
+	\begin{columns}
+		\begin{column}{0.45\textwidth}
+			\begin{itemize}
+				\item Deep network (96 - 30 - 2)  
+				\item Forward pass on-chip
+				\item PPU-based membrane potential readout (CADC)
+				\item Host-based backward pass
+			\end{itemize}
+		\end{column}
+		\begin{column}{0.55\textwidth}
+			\begin{figure}
+				\scalebox{0.5}{\input{figures/superspiketaskconsecutive.pgf}}
+			\end{figure}
+		\end{column}
+	\end{columns}
+\end{frame}
+
+%\begin{tabular}{@{}ccc@{}}\toprule
+%	&\circleone		& $0 \veebar 0 = 0$ \\
+%	&\circletwo		& $0 \veebar 1 = 1$ \\
+%	&\circlethree	& $1 \veebar 0 = 1$ \\
+%	&\circlefour	& $1 \veebar 1 = 0$ \bottomrule
+%\end{tabular}
+
 
 \begin{frame}{Backward Pass and Gradient Descent}
 Gradient descent is performed on the \textbf{loss function} $\mathcal{L}$. Given a \textbf{learning rate} $\eta$ the parameters (e.g. weight) update accordingly:\\
